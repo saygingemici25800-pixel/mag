@@ -154,6 +154,9 @@
 .item.focus {
   transform: translate(-50%, 0) scale(1.14);
 }
+.item picture {
+  display: contents; /* <picture> yerleşimi etkilemesin; img doğrudan .item'ın çocuğu gibi */
+}
 .item.wide img,
 .item.wide .refl {
   height: min(27vh, 204px);
