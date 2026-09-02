@@ -22,7 +22,7 @@ export default function Chrome() {
           <i>.</i>
         </Link>
         <nav className="navR">
-          <Link href="/siparis" className="menu" prefetch={false}>
+          <Link href="/siparis" className="menu" prefetch={false} aria-label={t.menu}>
             <span className="grid2" aria-hidden="true">
               <s />
               <s />

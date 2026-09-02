@@ -150,6 +150,10 @@
   transform-origin: 50% 50%;
   transform: translate(-50%, 0);
 }
+/* SSR ilk karesi: odaktaki parça hero ölçeğinde (×1.14) boyansın ki LCP hydration'ı beklemesin; JS inline transform ile ezer */
+.item.focus {
+  transform: translate(-50%, 0) scale(1.14);
+}
 .item.wide img,
 .item.wide .refl {
   height: min(27vh, 204px);
