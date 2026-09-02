@@ -1,0 +1,73 @@
+{
+  "meta": {
+    "title": "MAG Street Food — Fethiye",
+    "description": "Fethiye'de 130 gr köfte, günlük brioche, cheddar & gravyer ve dört ev sosu. Burger, taco ve noodle. Gel-al ve kurye."
+  },
+  "chrome": {
+    "open": "Açık",
+    "menu": "Menü",
+    "contact": "İletişim",
+    "city": "FETHIYE",
+    "brand": "mag"
+  },
+  "hero": {
+    "sub": "patates kızartması dahil",
+    "hint": "Keşfetmek için kaydır",
+    "prev": "önceki",
+    "next": "sonraki",
+    "prevAria": "Önceki ürün",
+    "nextAria": "Sonraki ürün"
+  },
+  "claims": [
+    {
+      "no": "donmuş köfte",
+      "l1": "130 GR",
+      "l2": "KIYMA",
+      "d": "Her burgerde 130 gr köfte var. Kıymayı her sabah kendimiz çekiyoruz, dünden kalanı tezgâha çıkmıyor."
+    },
+    {
+      "no": "market ekmeği",
+      "l1": "GÜNLÜK",
+      "l2": "BRIOCHE",
+      "d": "Ekmek her gün taze geliyor, siparişte tereyağında tavada mühürleniyor."
+    },
+    {
+      "no": "tek tip peynir",
+      "l1": "CHEDDAR",
+      "l2": "& GRAVYER",
+      "d": "Menüde iki gerçek peynir var: cheddar ve gravyer. Kaplama peynir kullanmıyoruz."
+    },
+    {
+      "no": "hazır sos",
+      "l1": "DÖRT",
+      "l2": "EV SOSU",
+      "d": "Trüflü mayonez, jalapeno, sweet & chili ve MAG sos. Dördü de mutfakta yapılıyor, yanına 50 ₺."
+    }
+  ],
+  "rail": ["🥩", "🍞", "🧀", "🫙"],
+  "payoff": ["ATEŞ", "VE ET"],
+  "faq": {
+    "title": ["SIKÇA", "SORULANLAR"],
+    "items": [
+      "Paket servis ve gel-al var mı?",
+      "Burgerlerin yanında patates geliyor mu?",
+      "Sosları ayrı isteyebilir miyim?",
+      "Taco ve noodle da yapıyor musunuz?",
+      "Kaçta kapanıyorsunuz?"
+    ]
+  },
+  "footer": {
+    "title": ["BİZE", "KATIL"],
+    "lead": "Yeni ürünler ve kampanyalardan ilk sen haberdar ol.",
+    "placeholder": "e-posta adresin",
+    "cta": "Kaydol",
+    "legal": "Kaydolarak gizlilik politikamızı kabul etmiş olursun.",
+    "copy": "© 2026 MAG. STREET FOOD · FETHİYE",
+    "tiktok": "TikTok",
+    "instagram": "Instagram",
+    "links": ["Yasal Bilgiler", "Mesafeli Satış", "KVKK", "Çerezler"]
+  },
+  "preloader": {
+    "brand": "mag"
+  }
+}

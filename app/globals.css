@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+/* ---- tasarım tokenları (spec §3) ---- */
+:root {
+  --char: #0c0a08;
+  --cream: #f2ece3;
+  --dim: #988d80;
+  --kraft: #c89a63;
+  --ember: #e2591f;
+  --denim: #6f87a6;
+  --gold: #d8b15e;
+
+  /* ürün aksanları */
+  --smooky: #e2591f;
+  --brisket: #c89a63;
+  --berry: #8e3b52;
+  --jalapeno: #7e9b57;
+  --caesar: #d8b15e;
+
+  /* sahnede odaktaki ürünün aksanı — JS her karede günceller */
+  --accent: #e2591f;
+  --edge: 20px;
+
+  --font-display: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--font-dm-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@theme inline {
+  --color-char: var(--char);
+  --color-cream: var(--cream);
+  --color-dim: var(--dim);
+  --color-kraft: var(--kraft);
+  --color-ember: var(--ember);
+  --color-denim: var(--denim);
+  --color-gold: var(--gold);
+  --color-smooky: var(--smooky);
+  --color-brisket: var(--brisket);
+  --color-berry: var(--berry);
+  --color-jalapeno: var(--jalapeno);
+  --color-caesar: var(--caesar);
+  --color-accent: var(--accent);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scrollbar-width: none;
+  background: var(--char);
+  color-scheme: dark;
+}
+html::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  margin: 0;
+  background: var(--char);
+  color: var(--cream);
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* HUD tipografisi — mono etiketler */
+.mono {
+  font-family: var(--font-mono);
+}
