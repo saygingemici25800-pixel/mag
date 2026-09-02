@@ -3,19 +3,25 @@ export const OPEN_HOUR = 11; // AÇIK
 export const CLOSE_HOUR = 24; // 00:00
 export const TZ = "Europe/Istanbul";
 
-export function istanbulNow(now: Date = new Date()): { hour: number; minute: number } {
+/** Varsayılan "şimdi". Yalnızca sunucuda ve yalnızca test için: MAG_FAKE_NOW=2026-09-03T12:00:00+03:00 */
+export function defaultNow(): Date {
+  const fake = typeof process !== "undefined" ? process.env.MAG_FAKE_NOW : undefined;
+  return fake ? new Date(fake) : new Date();
+}
+
+export function istanbulNow(now: Date = defaultNow()): { hour: number; minute: number } {
   const parts = new Intl.DateTimeFormat("tr-TR", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(now);
   const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? 0);
   return { hour: get("hour") % 24, minute: get("minute") };
 }
 
-export function isOpen(now: Date = new Date()): boolean {
+export function isOpen(now: Date = defaultNow()): boolean {
   const { hour } = istanbulNow(now);
   return hour >= OPEN_HOUR && hour < CLOSE_HOUR;
 }
 
 /** "simdi" + kapanışa kadar 30 dk'lık dilimler ("HH:MM"). Kapalıysa boş liste. */
-export function timeSlots(now: Date = new Date()): string[] {
+export function timeSlots(now: Date = defaultNow()): string[] {
   if (!isOpen(now)) return [];
   const { hour, minute } = istanbulNow(now);
   const slots: string[] = ["simdi"];

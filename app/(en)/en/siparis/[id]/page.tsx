@@ -1,13 +1,14 @@
-import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import OrderTrack from "@/components/order/OrderTrack";
+import { getMessages } from "@/lib/i18n";
+import { pageMetadata } from "@/lib/seo";
 import { getOrderStore } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Sipariş takibi — MAG Street Food" };
+const t = getMessages("en");
+export const metadata = pageMetadata({ locale: "en", path: "/siparis", title: t.track.metaTitle, noIndex: true });
 
-/** Sipariş takip — sunucu ilk durumu okur, istemci yoklar. */
-export default async function TrackPage({ params }: PageProps<"/siparis/[id]">) {
+export default async function TrackPageEn({ params }: PageProps<"/en/siparis/[id]">) {
   const { id } = await params;
   const order = await getOrderStore().get(id);
   if (!order) notFound();

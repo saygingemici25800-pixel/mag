@@ -220,7 +220,7 @@ Validasyon: telefon TR formatı; kurye + min sepet altı → buton pasif; kapal�
   name, phone, address, requested_at, note, payment(cod|card_on_delivery|online), status.
 - Panel: Supabase Auth (tek e-posta/şifre, işletme sahibi). Realtime abonelik → yeni sipariş kartı **üstte, aksan renginde yanıp söner**, **ses** (`/sounds/order.mp3`, kullanıcı bir kez "sesi aç"a basınca autoplay kilidi açılır), **Web Push** (service worker + VAPID; panel açık olmasa da telefona bildirim).
 - Kart: ürünler, adet, not, telefon (tıkla-ara), adres (haritada aç), istenen saat, durum butonları (Hazırlanıyor → Hazır/Yolda → Teslim), iptal + sebep.
-- Yedek: yeni siparişte işletme WhatsApp numarasına mesaj (CallMeBot/Twilio — **AÇIK**: hangisi). Faz 3'te.
+- Yedek: yeni siparişte WhatsApp mesajı — **Faz 6, isteğe bağlı** (yayın kapsamı dışı; ses + push yeterli). İstenirse Twilio, CallMeBot değil.
 - Müşteri tarafı: `/siparis/[id]` aynı realtime'ı dinler, durum değişince güncellenir.
 
 ---
@@ -276,3 +276,5 @@ bak; orada yoksa sor, varsayma.
 8. Alan adı (var mı, kimde) — Cloudflare'e taşınacak
 9. EN çeviriler (biz yazarız, işletme onaylar)
 10. Eksik 3 burger + taco/noodle/yan/içecek fotoğrafları (promptlar hazır; gerçek çekim tercih)
+11. Panel giriş e-postası (Supabase Auth kullanıcısı — işletme sahibinin e-postası)
+12. İletişim overlay'i için çalışma saati onayı (şimdilik 11:00–00:00)

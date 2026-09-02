@@ -2,7 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
-import { getMessages } from "@/lib/i18n";
+import { useLocale, useT } from "@/components/LocaleProvider";
+import { localePath } from "@/lib/i18n";
 import { OPENS_AT_LABEL, isOpen, timeSlots } from "@/lib/hours";
 import { computeTotals, normalizePhone, type OrderType } from "@/lib/orders-shared";
 import type { NewOrderInput, ValidationError } from "@/lib/orders";
@@ -13,12 +14,13 @@ import MenuGrid, { type Cart as CartMap, type CartLine } from "./MenuGrid";
 import MinCartInfo from "./MinCartInfo";
 import "./order.css";
 
-const t = getMessages("tr");
 const fmt = (s: string, vars: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ""));
 
 /** /siparis — Gel-al | Kurye, mahalle + ⓘ, menü, sepet, bilgiler, teslimatta ödeme → POST /api/orders */
 export default function OrderPage() {
   const router = useRouter();
+  const t = useT();
+  const locale = useLocale();
   const o = t.order;
   const [mode, setMode] = useState<OrderType>("pickup");
   const [zone, setZone] = useState("");
@@ -68,7 +70,7 @@ export default function OrderPage() {
       const res = await fetch("/api/orders", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
       const data = await res.json();
       if (res.status === 201 && data.id) {
-        router.push(`/siparis/${data.id}`);
+        router.push(localePath(locale, `/siparis/${data.id}`));
         return;
       }
       setErrors(Array.isArray(data.errors) && data.errors.length ? data.errors : [{ field: "generic", code: "failed" }]);
@@ -124,9 +126,9 @@ export default function OrderPage() {
         </header>
 
         <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-          <MenuGrid t={o} cart={cart} onChange={onLine} />
+          <MenuGrid t={t} cart={cart} onChange={onLine} />
           <Cart
-            t={o}
+            t={t}
             mode={mode}
             zoneName={getZone(zone)?.name ?? null}
             cart={cart}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Messages } from "@/lib/i18n";
+import { itemName, type Messages } from "@/lib/i18n";
 import { findMenuItem, formatPrice, type OrderType, type Payment } from "@/lib/orders-shared";
 import type { Totals, ValidationError } from "@/lib/orders";
 import type { Cart as CartMap } from "./MenuGrid";
@@ -16,7 +16,7 @@ export interface CheckoutForm {
 }
 
 interface Props {
-  t: Messages["order"];
+  t: Messages;
   mode: OrderType;
   zoneName: string | null;
   cart: CartMap;
@@ -36,7 +36,8 @@ const fmt = (s: string, vars: Record<string, string | number>) => s.replace(/\{(
 
 /** Sepet + bilgiler + ödeme. ≥1024px sağda yapışık panel, altında alttan çekmece. */
 export default function Cart(p: Props) {
-  const { t, cart, totals } = p;
+  const { cart, totals } = p;
+  const t = p.t.order;
   const [drawer, setDrawer] = useState(false);
   const ids = Object.keys(cart);
   const count = ids.reduce((s, id) => s + cart[id].qty, 0);
@@ -46,7 +47,7 @@ export default function Cart(p: Props) {
   return (
     <div className={"cartwrap" + (drawer ? " open" : "")}>
       <div className="cartpane">
-        <button type="button" className="cartbar" onClick={() => setDrawer((v) => !v)} aria-expanded={drawer} aria-label={drawer ? t.closeCart : t.openCart}>
+        <button type="button" className="cartbar" onClick={() => setDrawer((v) => !v)} aria-expanded={drawer} title={drawer ? t.closeCart : t.openCart}>
           <span className="ord-h" style={{ fontSize: "1.2rem" }}>
             {t.cart} {count ? `(${count})` : ""}
           </span>
@@ -67,7 +68,7 @@ export default function Cart(p: Props) {
               return (
                 <div key={id} className="line">
                   <div>
-                    <div className="text-sm font-bold">{m.name}</div>
+                    <div className="text-sm font-bold">{itemName(p.t, m)}</div>
                     {l.note ? <div className="text-xs text-dim">{l.note}</div> : null}
                   </div>
                   <div className="flex items-center gap-3">

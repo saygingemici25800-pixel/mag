@@ -4,7 +4,7 @@
  */
 import { MENU, type MenuItem } from "@/lib/menu";
 import { getZone } from "@/lib/zones";
-import { isOpen, timeSlots } from "@/lib/hours";
+import { defaultNow, isOpen, timeSlots } from "@/lib/hours";
 
 export type OrderType = "pickup" | "delivery";
 export type Payment = "cod" | "card_on_delivery" | "online";
@@ -121,7 +121,7 @@ export function computeTotals(items: { id: string; qty: number }[], type: OrderT
 
 export type ValidationError = { field: string; code: string };
 
-export function validateOrder(input: NewOrderInput, now: Date = new Date()): ValidationError[] {
+export function validateOrder(input: NewOrderInput, now: Date = defaultNow()): ValidationError[] {
   const errs: ValidationError[] = [];
   if (!isOpen(now)) errs.push({ field: "hours", code: "closed" });
   if (input.type !== "pickup" && input.type !== "delivery") errs.push({ field: "type", code: "invalid" });
@@ -150,7 +150,7 @@ export function newOrderId(): string {
   return crypto.randomUUID(); // Supabase `orders.id uuid` ile aynı
 }
 
-export function buildOrder(input: NewOrderInput, now: Date = new Date()): Order {
+export function buildOrder(input: NewOrderInput, now: Date = defaultNow()): Order {
   const items: OrderItem[] = input.items.map((it) => {
     const m = findMenuItem(it.id)!;
     return { id: m.id, name: m.name, price: m.price, qty: it.qty, ...(it.note?.trim() ? { note: it.note.trim() } : {}) };
