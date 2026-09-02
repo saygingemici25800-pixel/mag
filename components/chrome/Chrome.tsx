@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getMessages } from "@/lib/i18n";
+import SoundToggle from "./SoundToggle";
 import "./chrome.css";
 
 /** Topbar (AÇIK + eq · mag. · ::MENÜ + İLETİŞİM) ve dört köşe braketi. */
@@ -8,15 +9,7 @@ export default function Chrome() {
   return (
     <>
       <header className="topbar">
-        <div className="onbox">
-          <span>{t.open}</span>
-          <span className="eq" aria-hidden="true">
-            <b />
-            <b />
-            <b />
-            <b />
-          </span>
-        </div>
+        <SoundToggle onLabel={t.soundOn} offLabel={t.soundOff} />
         <Link href="/" className="mark" aria-label={`${t.brand}.`}>
           {t.brand}
           <i>.</i>

@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getMessages } from "@/lib/i18n";
 import { HERO_ITEMS, splitTitle } from "@/lib/menu";
+import { playSwitch } from "@/lib/sound";
 import Arc from "./Arc";
 import BigTitle from "./BigTitle";
 import Claims from "./Claims";
+import LightRays from "./LightRays";
 import Outro from "./Outro";
 import Preloader from "./Preloader";
 import StaticFallback from "./StaticFallback";
@@ -130,6 +132,7 @@ export default function Stage() {
       st("dotsR", "opacity", f.dots);
       st("floor", "opacity", f.floor);
       st("aura", "opacity", f.aura);
+      st("rays", "opacity", f.rays);
 
       st("scHero", "opacity", f.hero);
       st("scDive", "opacity", f.dive);
@@ -156,6 +159,7 @@ export default function Stage() {
   /* hero: swap the focused product */
   const go = useCallback((d: number) => {
     setActive((a) => (a + d + N) % N);
+    playSwitch();
   }, []);
 
   const inHeroZone = () => {
@@ -204,6 +208,8 @@ export default function Stage() {
           <div className="floor" ref={bind("floor")} />
           <div className="vign" />
         </div>
+
+        <LightRays bind={bind("rays")} />
 
         <Arc active={active} bind={bind} />
 
