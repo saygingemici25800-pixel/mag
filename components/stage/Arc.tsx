@@ -28,20 +28,31 @@ export default function Arc({ active, bind }: Props) {
           return (
             <div
               key={i}
-              className={"item" + (WIDE[m.id] ? " wide" : "")}
+              className={"item" + (WIDE[m.id] ? " wide" : "") + (i === CENTER ? " focus" : "")}
               ref={bind(`item${i}`)}
               style={{ zIndex: i === CENTER ? 22 : 18 - a }}
               data-k={m.id}
             >
+              {/* odaktaki cutout preload + high; yanlar eager ama düşük öncelik → LCP odaktakini bekler */}
               <Image
                 src={src}
                 alt={i === CENTER ? `${m.name} burger` : ""}
-                preload
+                preload={i === CENTER}
+                loading="eager"
+                fetchPriority={i === CENTER ? "high" : "low"}
                 unoptimized
                 ref={i === CENTER ? bind("centerImg") : undefined}
               />
               <span className="shad" aria-hidden="true" />
-              <Image className="refl" src={src} alt="" aria-hidden="true" unoptimized />
+              <Image
+                className="refl"
+                src={src}
+                alt=""
+                aria-hidden="true"
+                unoptimized
+                loading="eager"
+                fetchPriority={i === CENTER ? "high" : "low"}
+              />
             </div>
           );
         })}
