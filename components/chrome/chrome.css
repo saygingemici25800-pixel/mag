@@ -85,10 +85,14 @@
   font-style: italic;
   color: var(--accent);
 }
+.navL,
 .navR {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+.navL {
+  gap: 18px;
 }
 .menu {
   display: flex;
@@ -136,6 +140,16 @@
   }
   .menu span {
     display: none;
+  }
+  /* dar ekranda ortadaki logoyla çakışmasın: ses etiketi gizli (aria-label kalır), TR|EN sıkı */
+  .onbox > span:first-child {
+    display: none;
+  }
+  .navL {
+    gap: 10px;
+  }
+  .navR {
+    gap: 12px;
   }
 }
 

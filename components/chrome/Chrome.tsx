@@ -13,13 +13,15 @@ export default function Chrome({ locale }: { locale: Locale }) {
   return (
     <>
       <header className="topbar">
-        <SoundToggle onLabel={c.soundOn} offLabel={c.soundOff} />
+        <div className="navL">
+          <SoundToggle onLabel={c.soundOn} offLabel={c.soundOff} />
+          <LangSwitch locale={locale} labels={c.lang} />
+        </div>
         <Link href={localePath(locale, "/")} className="mark" aria-label={`${c.brand}.`}>
           {c.brand}
           <i>.</i>
         </Link>
         <nav className="navR">
-          <LangSwitch locale={locale} labels={c.lang} />
           <Link href={localePath(locale, "/siparis")} className="menu" prefetch={false} aria-label={c.menu}>
             <span className="grid2" aria-hidden="true">
               <s />
