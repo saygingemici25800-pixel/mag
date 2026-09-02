@@ -179,6 +179,17 @@
   filter: blur(1px);
   margin-top: 5px;
 }
+/* <900px: burger viewport'a sığsın (Faz 1 kararı a) */
+@media (max-width: 900px) {
+  .item img,
+  .item .refl {
+    height: min(26vh, 190px);
+  }
+  .item.wide img,
+  .item.wide .refl {
+    height: min(21vh, 150px);
+  }
+}
 .item .shad {
   position: absolute;
   left: 50%;
