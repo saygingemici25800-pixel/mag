@@ -11,6 +11,7 @@ const archivo = Archivo({
   weight: ["400", "800", "900"],
   style: ["normal", "italic"],
   display: "swap",
+  preload: false,
 });
 
 const dmMono = DM_Mono({
@@ -18,6 +19,7 @@ const dmMono = DM_Mono({
   subsets: ["latin", "latin-ext"],
   weight: "400",
   display: "swap",
+  preload: false, // HUD etiketleri; bağlantıları CSS ve LCP görseline bırak
 });
 
 const t = getMessages("tr");
