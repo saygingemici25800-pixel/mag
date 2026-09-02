@@ -15,14 +15,32 @@ pnpm lint
 
 Stack: Next.js (App Router) + TypeScript + Tailwind 4 + pnpm. Fontlar `next/font` (Archivo + DM Mono).
 
-## Yapı (Faz 1)
+## Ortam (.env.local)
+
+`.env.example`'ı kopyala. **Supabase anahtarları yoksa her şey yerel stub ile çalışır** (`.data/*.json`, commit edilmez):
+
+| Değişken | Ne için |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | tarayıcı: panel girişi + realtime |
+| `SUPABASE_SERVICE_ROLE_KEY` | yalnızca sunucu: sipariş yaz/oku, push gönder |
+| `PANEL_KEY` | Supabase yokken panel şifresi. Üretimde tanımsızsa panel ve PATCH 401 |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | Web Push (`pnpm exec web-push generate-vapid-keys`) |
+
+Supabase şeması: `supabase/migrations/0001_orders.sql` (SQL Editor'da çalıştır). Panel kullanıcısı: Authentication → Users → Add user (e-posta/şifre).
+
+## Yapı
 
 ```
 app/
   layout.tsx              # fontlar, metadata, globals.css
   (site)/layout.tsx       # topbar + köşe braketleri (components/chrome)
   (site)/page.tsx         # ANA SAYFA — sinematik sahne
+  (site)/siparis/         # SİPARİŞ + [id] takip (SSE ile canlı)
+  panel/page.tsx          # İŞLETME PANELİ — giriş, canlı akış, ses, push
+  api/orders/             # POST oluştur · GET liste (yetkili) · [id] GET/PATCH · stream (SSE)
+  api/push/subscribe      # Web Push aboneliği · api/panel/login, me
 components/
+  order/ · panel/         # sipariş sayfası · panel kartları
   chrome/                 # Chrome.tsx, chrome.css
   stage/
     Stage.tsx             # orkestratör: scroll → computeFrame → DOM
@@ -36,10 +54,18 @@ components/
     stage.css             # proto CSS'i, ölçüler aynen
 lib/
   menu.ts                 # ÜRÜN VERİSİ — tek kaynak (spec §5)
-  i18n.ts · site.ts
+  zones.ts · hours.ts     # teslimat bölgeleri (AÇIK) · çalışma saatleri
+  orders.ts               # sipariş modeli + sunucu doğrulama + OrderStore/PushStore arayüzleri
+  store.ts                # env'e göre depo seçimi: Supabase (supabase-store.ts) ya da stub (orders-store.ts)
+  panel-auth.ts           # panel yetkisi: Supabase Bearer · PANEL_KEY çerez/başlık
+  push.ts · events.ts     # web-push gönderimi · süreç içi olaylar (SSE)
+  i18n.ts · site.ts · sound.ts · panel-sound.ts
 messages/tr.json          # tüm metinler
 public/assets/cut/*.webp  # 5 burger cutout · public/assets/hero/*.jpg
 assets/ · promptlar/      # kaynak görseller ve ChatGPT promptları (spec paketi)
 ```
 
-Sonraki fazlar spec §9: `/siparis` (2) · `/panel` (3) · EN + yasal + SEO + yayın (4) · iyzico (5).
+Testler (Playwright, scratchpad): Faz 3 uçtan uca akış `faz3-test.sh` — üretimde PANEL_KEY yokken 401, PANEL_KEY ile giriş,
+SSE canlı kart, durum → müşteri, push mock. Deploy Faz 3 sonrası, Supabase bağlıyken (stub ile deploy yok).
+
+Sonraki fazlar spec §9: EN + yasal + SEO + yayın (4) · iyzico (5).

@@ -1,61 +1,84 @@
 /**
- * Sipariş deposu — STUB. Dosya tabanlı (.data/orders.json), yazılamıyorsa bellek.
- * Faz 3'te Supabase (`lib/supabase.ts`) aynı `OrderStore` arayüzüyle gelecek.
- * Not: Vercel'de dosya sistemi kalıcı değildir; bu stub yalnızca yerel geliştirme içindir.
+ * Yerel STUB depo — dosya tabanlı (.data/*.json), yazılamıyorsa bellek. Değişiklikleri süreç içi
+ * olay yayıcısına bildirir (SSE bunu dinler). Seçim lib/store.ts'te (Supabase varsa o).
+ * Not: Vercel'de dosya sistemi kalıcı değildir; stub yalnızca yerel geliştirme içindir (stub ile deploy yok).
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { Order, OrderStore } from "@/lib/orders";
+import { emitOrder } from "@/lib/events";
+import type { Order, OrderStore, PushStore, PushSubscriptionRow } from "@/lib/orders";
 
-const FILE = path.join(process.cwd(), ".data", "orders.json");
+const DIR = path.join(process.cwd(), ".data");
 
-class FileStore implements OrderStore {
-  private cache: Order[] | null = null;
+class JsonFile<T> {
+  private cache: T[] | null = null;
   private fileOk = true;
-
-  private async load(): Promise<Order[]> {
+  constructor(private file: string) {}
+  async load(): Promise<T[]> {
     if (this.cache) return this.cache;
     try {
-      this.cache = JSON.parse(await readFile(FILE, "utf8")) as Order[];
+      this.cache = JSON.parse(await readFile(path.join(DIR, this.file), "utf8")) as T[];
     } catch {
       this.cache = [];
     }
     return this.cache;
   }
-  private async save(): Promise<void> {
+  async save(): Promise<void> {
     if (!this.fileOk) return;
     try {
-      await mkdir(path.dirname(FILE), { recursive: true });
-      await writeFile(FILE, JSON.stringify(this.cache, null, 2));
+      await mkdir(DIR, { recursive: true });
+      await writeFile(path.join(DIR, this.file), JSON.stringify(this.cache, null, 2));
     } catch {
       this.fileOk = false; // salt okunur FS → bellekte devam
     }
   }
+}
+
+export class FileOrderStore implements OrderStore {
+  private db = new JsonFile<Order>("orders.json");
   async create(order: Order): Promise<Order> {
-    const all = await this.load();
+    const all = await this.db.load();
     all.unshift(order);
-    await this.save();
+    await this.db.save();
+    emitOrder({ type: "insert", order });
     return order;
   }
   async get(id: string): Promise<Order | null> {
-    return (await this.load()).find((o) => o.id === id) ?? null;
+    return (await this.db.load()).find((o) => o.id === id) ?? null;
   }
-  async list(): Promise<Order[]> {
-    return [...(await this.load())];
+  async list(limit = 200): Promise<Order[]> {
+    const all = await this.db.load();
+    return [...all].sort((a, b) => (a.created_at < b.created_at ? 1 : -1)).slice(0, limit);
   }
   async update(id: string, patch: Partial<Order>): Promise<Order | null> {
-    const all = await this.load();
+    const all = await this.db.load();
     const i = all.findIndex((o) => o.id === id);
     if (i < 0) return null;
     all[i] = { ...all[i], ...patch, id };
-    await this.save();
+    await this.db.save();
+    emitOrder({ type: "update", order: all[i] });
     return all[i];
   }
 }
 
-// dev'de modül yeniden yüklense de tek örnek
-const g = globalThis as unknown as { __magOrderStore?: OrderStore };
-export function getOrderStore(): OrderStore {
-  if (!g.__magOrderStore) g.__magOrderStore = new FileStore();
-  return g.__magOrderStore;
+export class FilePushStore implements PushStore {
+  private db = new JsonFile<PushSubscriptionRow>("push.json");
+  async add(sub: PushSubscriptionRow): Promise<void> {
+    const all = await this.db.load();
+    const i = all.findIndex((s) => s.endpoint === sub.endpoint);
+    if (i >= 0) all[i] = sub;
+    else all.push(sub);
+    await this.db.save();
+  }
+  async list(): Promise<PushSubscriptionRow[]> {
+    return [...(await this.db.load())];
+  }
+  async remove(endpoint: string): Promise<void> {
+    const all = await this.db.load();
+    const i = all.findIndex((s) => s.endpoint === endpoint);
+    if (i >= 0) {
+      all.splice(i, 1);
+      await this.db.save();
+    }
+  }
 }

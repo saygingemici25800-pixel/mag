@@ -160,18 +160,81 @@
     "when": "İstenen saat",
     "payment": "Ödeme",
     "steps": {
-      "alindi": "Alındı",
-      "hazirlaniyor": "Hazırlanıyor",
-      "hazir": "Hazır",
-      "yolda": "Yolda",
-      "teslim": "Teslim edildi",
-      "iptal": "İptal edildi"
+      "received": "Alındı",
+      "preparing": "Hazırlanıyor",
+      "ready": "Hazır",
+      "on_the_way": "Yolda",
+      "delivered": "Teslim edildi",
+      "cancelled": "İptal edildi"
     },
     "pickupHint": "Hazır olunca buradan görürsün. Adres: {address}",
     "deliveryHint": "Kurye yola çıkınca burada görünür.",
     "notFound": "Böyle bir sipariş bulunamadı.",
     "back": "Menüye dön",
     "newOrder": "Yeni sipariş",
-    "cancelReason": "Sebep"
+    "cancelReason": "Sebep",
+    "live": "Canlı"
+  },
+  "panel": {
+    "title": "Panel",
+    "login": "Giriş",
+    "email": "E-posta",
+    "password": "Şifre",
+    "key": "Panel şifresi",
+    "enter": "Gir",
+    "loginFail": "Şifre yanlış",
+    "logout": "Çıkış",
+    "closedProd": "Panel kapalı: sunucuda PANEL_KEY tanımlı değil.",
+    "tabs": {
+      "active": "Aktif",
+      "today": "Bugün",
+      "past": "Geçmiş"
+    },
+    "empty": "Bu sekmede sipariş yok.",
+    "soundOn": "Sesi aç",
+    "soundOff": "Sesi kapat",
+    "soundIsOn": "Ses açık",
+    "soundIsOff": "Ses kapalı",
+    "pushOn": "Bildirimleri aç",
+    "pushOk": "Bildirimler açık",
+    "pushDenied": "Bildirim izni verilmedi",
+    "pushUnsupported": "Bu tarayıcı bildirim desteklemiyor",
+    "pushFail": "Bildirim kaydı başarısız",
+    "seen": "Görüldü",
+    "new": "Yeni",
+    "pickup": "Gel-al",
+    "delivery": "Kurye",
+    "cod": "Nakit",
+    "cardOnDelivery": "Kart",
+    "online": "Online",
+    "call": "Ara",
+    "map": "Haritada aç",
+    "when": "İstenen",
+    "now": "Şimdi",
+    "note": "Not",
+    "status": {
+      "received": "Alındı",
+      "preparing": "Hazırlanıyor",
+      "ready": "Hazır",
+      "on_the_way": "Yolda",
+      "delivered": "Teslim edildi",
+      "cancelled": "İptal"
+    },
+    "next": {
+      "preparing": "Hazırlanıyor",
+      "ready": "Hazır",
+      "on_the_way": "Yolda",
+      "delivered": "Teslim edildi"
+    },
+    "cancel": "İptal",
+    "cancelReason": "İptal sebebi",
+    "cancelConfirm": "İptal et",
+    "cancelBack": "Vazgeç",
+    "live": "Canlı",
+    "offline": "Bağlantı yok — yeniden bağlanıyor",
+    "store": {
+      "stub": "Yerel stub",
+      "supabase": "Supabase"
+    }
   }
 }

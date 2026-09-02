@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getMessages } from "@/lib/i18n";
-import { STATUS_FLOW, type Order } from "@/lib/orders";
+import { STATUS_FLOW, shortId, type Order } from "@/lib/orders";
 import { formatPrice } from "@/lib/menu";
 import { getZone } from "@/lib/zones";
 import { SITE } from "@/lib/site";
@@ -11,41 +11,42 @@ import "./order.css";
 
 const t = getMessages("tr");
 const fmt = (s: string, vars: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ""));
-const POLL_MS = 10_000;
 
-/** /siparis/[id] — durum: alındı → hazırlanıyor → hazır/yolda → teslim. 10 sn'de bir yoklar (Faz 3: realtime). */
+/** /siparis/[id] — durum: alındı → hazırlanıyor → hazır/yolda → teslim. Canlı (SSE). */
 export default function OrderTrack({ initial }: { initial: Order }) {
   const [order, setOrder] = useState(initial);
+  const [live, setLive] = useState(false);
   const tr = t.track;
 
+  // Canlı: SSE (stub'da süreç içi olay, Supabase'de sunucu yoklaması). EventSource kopunca kendi bağlanır.
   useEffect(() => {
-    if (order.status === "teslim" || order.status === "iptal") return;
-    const id = window.setInterval(async () => {
-      try {
-        const res = await fetch(`/api/orders/${order.id}`, { cache: "no-store" });
-        if (res.ok) setOrder(await res.json());
-      } catch {
-        /* sonraki tur */
-      }
-    }, POLL_MS);
-    return () => window.clearInterval(id);
+    if (order.status === "delivered" || order.status === "cancelled") return;
+    const es = new EventSource(`/api/orders/stream?id=${encodeURIComponent(order.id)}`);
+    es.addEventListener("hello", () => setLive(true));
+    es.addEventListener("order", (e) => {
+      const ev = JSON.parse((e as MessageEvent).data) as { order: Order };
+      setOrder(ev.order);
+    });
+    es.onerror = () => setLive(false);
+    return () => es.close();
   }, [order.id, order.status]);
 
   const flow = STATUS_FLOW[order.type];
-  const idx = order.status === "iptal" ? -1 : flow.indexOf(order.status);
+  const idx = order.status === "cancelled" ? -1 : flow.indexOf(order.status);
 
   return (
     <main className="ord">
       <div className="mx-auto max-w-2xl">
         <div className="ord-label">
-          {tr.id} · {order.id}
+          {tr.id} · {shortId(order.id)}
+          {live ? <span className="ml-3 text-jalapeno">● {tr.live}</span> : null}
         </div>
         <h1 className="big in mt-4">
           <span>
             <i>{tr.title[0]}</i>
           </span>
           <span>
-            <i>{order.status === "iptal" ? tr.steps.iptal.split(" ")[0] : tr.title[1]}</i>
+            <i>{order.status === "cancelled" ? tr.steps.cancelled.split(" ")[0] : tr.title[1]}</i>
           </span>
         </h1>
         <p className="mt-4 max-w-md text-dim">
@@ -53,11 +54,11 @@ export default function OrderTrack({ initial }: { initial: Order }) {
         </p>
 
         <div className="steps mt-8">
-          {order.status === "iptal" ? (
+          {order.status === "cancelled" ? (
             <div className="step now">
               <i>×</i>
               <span>
-                {tr.steps.iptal}
+                {tr.steps.cancelled}
                 {order.cancel_reason ? ` — ${tr.cancelReason}: ${order.cancel_reason}` : ""}
               </span>
             </div>

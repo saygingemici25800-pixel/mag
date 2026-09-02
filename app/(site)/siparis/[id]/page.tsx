@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import OrderTrack from "@/components/order/OrderTrack";
-import { getOrderStore } from "@/lib/orders-store";
+import { getOrderStore } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Sipariş takibi — MAG Street Food" };
