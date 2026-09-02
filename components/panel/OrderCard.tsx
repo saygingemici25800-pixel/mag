@@ -47,7 +47,7 @@ export default function OrderCard({ t, order: o, unseen, fresh, busy, onSeen, on
         </span>
         <span className="flex flex-wrap gap-2">
           <span className="badge2 type">{o.type === "pickup" ? t.pickup : t.delivery}</span>
-          <span className="badge2">{o.payment === "cod" ? t.cod : o.payment === "card_on_delivery" ? t.cardOnDelivery : t.online}</span>
+          <span className="badge2">{t.paid}</span>
           <span className="badge2">{t.status[o.status]}</span>
           {unseen ? <span className="badge2 type">{t.new}</span> : null}
         </span>

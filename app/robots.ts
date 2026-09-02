@@ -3,7 +3,8 @@ import { siteUrl } from "@/lib/site";
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: [{ userAgent: "*", allow: "/", disallow: ["/panel", "/api/", "/siparis/*", "/en/siparis/*"] }],
+    // takip sayfaları (/siparis/<uuid>) metadata ile noindex; /siparis/odeme taranabilir kalsın
+    rules: [{ userAgent: "*", allow: "/", disallow: ["/panel", "/api/", "/odeme/"] }],
     sitemap: siteUrl() + "/sitemap.xml",
   };
 }

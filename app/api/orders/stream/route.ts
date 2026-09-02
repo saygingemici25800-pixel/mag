@@ -55,6 +55,7 @@ export async function GET(req: Request) {
       let poll: ReturnType<typeof setInterval> | null = null;
       const onEvent = (ev: OrderEvent) => {
         if (id && ev.order.id !== id) return;
+        if (!id && ev.order.payment_status !== "paid") return; // panel: ödenmemişler görünmez
         send("order", ev);
       };
 
@@ -63,17 +64,17 @@ export async function GET(req: Request) {
       } else {
         // Supabase: sunucu tarafı yoklama (müşteri anon olduğu için RLS realtime'a izin vermez)
         let last = new Map<string, string>();
-        const snapshot = (o: Order) => `${o.status}|${o.cancel_reason ?? ""}`;
+        const snapshot = (o: Order) => `${o.status}|${o.payment_status}|${o.cancel_reason ?? ""}`;
         if (id) {
           const o = await store.get(id);
           if (o) last.set(o.id, snapshot(o));
         } else {
-          for (const o of await store.list(200)) last.set(o.id, snapshot(o));
+          for (const o of await store.list(200, true)) last.set(o.id, snapshot(o));
         }
         poll = setInterval(async () => {
           if (closed) return;
           try {
-            const rows = id ? [await store.get(id)].filter((x): x is Order => Boolean(x)) : await store.list(200);
+            const rows = id ? [await store.get(id)].filter((x): x is Order => Boolean(x)) : await store.list(200, true);
             const next = new Map<string, string>();
             for (const o of rows) {
               next.set(o.id, snapshot(o));

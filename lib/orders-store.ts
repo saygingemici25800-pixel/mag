@@ -46,9 +46,12 @@ export class FileOrderStore implements OrderStore {
   async get(id: string): Promise<Order | null> {
     return (await this.db.load()).find((o) => o.id === id) ?? null;
   }
-  async list(limit = 200): Promise<Order[]> {
+  async list(limit = 200, paidOnly = false): Promise<Order[]> {
     const all = await this.db.load();
-    return [...all].sort((a, b) => (a.created_at < b.created_at ? 1 : -1)).slice(0, limit);
+    return [...all]
+      .filter((o) => !paidOnly || o.payment_status === "paid")
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
+      .slice(0, limit);
   }
   async update(id: string, patch: Partial<Order>): Promise<Order | null> {
     const all = await this.db.load();

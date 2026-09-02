@@ -13,8 +13,10 @@ export class SupabaseOrderStore implements OrderStore {
     if (error) throw new Error("supabase select: " + error.message);
     return (data as Order | null) ?? null;
   }
-  async list(limit = 200): Promise<Order[]> {
-    const { data, error } = await supabaseAdmin().from("orders").select("*").order("created_at", { ascending: false }).limit(limit);
+  async list(limit = 200, paidOnly = false): Promise<Order[]> {
+    let q = supabaseAdmin().from("orders").select("*").order("created_at", { ascending: false }).limit(limit);
+    if (paidOnly) q = q.eq("payment_status", "paid");
+    const { data, error } = await q;
     if (error) throw new Error("supabase list: " + error.message);
     return (data ?? []) as Order[];
   }

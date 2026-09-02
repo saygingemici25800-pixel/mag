@@ -31,7 +31,7 @@ taşınacak**, yeniden icat edilmeyecek. Prototip tarayıcıda açılıp yan yan
 | Sayfa sonu | BİZE KATIL yukarı süzülürken burger alttan senkron gelir → hero pozu → yanlar siluet olarak belirir → görünmez kesmeyle başa döner (preloader tekrar oynamaz) |
 | Sipariş | Gel-al **ve** kurye. Kuryede mahalle bazlı minimum sepet, bilgi butonu ile görünür |
 | Bildirim | `/panel` — canlı sipariş listesi, sesli uyarı, tarayıcı push bildirimi |
-| Ödeme | **Faz 4.** İlk yayın: teslimatta nakit/kart. Sonra iyzico hosted checkout |
+| Ödeme | **Yalnızca online** (karar 3 Eyl 2026). Teslimatta ödeme yok. Sağlayıcı arayüzü `lib/payments/`: mock (geliştirme) + iyzico hosted checkout. Sipariş `awaiting_payment` → callback'te `paid`; panel yalnızca `paid` görür |
 | Fotoğraf↔ürün | koyu sos = MAG BERRY · füme şerit = SMOOKY · pembe turşu = BRISKET · roka = JALAPENO · panelenmiş tavuk = MAG CAESAR |
 
 ---
@@ -197,7 +197,7 @@ Tasarım dili ana sayfayla aynı (koyu, mono HUD, italik başlıklar) ama **kayd
 3. Menü kategoriler (Burger · Taco · Noodle · Yan · Sos · İçecek) — ürün kartı: cutout görsel varsa o, yoksa isim tipografik kart. Adet ±, not alanı.
 4. Sepet çekmecesi (mobilde alttan): satırlar, ara toplam, kurye ise "min sepet: X ₺ — Y ₺ daha ekle" uyarısı (kırmızı değil, kraft).
 5. Bilgiler: ad, telefon, (kurye ise) adres + mahalle, istenen saat (şimdi / 30 dk aralıklar, kapanış 00:00'a kadar), not.
-6. Onay → `POST /api/orders` → `/siparis/[id]` takip sayfası (durum: alındı → hazırlanıyor → hazır/yolda → teslim).
+6. "Ödemeye geç" → `POST /api/orders` → ödeme sayfası → callback → `/siparis/[id]` takip (ödeme durumu + alındı → hazırlanıyor → hazır/yolda → teslim).
 
 **Teslimat bölgeleri (`lib/zones.ts`)** — örnek, **AÇIK: tam liste + ücretler**:
 ```ts
@@ -207,7 +207,10 @@ export const ZONES = [
   // Çalış, Karagözler, Hisarönü, Ovacık, Çiftlik … işletmeden gelecek
 ];
 ```
-Ödeme faz 4'e kadar: "Teslimatta nakit / kart" radio, seçilen sipariş kaydına yazılır.
+Ödeme: **yalnızca online**. "Ödemeye geç" → `POST /api/orders` (awaiting_payment) → sağlayıcı checkout'una yönlendirme →
+callback (`/api/payments/callback`, imza doğrulamalı) → `paid` (panel, push, ses) ya da `payment_failed` (müşteriye "tekrar dene").
+Sipariş sayfası mobil öncelikli: yapışkan kategori çipleri, büyük ürün kartları, alttan ürün sheet'i ("Şununla iyi gider"),
+yapışkan sepet çubuğu; `/siparis/odeme` ayrı adım (sepet özeti, gel-al/kurye, bilgiler, "Ödemeye geç").
 
 Validasyon: telefon TR formatı; kurye + min sepet altı → buton pasif; kapalı saatlerde
 (00:00–11:00 **AÇIK: açılış saati**) sipariş alınmaz, "yarın 11:00'da açılıyoruz" mesajı.
@@ -241,7 +244,7 @@ Validasyon: telefon TR formatı; kurye + min sepet altı → buton pasif; kapal�
 | **2** | `/siparis`: menü, sepet, gel-al/kurye, min sepet ⓘ, form, Supabase kayıt, `/siparis/[id]` | Gerçek sipariş kaydı oluşuyor |
 | **3** | `/panel`: auth, realtime akış, ses, Web Push, durum yönetimi; WhatsApp yedek | Telefonda bildirim düşüyor |
 | **4** | EN dil, yasal sayfalar, SEO (OG görselleri, schema.org Restaurant + Menu), Vercel + domain | Yayın |
-| **5** | iyzico hosted checkout, 3D Secure, sipariş ödeme durumu, iade akışı | Online ödeme |
+| **5** | Sipariş sayfası yeniden (mobil öncelikli), ödeme sağlayıcı arayüzü (mock + iyzico hosted checkout), ödeme durumu, tekrar dene | Mock ile uçtan uca; iyzico anahtar gelince sandbox |
 | sonra | Katman animasyonu (ChatGPT görselleri gelince), eksik 3 burger fotoğrafı, taco/noodle görselleri | — |
 
 Her faz sonunda `pnpm build` + mobil ekran görüntüleri + prototip karşılaştırması.
@@ -270,7 +273,7 @@ bak; orada yoksa sor, varsayma.
 2. Açılış saati (kapanış 00:00 biliniyor) ve sipariş alınmayan günler
 3. 4 iddianın doğrulanması (kıyma, ekmek, peynir, sos)
 4. SSS cevapları
-5. TikTok / Instagram / WhatsApp adresleri
+5. TikTok adresi (Instagram geldi: instagram.com/magstreetfood)
 6. "İçecekler 110 ₺" içeriği, alerjenler
 7. Yasal metinler için unvan / vergi no
 8. Alan adı (var mı, kimde) — Cloudflare'e taşınacak

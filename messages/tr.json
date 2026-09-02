@@ -141,9 +141,6 @@
     "when": "Ne zaman",
     "now": "Şimdi",
     "orderNote": "Sipariş notu",
-    "payment": "Ödeme",
-    "cod": "Teslimatta nakit",
-    "cardOnDelivery": "Teslimatta kart",
     "submit": "Siparişi onayla",
     "submitting": "Gönderiliyor…",
     "closed": "Şu an kapalıyız — yarın {open}'da açılıyoruz.",
@@ -162,7 +159,26 @@
     "openCart": "Sepeti aç",
     "closeCart": "Sepeti kapat",
     "metaTitle": "Sipariş",
-    "metaDesc": "Gel-al ya da kurye. Mahalleye göre minimum sepet, teslimatta nakit veya kart."
+    "metaDesc": "Gel-al ya da kurye. Mahalleye göre minimum sepet, teslimatta nakit veya kart.",
+    "addShort": "+ Ekle",
+    "goodWith": "Şununla iyi gider",
+    "addToCart": "Sepete ekle",
+    "qty": "Adet",
+    "goCart": "Sepete git",
+    "itemsCount": "ürün",
+    "checkoutTitle": [
+      "ÖDEME"
+    ],
+    "summary": "Sepet özeti",
+    "remove": "Sil",
+    "deliveryInfo": "Teslimat",
+    "payNow": "Ödemeye geç",
+    "payingNow": "Yönlendiriliyor…",
+    "onlineOnly": "Ödeme online, kartla. Teslimatta ödeme alınmaz.",
+    "backToMenu": "Menüye dön",
+    "emptyGo": "Menüye git",
+    "ingredients": "İçindekiler",
+    "sheetClose": "Kapat"
   },
   "track": {
     "title": [
@@ -189,7 +205,8 @@
     "newOrder": "Yeni sipariş",
     "cancelReason": "Sebep",
     "live": "Canlı",
-    "metaTitle": "Sipariş takibi"
+    "metaTitle": "Sipariş takibi",
+    "paymentLabel": "Ödeme"
   },
   "panel": {
     "title": "Panel",
@@ -251,7 +268,8 @@
     "store": {
       "stub": "Yerel stub",
       "supabase": "Supabase"
-    }
+    },
+    "paid": "Ödendi"
   },
   "cta": {
     "order": "Sipariş ver"
@@ -297,5 +315,27 @@
     "order": "Sipariş ver"
   },
   "menuDesc": {},
-  "menuName": {}
+  "menuName": {},
+  "payment": {
+    "status": {
+      "awaiting_payment": "Ödeme bekleniyor",
+      "paid": "Ödendi",
+      "payment_failed": "Ödeme başarısız"
+    },
+    "retry": "Ödemeyi tekrar dene",
+    "failedLead": "Ödeme tamamlanamadı. Siparişin bekliyor; tekrar deneyebilirsin.",
+    "awaitingLead": "Ödeme tamamlanınca sipariş mutfağa düşer.",
+    "paidLead": "Ödeme alındı.",
+    "mock": {
+      "title": [
+        "TEST",
+        "ÖDEME"
+      ],
+      "lead": "Bu bir test ödeme sayfası (mock sağlayıcı). Gerçek ödeme alınmaz.",
+      "ok": "Ödemeyi tamamla",
+      "fail": "Başarısız",
+      "amount": "Tutar",
+      "order": "Sipariş"
+    }
+  }
 }

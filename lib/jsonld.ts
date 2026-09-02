@@ -17,6 +17,7 @@ export function restaurantJsonLd(locale: Locale) {
     url,
     image: `${base}/api/og?item=smooky&locale=${locale}`,
     telephone: SITE.phoneE164,
+    sameAs: [SITE.social.instagram],
     servesCuisine: "Burger",
     priceRange: "₺₺",
     address: {
