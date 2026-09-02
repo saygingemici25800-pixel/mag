@@ -5,6 +5,8 @@
   },
   "chrome": {
     "open": "Açık",
+    "soundOn": "Ses açık",
+    "soundOff": "Ses kapalı",
     "menu": "Menü",
     "contact": "İletişim",
     "city": "FETHIYE",
@@ -44,10 +46,21 @@
       "d": "Trüflü mayonez, jalapeno, sweet & chili ve MAG sos. Dördü de mutfakta yapılıyor, yanına 50 ₺."
     }
   ],
-  "rail": ["🥩", "🍞", "🧀", "🫙"],
-  "payoff": ["ATEŞ", "VE ET"],
+  "rail": [
+    "🥩",
+    "🍞",
+    "🧀",
+    "🫙"
+  ],
+  "payoff": [
+    "ATEŞ",
+    "VE ET"
+  ],
   "faq": {
-    "title": ["SIKÇA", "SORULANLAR"],
+    "title": [
+      "SIKÇA",
+      "SORULANLAR"
+    ],
     "items": [
       "Paket servis ve gel-al var mı?",
       "Burgerlerin yanında patates geliyor mu?",
@@ -57,7 +70,10 @@
     ]
   },
   "footer": {
-    "title": ["BİZE", "KATIL"],
+    "title": [
+      "BİZE",
+      "KATIL"
+    ],
     "lead": "Yeni ürünler ve kampanyalardan ilk sen haberdar ol.",
     "placeholder": "e-posta adresin",
     "cta": "Kaydol",
@@ -65,9 +81,97 @@
     "copy": "© 2026 MAG. STREET FOOD · FETHİYE",
     "tiktok": "TikTok",
     "instagram": "Instagram",
-    "links": ["Yasal Bilgiler", "Mesafeli Satış", "KVKK", "Çerezler"]
+    "links": [
+      "Yasal Bilgiler",
+      "Mesafeli Satış",
+      "KVKK",
+      "Çerezler"
+    ]
   },
   "preloader": {
     "brand": "mag"
+  },
+  "order": {
+    "title": [
+      "SİPARİŞ",
+      "VER"
+    ],
+    "lead": "Gel-al ya da kurye. Ödeme teslimatta, nakit veya kart.",
+    "pickup": "Gel-al",
+    "delivery": "Kurye",
+    "zoneLabel": "Mahalle",
+    "zonePlaceholder": "Mahalle seç",
+    "minInfoAria": "Minimum sepet tutarları",
+    "minInfoTitle": "Minimum sepet tutarları",
+    "minInfoLead": "Kurye siparişlerinde mahalleye göre minimum sepet uygulanır. Kurye ücreti şimdilik yok.",
+    "minInfoZone": "Mahalle",
+    "minInfoMin": "Min. sepet",
+    "minInfoFee": "Kurye",
+    "close": "Kapat",
+    "burgerNote": "Burgerlerin hepsi patates kızartması dahil.",
+    "sauceNote": "Soslar 50 ₺.",
+    "add": "Ekle",
+    "noteToggle": "Not",
+    "notePlaceholder": "Örn. soğansız",
+    "cart": "Sepet",
+    "cartEmpty": "Sepetin boş. Menüden ürün ekle.",
+    "subtotal": "Ara toplam",
+    "fee": "Kurye ücreti",
+    "total": "Toplam",
+    "minWarn": "Min. sepet {min} ₺ — {missing} ₺ daha ekle",
+    "info": "Bilgiler",
+    "name": "Ad soyad",
+    "phone": "Telefon",
+    "phonePlaceholder": "05XX XXX XX XX",
+    "address": "Adres",
+    "addressPlaceholder": "Mahalle, sokak, no, kat/daire, tarif",
+    "when": "Ne zaman",
+    "now": "Şimdi",
+    "orderNote": "Sipariş notu",
+    "payment": "Ödeme",
+    "cod": "Teslimatta nakit",
+    "cardOnDelivery": "Teslimatta kart",
+    "submit": "Siparişi onayla",
+    "submitting": "Gönderiliyor…",
+    "closed": "Şu an kapalıyız — yarın {open}'da açılıyoruz.",
+    "closedShort": "Kapalı · {open}'da açılıyoruz",
+    "hours": "Her gün {open}–00:00",
+    "err": {
+      "name": "Ad gerekli",
+      "phone": "Telefonu 05XX XXX XX XX biçiminde gir",
+      "address": "Adres gerekli",
+      "zone": "Mahalle seç",
+      "items": "Sepet boş ya da min. sepetin altında",
+      "requested_at": "Saat seç",
+      "hours": "Kapalı saatlerde sipariş alınmıyor",
+      "generic": "Sipariş gönderilemedi, tekrar dene."
+    },
+    "openCart": "Sepeti aç",
+    "closeCart": "Sepeti kapat"
+  },
+  "track": {
+    "title": [
+      "SİPARİŞ",
+      "ALINDI"
+    ],
+    "id": "Sipariş no",
+    "status": "Durum",
+    "items": "Ürünler",
+    "when": "İstenen saat",
+    "payment": "Ödeme",
+    "steps": {
+      "alindi": "Alındı",
+      "hazirlaniyor": "Hazırlanıyor",
+      "hazir": "Hazır",
+      "yolda": "Yolda",
+      "teslim": "Teslim edildi",
+      "iptal": "İptal edildi"
+    },
+    "pickupHint": "Hazır olunca buradan görürsün. Adres: {address}",
+    "deliveryHint": "Kurye yola çıkınca burada görünür.",
+    "notFound": "Böyle bir sipariş bulunamadı.",
+    "back": "Menüye dön",
+    "newOrder": "Yeni sipariş",
+    "cancelReason": "Sebep"
   }
 }
