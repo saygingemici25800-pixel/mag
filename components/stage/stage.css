@@ -39,7 +39,8 @@
   translate: -50% 0;
   width: 120%;
   height: 46%;
-  background: radial-gradient(ellipse at 50% 0%, rgba(242, 236, 227, 0.13), rgba(12, 10, 8, 0) 68%);
+  /* filter:blur yok — yumuşaklık gradient duraklarıyla (perf adımı 8) */
+  background: radial-gradient(ellipse at 50% 0%, rgba(242, 236, 227, 0.13) 0%, rgba(242, 236, 227, 0.09) 24%, rgba(242, 236, 227, 0.04) 48%, rgba(12, 10, 8, 0) 70%);
 }
 /* warm backlight behind the focused product — the glow from the hero photos */
 .aura {
@@ -49,16 +50,19 @@
   translate: -50% -50%;
   width: min(96vw, 1180px);
   height: min(84vh, 760px);
+  /* filter:blur(14px) yok — aynı yumuşaklık daha sık gradient duraklarıyla (perf adımı 8) */
   background:
     radial-gradient(
       ellipse at 50% 50%,
       rgba(255, 150, 54, 0.44) 0%,
+      rgba(250, 134, 42, 0.36) 16%,
       rgba(236, 104, 20, 0.24) 34%,
+      rgba(218, 88, 14, 0.17) 46%,
       rgba(200, 74, 8, 0.1) 58%,
-      rgba(12, 10, 8, 0) 78%
+      rgba(120, 44, 6, 0.04) 70%,
+      rgba(12, 10, 8, 0) 80%
     ),
-    radial-gradient(ellipse at 50% 50%, rgba(255, 196, 128, 0.3) 0%, rgba(255, 150, 54, 0) 34%);
-  filter: blur(14px);
+    radial-gradient(ellipse at 50% 50%, rgba(255, 196, 128, 0.3) 0%, rgba(255, 176, 96, 0.16) 16%, rgba(255, 150, 54, 0) 36%);
 }
 .vign {
   position: absolute;
@@ -164,7 +168,9 @@
   position: absolute;
   left: 50%;
   top: 0;
-  will-change: transform, opacity;
+  will-change: transform, opacity, filter;
+  /* contain: layout — "paint" eklenemedi: .refl (top:100%) ve .shad kutunun dışında, paint containment onları kırpıyor */
+  contain: layout;
   transform-origin: 50% 50%;
   transform: translate(-50%, 0);
 }
@@ -197,7 +203,7 @@
   transform: scaleY(-1);
   -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0) 46%);
   mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0) 46%);
-  filter: blur(1px);
+  /* filter: blur(1px) kaldırıldı — 5 slot × her karede ayrı raster katmanı (perf adımı 4) */
   margin-top: 5px;
 }
 /* <900px: burger viewport'a sığsın (Faz 1 kararı a) */
@@ -360,9 +366,7 @@
   height: 52px;
   border-radius: 50%;
   border: 1px solid rgba(242, 236, 227, 0.3);
-  background: rgba(12, 10, 8, 0.38);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(12, 10, 8, 0.55); /* backdrop-filter kaldırıldı (perf adımı 7) */
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -544,6 +548,49 @@ html.lm .arrow {
   }
 }
 
+/* katman aşaması slotu — ikon rayının solunda, 220px kare; yalnızca görsel varsa render edilir */
+.stageSlot {
+  position: absolute;
+  right: calc(18px + 44px + 22px);
+  top: 50%;
+  translate: 0 -50%;
+  z-index: 31;
+  width: 220px;
+  height: 220px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: rgba(12, 10, 8, 0.35);
+  border: 1px solid rgba(242, 236, 227, 0.12);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+.stageSlot img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  animation: slotIn 0.5s ease both;
+}
+@keyframes slotIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (max-width: 900px) {
+  .stageSlot {
+    width: 140px;
+    height: 140px;
+    right: calc(9px + 34px + 10px);
+    top: 24%;
+    translate: 0 0;
+  }
+}
+
 .payoff {
   position: absolute;
   inset: 0;
@@ -682,9 +729,7 @@ html.lm .arrow {
   gap: 16px;
   padding: 12px 14px;
   border-radius: 14px;
-  background: rgba(242, 236, 227, 0.07);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(12, 10, 8, 0.55); /* backdrop-filter kaldırıldı (perf adımı 7) */
   border: 1px solid rgba(242, 236, 227, 0.06);
   pointer-events: auto;
 }

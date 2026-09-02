@@ -13,6 +13,8 @@ pnpm start
 pnpm lint
 ```
 
+Demo: `pnpm build && pnpm start` → http://localhost:3000 (sahne performansı `pnpm dev`'de değil, üretim derlemesinde ölçülür).
+
 Stack: Next.js (App Router) + TypeScript + Tailwind 4 + pnpm. Fontlar `next/font` (Archivo + DM Mono).
 
 ## Ortam (.env.local)

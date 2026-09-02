@@ -267,6 +267,8 @@ export function computeFrame(p: number, env: Env): Frame {
       }
     }
     const brc = Math.max(0.1, Math.min(1.2, br));
+    /* blur: 0.5px adımlara yuvarla (her karede yeni filtre üretilmesin), 0.4 altını yazma */
+    const blq = Math.round(Math.min(bl, 9) * 2) / 2;
     items.push({
       transform:
         "translate(-50%,0) translate(" +
@@ -279,7 +281,7 @@ export function computeFrame(p: number, env: Env): Frame {
         rot.toFixed(2) +
         "deg)",
       opacity: Math.max(0, outro ? op : op * (1 - upT)).toFixed(3),
-      filter: "brightness(" + brc.toFixed(3) + ")" + (bl > 0.05 ? " blur(" + Math.min(bl, 9).toFixed(2) + "px)" : ""),
+      filter: "brightness(" + brc.toFixed(3) + ")" + (bl >= 0.4 ? " blur(" + blq.toFixed(1) + "px)" : ""),
     });
   }
 

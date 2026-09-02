@@ -15,10 +15,12 @@ interface Props {
   claims: Messages["claims"];
   rail: Messages["rail"];
   bind: Bind;
+  /** odaktaki ürünün bu iddiaya ait katman görseli; yoksa slot hiç render edilmez */
+  stageImage?: string;
 }
 
 /** Dive + 4 iddia: sol kopya (üstü çizili rozet → büyük başlık → açıklama) ve sağdaki ikon rayı. */
-export default function Claims({ item, desc: itemDescription, ci, claims, rail, bind }: Props) {
+export default function Claims({ item, desc: itemDescription, ci, claims, rail, bind, stageImage }: Props) {
   const claim = ci >= 0 ? claims[ci] : null;
   const [l1, l2] = claim ? [claim.l1, claim.l2] : splitTitle(item.name);
   const desc = claim ? claim.d : `${itemDescription}.`;
@@ -33,6 +35,12 @@ export default function Claims({ item, desc: itemDescription, ci, claims, rail, 
         <BigTitle l1={l1} l2={l2} />
         <p>{desc}</p>
       </div>
+      {stageImage ? (
+        <div className="stageSlot" aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element -- yol build'de doğrulanır, boyut CSS'te */}
+          <img key={stageImage} src={stageImage} alt="" decoding="async" />
+        </div>
+      ) : null}
       <div className="rail" ref={bind("rail")} aria-hidden="true">
         {rail.map((icon, r) => (
           <i key={r} className={r === ci ? "on" : undefined}>
