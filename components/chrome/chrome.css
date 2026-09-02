@@ -15,6 +15,11 @@
   display: flex;
   align-items: center;
   gap: 9px;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
   font-family: var(--font-mono);
   font-size: 0.62rem;
   letter-spacing: 0.22em;
@@ -48,6 +53,12 @@
 .eq b:nth-child(4) {
   height: 11px;
   animation-delay: 0.48s;
+}
+.onbox.off {
+  opacity: 0.45;
+}
+.onbox.off .eq b {
+  animation-play-state: paused;
 }
 @keyframes eq {
   0%,
