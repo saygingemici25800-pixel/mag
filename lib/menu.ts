@@ -152,7 +152,8 @@ export const HERO_ITEMS: HeroItem[] = MENU.burger.filter(
 
 /** "Mag Berry" → ["MAG", "BERRY"], "Smooky" → ["SMOOKY", ""] */
 export function splitTitle(name: string): [string, string] {
-  const parts = name.toLocaleUpperCase("tr-TR").split(" ");
+  // Ürün adları marka/İngilizce (Brisket → BRISKET); Türkçe locale "İ" üretmesin diye düz toUpperCase.
+  const parts = name.toUpperCase().split(" ");
   return [parts[0] ?? "", parts.slice(1).join(" ")];
 }
 

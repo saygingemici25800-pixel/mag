@@ -63,6 +63,7 @@ body {
   background: var(--char);
   color: var(--cream);
   font-family: var(--font-display);
+  line-height: normal; /* preflight 1.5 verir; prototip tarayıcı varsayılanını kullanır */
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
