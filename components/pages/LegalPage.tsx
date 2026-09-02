@@ -10,9 +10,9 @@ export default function LegalPage({ locale, slug }: { locale: Locale; slug: Lega
   return (
     <main className="ord">
       <div className="mx-auto max-w-3xl">
-        <nav className="ord-label mb-6 flex flex-wrap gap-x-5 gap-y-2" aria-label={t.legal.index}>
+        <nav className="ord-label mb-6 flex flex-wrap gap-x-4 gap-y-1" aria-label={t.legal.index}>
           {LEGAL_SLUGS.map((s) => (
-            <Link key={s} href={localePath(locale, `/yasal/${s}`)} className={s === slug ? "text-cream" : "hover:text-cream"} aria-current={s === slug ? "page" : undefined}>
+            <Link key={s} href={localePath(locale, `/yasal/${s}`)} className={"inline-flex min-h-8 items-center py-1 " + (s === slug ? "text-cream" : "hover:text-cream")} aria-current={s === slug ? "page" : undefined}>
               {t.legal[s]}
             </Link>
           ))}
