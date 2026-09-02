@@ -96,6 +96,8 @@ export interface Frame {
   /** streak left % */
   streak: number;
   hint: number;
+  /** ışık konisi (LightRays) opaklığı */
+  rays: number;
 }
 
 export interface Env {
@@ -291,6 +293,8 @@ export function computeFrame(p: number, env: Env): Frame {
   const dots = tOut > 0 ? clamp((tOut2 - 0.5) / 0.5) * 0.75 : discOut * 0.75 * (1 - fanD);
   const floor = tOut > 0 ? clamp(tOut1 * 1.5) : 1 - Math.max(payE * 0.9, upT);
   const aura = tOut > 0 ? clamp((tOut1 - 0.1) / 0.55) : Math.max(0, (1 - fanE * 0.72) * (1 - Math.max(payE, upT)));
+  const rays =
+    tOut > 0 ? clamp((tOut1 - 0.25) / 0.6) * 0.9 : Math.max(0, (1 - fanE * 0.55) * (1 - Math.max(diveE * 0.85, payE, upT)));
 
   /* copy */
   const heroOut = 1 - seg(p, 0.015, 0.075);
@@ -332,6 +336,7 @@ export function computeFrame(p: number, env: Env): Frame {
     track,
     streak,
     hint,
+    rays,
   };
 }
 
