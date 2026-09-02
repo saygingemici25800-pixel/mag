@@ -9,8 +9,25 @@
     padding-bottom: 80px;
   }
 }
+/* iki satırlı italik display başlık (stage.css'e bağımlı olmasın) */
 .ord .big {
+  margin: 0;
   font-size: clamp(2.6rem, 8vw, 5.4rem);
+  line-height: 0.8;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  font-weight: 900;
+  font-style: italic;
+}
+.ord .big span {
+  display: block;
+  overflow: hidden;
+  padding: 0.06em 0 0.1em;
+  margin: -0.06em 0 -0.1em;
+}
+.ord .big span i {
+  display: block;
+  font-style: italic;
 }
 .ord-label {
   font-family: var(--font-mono);
@@ -227,9 +244,6 @@ select.ctl {
     overflow: auto;
     box-shadow: 0 -20px 50px rgba(0, 0, 0, 0.6);
   }
-  .cartbar {
-    display: flex;
-  }
 }
 .cartbar {
   display: none;
@@ -243,6 +257,11 @@ select.ctl {
   font: inherit;
   cursor: pointer;
   padding: 0;
+}
+@media (max-width: 1023px) {
+  .cartbar {
+    display: flex;
+  }
 }
 .line {
   display: grid;
