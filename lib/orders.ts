@@ -8,12 +8,26 @@ import { isOpen, timeSlots } from "@/lib/hours";
 
 export type OrderType = "pickup" | "delivery";
 export type Payment = "cod" | "card_on_delivery" | "online";
-export type OrderStatus = "alindi" | "hazirlaniyor" | "hazir" | "yolda" | "teslim" | "iptal";
+export type OrderStatus = "received" | "preparing" | "ready" | "on_the_way" | "delivered" | "cancelled";
+export const STATUSES: OrderStatus[] = ["received", "preparing", "ready", "on_the_way", "delivered", "cancelled"];
+export const OPEN_STATUSES: OrderStatus[] = ["received", "preparing", "ready", "on_the_way"];
 
 export const STATUS_FLOW: Record<OrderType, OrderStatus[]> = {
-  pickup: ["alindi", "hazirlaniyor", "hazir", "teslim"],
-  delivery: ["alindi", "hazirlaniyor", "yolda", "teslim"],
+  pickup: ["received", "preparing", "ready", "delivered"],
+  delivery: ["received", "preparing", "on_the_way", "delivered"],
 };
+
+/** Panelde sıradaki adım (delivered/cancelled → null) */
+export function nextStatus(o: { type: OrderType; status: OrderStatus }): OrderStatus | null {
+  const flow = STATUS_FLOW[o.type];
+  const i = flow.indexOf(o.status);
+  return i >= 0 && i < flow.length - 1 ? flow[i + 1] : null;
+}
+
+/** Kısa görünen sipariş kodu (uuid'in ilk 8 hanesi) */
+export function shortId(id: string): string {
+  return id.slice(0, 8).toUpperCase();
+}
 
 export interface OrderItem {
   id: string;
@@ -58,8 +72,19 @@ export interface NewOrderInput {
 export interface OrderStore {
   create(order: Order): Promise<Order>;
   get(id: string): Promise<Order | null>;
-  list(): Promise<Order[]>;
+  /** en yeni önce; `limit` varsayılan 200 */
+  list(limit?: number): Promise<Order[]>;
   update(id: string, patch: Partial<Order>): Promise<Order | null>;
+}
+
+export interface PushSubscriptionRow {
+  endpoint: string;
+  keys: { p256dh: string; auth: string };
+}
+export interface PushStore {
+  add(sub: PushSubscriptionRow): Promise<void>;
+  list(): Promise<PushSubscriptionRow[]>;
+  remove(endpoint: string): Promise<void>;
 }
 
 const ALL_ITEMS: MenuItem[] = Object.values(MENU).flat();
@@ -115,16 +140,14 @@ export function validateOrder(input: NewOrderInput, now: Date = new Date()): Val
     if (t.missing > 0) errs.push({ field: "items", code: "min-cart" });
   }
   if (!["cod", "card_on_delivery"].includes(input.payment)) errs.push({ field: "payment", code: "invalid" }); // online: Faz 5
+  if (typeof input.note === "string" && input.note.length > 300) errs.push({ field: "note", code: "too-long" });
   const slots = timeSlots(now);
   if (!slots.includes(input.requested_at)) errs.push({ field: "requested_at", code: "invalid" });
   return errs;
 }
 
-const ID_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // karışan harfler yok
 export function newOrderId(): string {
-  const bytes = new Uint8Array(6);
-  crypto.getRandomValues(bytes);
-  return "MAG-" + Array.from(bytes, (b) => ID_ALPHABET[b % ID_ALPHABET.length]).join("");
+  return crypto.randomUUID(); // Supabase `orders.id uuid` ile aynı
 }
 
 export function buildOrder(input: NewOrderInput, now: Date = new Date()): Order {
@@ -148,6 +171,7 @@ export function buildOrder(input: NewOrderInput, now: Date = new Date()): Order 
     requested_at: input.requested_at,
     note: input.note?.trim() || null,
     payment: input.payment,
-    status: "alindi",
+    status: "received",
+    cancel_reason: null,
   };
 }
