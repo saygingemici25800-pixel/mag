@@ -18,7 +18,7 @@ echo "PATCH=$A1 list=$A2 stream=$A3 push=$A4"
 [ "$A1" = 401 ] && [ "$A2" = 401 ] && [ "$A3" = 401 ] && [ "$A4" = 401 ] && echo "PASS üretimde anahtar yok → 401" || echo "FAIL 401 bekleniyordu"
 stop
 echo "== B: PANEL_KEY=test1234 =="
-(PANEL_KEY=test1234 pnpm start -p $PORT >/tmp/mag-srvB.log 2>&1 &); up || { echo "server B yok"; exit 1; }
+(MAG_FAKE_NOW=2026-09-03T12:00:00+03:00 PANEL_KEY=test1234 pnpm start -p $PORT >/tmp/mag-srvB.log 2>&1 &); up || { echo "server B yok"; exit 1; }
 PANEL_KEY=test1234 node tests/e2e/faz3.mjs http://localhost:$PORT; R=$?
 stop
 exit $R

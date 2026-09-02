@@ -8,6 +8,8 @@ import type { Bind } from "./Arc";
 
 interface Props {
   item: HeroItem;
+  /** yerelleştirilmiş açıklama */
+  desc: string;
   /** −1: ürün kopyası; 0–3: iddia */
   ci: number;
   claims: Messages["claims"];
@@ -16,10 +18,10 @@ interface Props {
 }
 
 /** Dive + 4 iddia: sol kopya (üstü çizili rozet → büyük başlık → açıklama) ve sağdaki ikon rayı. */
-export default function Claims({ item, ci, claims, rail, bind }: Props) {
+export default function Claims({ item, desc: itemDescription, ci, claims, rail, bind }: Props) {
   const claim = ci >= 0 ? claims[ci] : null;
   const [l1, l2] = claim ? [claim.l1, claim.l2] : splitTitle(item.name);
-  const desc = claim ? claim.d : `${item.desc}.`;
+  const desc = claim ? claim.d : `${itemDescription}.`;
 
   return (
     <section className="scene scDive" ref={bind("scDive")}>

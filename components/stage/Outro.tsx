@@ -1,6 +1,8 @@
 "use client";
 
-import type { Messages } from "@/lib/i18n";
+import Link from "next/link";
+import { useLocale } from "@/components/LocaleProvider";
+import { localePath, type Messages } from "@/lib/i18n";
 import { SITE } from "@/lib/site";
 import type { Bind } from "./Arc";
 
@@ -11,6 +13,7 @@ interface Props {
 
 /** Manifesto (ATEŞ VE ET) · SSS paneli · BİZE KATIL + telif + sosyal bar. */
 export default function Outro({ t, bind }: Props) {
+  const locale = useLocale();
   return (
     <>
       <section className="scene payoff scPay" ref={bind("scPay")} aria-hidden="true">
@@ -55,10 +58,10 @@ export default function Outro({ t, bind }: Props) {
             {t.footer.tiktok}
           </a>
           <span className="links">
-            {t.footer.links.map((l) => (
-              <a key={l} href="#">
+            {t.footer.links.map((l, i) => (
+              <Link key={l} href={localePath(locale, `/yasal/${t.footer.linkSlugs[i]}`)} prefetch={false}>
                 {l}
-              </a>
+              </Link>
             ))}
           </span>
           <a className="pill" href={SITE.social.instagram}>

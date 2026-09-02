@@ -2,18 +2,20 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getMessages } from "@/lib/i18n";
+import { useLocale, useT } from "@/components/LocaleProvider";
+import { localePath } from "@/lib/i18n";
 import { STATUS_FLOW, shortId, type Order } from "@/lib/orders";
 import { formatPrice } from "@/lib/menu";
 import { getZone } from "@/lib/zones";
 import { SITE } from "@/lib/site";
 import "./order.css";
 
-const t = getMessages("tr");
 const fmt = (s: string, vars: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ""));
 
 /** /siparis/[id] — durum: alındı → hazırlanıyor → hazır/yolda → teslim. Canlı (SSE). */
 export default function OrderTrack({ initial }: { initial: Order }) {
+  const t = useT();
+  const locale = useLocale();
   const [order, setOrder] = useState(initial);
   const [live, setLive] = useState(false);
   const tr = t.track;
@@ -120,10 +122,10 @@ export default function OrderTrack({ initial }: { initial: Order }) {
         </section>
 
         <div className="mt-10 flex gap-3">
-          <Link href="/siparis" className="addbtn">
+          <Link href={localePath(locale, "/siparis")} className="addbtn">
             {tr.newOrder}
           </Link>
-          <Link href="/" className="ord-label self-center hover:text-cream">
+          <Link href={localePath(locale, "/")} className="ord-label self-center hover:text-cream">
             mag.
           </Link>
         </div>

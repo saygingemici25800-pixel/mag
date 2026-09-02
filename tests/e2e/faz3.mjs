@@ -2,6 +2,7 @@
 import { chromium } from "playwright";
 const base = process.argv[2] ?? "http://localhost:3112";
 const KEY = process.env.PANEL_KEY ?? "test1234";
+const FAKE_NOW = new Date("2026-09-03T12:00:00+03:00"); // dükkân açık (MAG_FAKE_NOW ile aynı)
 const browser = await chromium.launch();
 const errs = [];
 const hook = (p, tag) => { p.on("pageerror", (e) => errs.push(`[${tag}] ${e.message}`)); p.on("console", (m) => m.type() === "error" && errs.push(`[${tag}] ${m.text()}`)); };
@@ -16,7 +17,7 @@ await panelCtx.addInitScript(() => {
   window.PushManager = function () {};
   window.Notification = { permission: "granted", requestPermission: async () => "granted" };
 });
-const panel = await panelCtx.newPage(); hook(panel, "panel");
+const panel = await panelCtx.newPage(); hook(panel, "panel"); await panel.clock.install({ time: FAKE_NOW });
 await panel.goto(base + "/panel", { waitUntil: "load" });
 await panel.waitForSelector("form input[type=password]", { timeout: 8000 });
 await panel.screenshot({ path: "faz3-login.png" });
@@ -47,7 +48,7 @@ check("push abonelik (mock) kaydedildi", push === "ok", "data-push=" + push);
 
 // --- müşteri sekmesi ---
 const custCtx = await browser.newContext({ viewport: { width: 390, height: 844 } });
-const cust = await custCtx.newPage(); hook(cust, "cust");
+const cust = await custCtx.newPage(); hook(cust, "cust"); await cust.clock.install({ time: FAKE_NOW });
 await cust.goto(base + "/siparis", { waitUntil: "load" });
 await cust.waitForTimeout(500);
 await cust.getByRole("button", { name: "Kurye" }).click();
@@ -55,7 +56,7 @@ await cust.selectOption("select[aria-label=Mahalle]", "merkez");
 const card = cust.locator("article.card", { hasText: "Brisket" }).first();
 await card.getByRole("button", { name: "Ekle" }).click();
 await card.getByRole("button", { name: "Artır" }).click();
-await cust.getByRole("button", { name: "Sepeti aç" }).click();
+await cust.getByRole("button", { name: /^Sepet/ }).click();
 await cust.waitForTimeout(500);
 await cust.fill("input[placeholder='Ad soyad']", "Canlı Test");
 await cust.fill("input[placeholder='05XX XXX XX XX']", "+90 532 000 00 00");

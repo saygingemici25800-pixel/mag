@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getMessages } from "@/lib/i18n";
+import { useLocale, useT } from "@/components/LocaleProvider";
+import { itemDesc, localePath } from "@/lib/i18n";
 import { HERO_ITEMS, splitTitle } from "@/lib/menu";
 import { playSwitch } from "@/lib/sound";
 import Arc from "./Arc";
@@ -15,7 +17,6 @@ import { computeFrame, N } from "./stageMath";
 import { useScrollProgress } from "./useScrollProgress";
 import "./stage.css";
 
-const t = getMessages("tr");
 const SWIPE_PX = 44;
 const HERO_ZONE = 0.05; // ok/klavye/sürükleme yalnızca hero bölgesinde (scrollY ≤ max·.05)
 
@@ -26,6 +27,8 @@ type El = HTMLElement | null;
  * Her karede `computeFrame(p)` → DOM'a doğrudan yazılır (React state yalnızca `active` ve `ci` için).
  */
 export default function Stage() {
+  const t = useT();
+  const locale = useLocale();
   const [active, setActive] = useState(0);
   const [ci, setCi] = useState(-1);
   const [reduced, setReduced] = useState(false);
@@ -133,6 +136,8 @@ export default function Stage() {
       st("floor", "opacity", f.floor);
       st("aura", "opacity", f.aura);
       st("rays", "opacity", f.rays);
+      st("cta", "opacity", f.cta);
+      st("cta", "pointer-events", f.cta > 0.5 ? "auto" : "none");
 
       st("scHero", "opacity", f.hero);
       st("scDive", "opacity", f.dive);
@@ -234,7 +239,7 @@ export default function Stage() {
           </div>
         </section>
 
-        <Claims item={it} ci={ci} claims={t.claims} rail={t.rail} bind={bind} />
+        <Claims item={it} desc={itemDesc(t, it) ?? it.desc} ci={ci} claims={t.claims} rail={t.rail} bind={bind} />
         <Outro t={t} bind={bind} />
 
         <div className="track" ref={bind("track")} aria-hidden="true">
@@ -275,6 +280,10 @@ export default function Stage() {
         <div className="hint" ref={bind("hint")}>
           {t.hero.hint}
         </div>
+
+        <Link href={localePath(locale, "/siparis")} className="ctaPill" ref={bind("cta")} prefetch={false} tabIndex={-1}>
+          {t.cta.order}
+        </Link>
       </div>
 
       <Preloader brand={t.preloader.brand} />

@@ -1,7 +1,9 @@
 {
   "meta": {
     "title": "MAG Street Food — Fethiye",
-    "description": "Fethiye'de 130 gr köfte, günlük brioche, cheddar & gravyer ve dört ev sosu. Burger, taco ve noodle. Gel-al ve kurye."
+    "description": "Fethiye'de 130 gr köfte, günlük brioche, cheddar & gravyer ve dört ev sosu. Burger, taco ve noodle. Gel-al ve kurye.",
+    "template": "%s · MAG Street Food Fethiye",
+    "homeTitle": "Burger, taco ve noodle"
   },
   "chrome": {
     "open": "Açık",
@@ -10,7 +12,12 @@
     "menu": "Menü",
     "contact": "İletişim",
     "city": "FETHIYE",
-    "brand": "mag"
+    "brand": "mag",
+    "lang": {
+      "tr": "TR",
+      "en": "EN",
+      "switchAria": "Dil"
+    }
   },
   "hero": {
     "sub": "patates kızartması dahil",
@@ -86,6 +93,12 @@
       "Mesafeli Satış",
       "KVKK",
       "Çerezler"
+    ],
+    "linkSlugs": [
+      "iade-iptal",
+      "mesafeli-satis",
+      "kvkk",
+      "cerez"
     ]
   },
   "preloader": {
@@ -147,7 +160,9 @@
       "generic": "Sipariş gönderilemedi, tekrar dene."
     },
     "openCart": "Sepeti aç",
-    "closeCart": "Sepeti kapat"
+    "closeCart": "Sepeti kapat",
+    "metaTitle": "Sipariş",
+    "metaDesc": "Gel-al ya da kurye. Mahalleye göre minimum sepet, teslimatta nakit veya kart."
   },
   "track": {
     "title": [
@@ -173,7 +188,8 @@
     "back": "Menüye dön",
     "newOrder": "Yeni sipariş",
     "cancelReason": "Sebep",
-    "live": "Canlı"
+    "live": "Canlı",
+    "metaTitle": "Sipariş takibi"
   },
   "panel": {
     "title": "Panel",
@@ -236,5 +252,50 @@
       "stub": "Yerel stub",
       "supabase": "Supabase"
     }
-  }
+  },
+  "cta": {
+    "order": "Sipariş ver"
+  },
+  "contact": {
+    "title": [
+      "İLETİŞİM"
+    ],
+    "address": "Adres",
+    "phone": "Telefon",
+    "hours": "Çalışma saati",
+    "hoursValue": "Her gün 11:00–00:00",
+    "map": "Google Haritalar'da aç",
+    "social": "Sosyal",
+    "close": "Kapat",
+    "open": "İletişim"
+  },
+  "categories": {
+    "burger": "Burger",
+    "taco": "Taco",
+    "noodle": "Noodle",
+    "yan": "Yan",
+    "sos": "Sos",
+    "icecek": "İçecek"
+  },
+  "legal": {
+    "kvkk": "KVKK Aydınlatma Metni",
+    "mesafeli-satis": "Mesafeli Satış Sözleşmesi",
+    "iade-iptal": "İade ve İptal Koşulları",
+    "cerez": "Çerez Politikası",
+    "index": "Yasal",
+    "updated": "Son güncelleme",
+    "placeholderNote": "Köşeli parantez içindeki alanlar işletme bilgileri gelince doldurulacaktır.",
+    "trOnly": ""
+  },
+  "notFound": {
+    "title": [
+      "SAYFA",
+      "YOK"
+    ],
+    "lead": "Aradığın sayfa burada değil. Menüye dönebilir ya da sipariş verebilirsin.",
+    "home": "Ana sayfa",
+    "order": "Sipariş ver"
+  },
+  "menuDesc": {},
+  "menuName": {}
 }

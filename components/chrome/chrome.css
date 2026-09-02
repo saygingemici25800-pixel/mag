@@ -194,3 +194,118 @@ html.lm .cta {
 html.lm .bracket {
   border-color: rgba(12, 10, 8, 0.4);
 }
+
+/* ---- TR | EN ---- */
+.lang {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+}
+.lang a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  min-height: 36px; /* dokunma hedefi (a11y target-size) */
+  color: var(--dim);
+  text-decoration: none;
+  padding: 2px 4px;
+}
+.lang a[aria-current="page"] {
+  color: var(--cream);
+}
+.lang i {
+  color: rgba(242, 236, 227, 0.25);
+  font-style: normal;
+  margin: 0 4px;
+}
+html.lm .lang a {
+  color: rgba(12, 10, 8, 0.5);
+}
+html.lm .lang a[aria-current="page"] {
+  color: #0c0a08;
+}
+
+/* ---- İletişim overlay ---- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 85;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(12, 10, 8, 0.86);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: var(--cream);
+}
+.overlay-in {
+  width: min(560px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.overlay .big {
+  margin: 0;
+  font-size: clamp(2.6rem, 9vw, 5rem);
+  line-height: 0.8;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  font-weight: 900;
+  font-style: italic;
+}
+.overlay .big span,
+.overlay .big span i {
+  display: block;
+  font-style: italic;
+}
+.overlay dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 14px 24px;
+  align-items: baseline;
+}
+.overlay dt {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.overlay dd {
+  margin: 0;
+  font-size: clamp(1rem, 2.2vw, 1.25rem);
+}
+.overlay dd a {
+  color: var(--cream);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(242, 236, 227, 0.3);
+}
+.overlay dd a:hover {
+  border-color: var(--cream);
+}
+.overlay dd small {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.overlay .cta {
+  align-self: flex-start;
+}
+@media (max-width: 600px) {
+  .overlay dl {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .overlay dd {
+    margin-bottom: 8px;
+  }
+}

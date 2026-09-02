@@ -98,6 +98,8 @@ export interface Frame {
   hint: number;
   /** ışık konisi (LightRays) opaklığı */
   rays: number;
+  /** sağ alt "Sipariş ver" pill'i: dive'dan itibaren, kapanışta kaybolur */
+  cta: number;
 }
 
 export interface Env {
@@ -295,6 +297,7 @@ export function computeFrame(p: number, env: Env): Frame {
   const aura = tOut > 0 ? clamp((tOut1 - 0.1) / 0.55) : Math.max(0, (1 - fanE * 0.72) * (1 - Math.max(payE, upT)));
   const rays =
     tOut > 0 ? clamp((tOut1 - 0.25) / 0.6) * 0.9 : Math.max(0, (1 - fanE * 0.55) * (1 - Math.max(diveE * 0.85, payE, upT)));
+  const cta = seg(p, S.dive[0] + 0.01, S.dive[0] + 0.05) * (1 - seg(p, S.foot[0], S.foot[0] + 0.03));
 
   /* copy */
   const heroOut = 1 - seg(p, 0.015, 0.075);
@@ -337,6 +340,7 @@ export function computeFrame(p: number, env: Env): Frame {
     streak,
     hint,
     rays,
+    cta,
   };
 }
 

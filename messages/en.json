@@ -1,0 +1,345 @@
+{
+  "meta": {
+    "title": "MAG Street Food — Fethiye",
+    "template": "%s · MAG Street Food Fethiye",
+    "homeTitle": "Burgers, tacos and noodles",
+    "description": "130 g patties, daily brioche, cheddar & gruyère and four house sauces in Fethiye. Burgers, tacos and noodles. Pickup and delivery."
+  },
+  "chrome": {
+    "open": "Open",
+    "soundOn": "Sound on",
+    "soundOff": "Sound off",
+    "menu": "Menu",
+    "contact": "Contact",
+    "city": "FETHIYE",
+    "brand": "mag",
+    "lang": {
+      "tr": "TR",
+      "en": "EN",
+      "switchAria": "Language"
+    }
+  },
+  "hero": {
+    "sub": "fries included",
+    "hint": "Scroll to explore",
+    "prev": "previous",
+    "next": "next",
+    "prevAria": "Previous item",
+    "nextAria": "Next item"
+  },
+  "claims": [
+    {
+      "no": "frozen patties",
+      "l1": "130 G",
+      "l2": "MINCE",
+      "d": "Every burger gets a 130 g patty. We grind the beef ourselves each morning; yesterday's never makes it to the counter."
+    },
+    {
+      "no": "supermarket buns",
+      "l1": "DAILY",
+      "l2": "BRIOCHE",
+      "d": "Buns arrive fresh every day and are seared in butter to order."
+    },
+    {
+      "no": "one generic cheese",
+      "l1": "CHEDDAR",
+      "l2": "& GRUYÈRE",
+      "d": "Two real cheeses on the menu: cheddar and gruyère. No processed slices."
+    },
+    {
+      "no": "bottled sauce",
+      "l1": "FOUR",
+      "l2": "HOUSE SAUCES",
+      "d": "Truffle mayo, jalapeño, sweet & chili and MAG sauce. All four made in our kitchen, 50 ₺ on the side."
+    }
+  ],
+  "rail": [
+    "🥩",
+    "🍞",
+    "🧀",
+    "🫙"
+  ],
+  "payoff": [
+    "FIRE",
+    "AND MEAT"
+  ],
+  "faq": {
+    "title": [
+      "FREQUENTLY",
+      "ASKED"
+    ],
+    "items": [
+      "Do you do delivery and pickup?",
+      "Do burgers come with fries?",
+      "Can I get sauces on the side?",
+      "Do you make tacos and noodles too?",
+      "What time do you close?"
+    ]
+  },
+  "footer": {
+    "title": [
+      "JOIN",
+      "US"
+    ],
+    "lead": "Be the first to hear about new items and offers.",
+    "placeholder": "your e-mail",
+    "cta": "Sign up",
+    "legal": "By signing up you accept our privacy policy.",
+    "copy": "© 2026 MAG. STREET FOOD · FETHİYE",
+    "tiktok": "TikTok",
+    "instagram": "Instagram",
+    "links": [
+      "Legal",
+      "Distance sales",
+      "Privacy (KVKK)",
+      "Cookies"
+    ],
+    "linkSlugs": [
+      "iade-iptal",
+      "mesafeli-satis",
+      "kvkk",
+      "cerez"
+    ]
+  },
+  "preloader": {
+    "brand": "mag"
+  },
+  "cta": {
+    "order": "Order now"
+  },
+  "contact": {
+    "title": [
+      "CONTACT"
+    ],
+    "address": "Address",
+    "phone": "Phone",
+    "hours": "Opening hours",
+    "hoursValue": "Every day 11:00–00:00",
+    "map": "Open in Google Maps",
+    "social": "Social",
+    "close": "Close",
+    "open": "Contact"
+  },
+  "categories": {
+    "burger": "Burgers",
+    "taco": "Tacos",
+    "noodle": "Noodles",
+    "yan": "Sides",
+    "sos": "Sauces",
+    "icecek": "Drinks"
+  },
+  "menuDesc": {
+    "smooky": "130 g beef patty, smoked short rib, caramelised onion, cheddar, iceberg lettuce, smoky pepper aioli",
+    "brisket": "Slow-cooked pulled brisket, caramelised onion, cheddar, smoky pepper aioli, pickled onion",
+    "berry": "Caramelised sour cherry, gruyère, 130 g beef patty",
+    "jalapeno": "Jalapeño sauce, cheddar, crispy onion, 130 g beef patty, rocket",
+    "caesar": "MAG sauce, lettuce, gruyère, breaded chicken",
+    "orjinal": "MAG sauce, crispy onion, cheddar, 130 g beef patty",
+    "truffle": "130 g beef patty, mushroom duxelles, truffle mayo, cheddar, pickled onion",
+    "citir": "Breaded chicken pieces, chips, sweet chili sauce",
+    "tavuk-taco": "Sautéed spiced chicken, iceberg lettuce, gruyère, avocado, chipotle mayo",
+    "tiftik-taco": "Slow-cooked pulled brisket, parsley & onion, cheddar, smoky pepper aioli",
+    "karides-taco": "Butter-sautéed shrimp, slaw, avocado, chipotle mayo, spring onion",
+    "tavuklu-noodle": "Chicken breast, spring onion, carrot, ginger, red pepper, soy sauce, sesame",
+    "karidesli-noodle": "Shrimp, spring onion, carrot, ginger, red pepper, soy sauce, sesame",
+    "patates": "Hand-cut fries",
+    "patates-parmesan": "Hand-cut fries with parmesan",
+    "truflu-mayonez": "Truffle mayo",
+    "jalapeno-sos": "Jalapeño",
+    "sweet-chili": "Sweet & chili",
+    "mag-sos": "MAG sauce",
+    "ayran": "Arslan ayran",
+    "icecekler": "Soft drinks",
+    "su": "Water",
+    "soda": "Sparkling water",
+    "zencefilli-gazoz": "Ginger soda",
+    "alkolsuz-bira": "Non-alcoholic beer"
+  },
+  "menuName": {
+    "patates": "Fries (hand-cut)",
+    "patates-parmesan": "Fries (parmesan)",
+    "truflu-mayonez": "Truffle mayo",
+    "jalapeno-sos": "Jalapeño",
+    "sweet-chili": "Sweet & chili",
+    "mag-sos": "MAG sauce",
+    "ayran": "Arslan ayran",
+    "icecekler": "Soft drinks",
+    "su": "Water",
+    "soda": "Sparkling water",
+    "zencefilli-gazoz": "Ginger soda",
+    "alkolsuz-bira": "Non-alcoholic beer",
+    "tavuk-taco": "Chicken taco",
+    "tiftik-taco": "Brisket taco",
+    "karides-taco": "Shrimp taco",
+    "tavuklu-noodle": "Chicken",
+    "karidesli-noodle": "Shrimp"
+  },
+  "order": {
+    "metaTitle": "Order",
+    "metaDesc": "Pickup or delivery. Minimum basket by neighbourhood, cash or card on delivery.",
+    "title": [
+      "PLACE",
+      "AN ORDER"
+    ],
+    "lead": "Pickup or delivery. Pay on delivery, cash or card.",
+    "pickup": "Pickup",
+    "delivery": "Delivery",
+    "zoneLabel": "Neighbourhood",
+    "zonePlaceholder": "Choose neighbourhood",
+    "minInfoAria": "Minimum basket amounts",
+    "minInfoTitle": "Minimum basket amounts",
+    "minInfoLead": "Delivery orders have a minimum basket by neighbourhood. No delivery fee for now.",
+    "minInfoZone": "Neighbourhood",
+    "minInfoMin": "Min. basket",
+    "minInfoFee": "Delivery",
+    "close": "Close",
+    "burgerNote": "All burgers come with fries.",
+    "sauceNote": "Sauces 50 ₺.",
+    "add": "Add",
+    "noteToggle": "Note",
+    "notePlaceholder": "e.g. no onion",
+    "cart": "Basket",
+    "cartEmpty": "Your basket is empty. Add something from the menu.",
+    "subtotal": "Subtotal",
+    "fee": "Delivery fee",
+    "total": "Total",
+    "minWarn": "Min. basket {min} ₺ — add {missing} ₺ more",
+    "info": "Details",
+    "name": "Full name",
+    "phone": "Phone",
+    "phonePlaceholder": "05XX XXX XX XX",
+    "address": "Address",
+    "addressPlaceholder": "Neighbourhood, street, number, floor/flat, directions",
+    "when": "When",
+    "now": "Now",
+    "orderNote": "Order note",
+    "payment": "Payment",
+    "cod": "Cash on delivery",
+    "cardOnDelivery": "Card on delivery",
+    "submit": "Confirm order",
+    "submitting": "Sending…",
+    "closed": "We're closed right now — opening tomorrow at {open}.",
+    "closedShort": "Closed · opens at {open}",
+    "hours": "Every day {open}–00:00",
+    "err": {
+      "name": "Name required",
+      "phone": "Enter the phone as 05XX XXX XX XX",
+      "address": "Address required",
+      "zone": "Choose a neighbourhood",
+      "items": "Basket is empty or below the minimum",
+      "requested_at": "Choose a time",
+      "hours": "No orders outside opening hours",
+      "generic": "Could not send the order, try again."
+    },
+    "openCart": "Open basket",
+    "closeCart": "Close basket"
+  },
+  "track": {
+    "metaTitle": "Order tracking",
+    "title": [
+      "ORDER",
+      "RECEIVED"
+    ],
+    "id": "Order no",
+    "status": "Status",
+    "items": "Items",
+    "when": "Requested time",
+    "payment": "Payment",
+    "steps": {
+      "received": "Received",
+      "preparing": "Preparing",
+      "ready": "Ready",
+      "on_the_way": "On the way",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
+    },
+    "pickupHint": "You'll see it here when it's ready. Address: {address}",
+    "deliveryHint": "You'll see it here when the courier leaves.",
+    "notFound": "No such order.",
+    "back": "Back to menu",
+    "newOrder": "New order",
+    "cancelReason": "Reason",
+    "live": "Live"
+  },
+  "legal": {
+    "kvkk": "Privacy Notice (KVKK)",
+    "mesafeli-satis": "Distance Sales Agreement",
+    "iade-iptal": "Refund and Cancellation",
+    "cerez": "Cookie Policy",
+    "index": "Legal",
+    "updated": "Last updated",
+    "placeholderNote": "Fields in brackets will be completed once the business details arrive.",
+    "trOnly": "Legal texts are provided in Turkish, the language of the agreement. Contact us if you need help."
+  },
+  "notFound": {
+    "title": [
+      "PAGE",
+      "NOT FOUND"
+    ],
+    "lead": "This page isn't here. Head back to the menu or place an order.",
+    "home": "Home",
+    "order": "Order now"
+  },
+  "panel": {
+    "title": "Panel",
+    "login": "Giriş",
+    "email": "E-posta",
+    "password": "Şifre",
+    "key": "Panel şifresi",
+    "enter": "Gir",
+    "loginFail": "Şifre yanlış",
+    "logout": "Çıkış",
+    "closedProd": "Panel kapalı: sunucuda PANEL_KEY tanımlı değil.",
+    "tabs": {
+      "active": "Aktif",
+      "today": "Bugün",
+      "past": "Geçmiş"
+    },
+    "empty": "Bu sekmede sipariş yok.",
+    "soundOn": "Sesi aç",
+    "soundOff": "Sesi kapat",
+    "soundIsOn": "Ses açık",
+    "soundIsOff": "Ses kapalı",
+    "pushOn": "Bildirimleri aç",
+    "pushOk": "Bildirimler açık",
+    "pushDenied": "Bildirim izni verilmedi",
+    "pushUnsupported": "Bu tarayıcı bildirim desteklemiyor",
+    "pushFail": "Bildirim kaydı başarısız",
+    "seen": "Görüldü",
+    "new": "Yeni",
+    "pickup": "Gel-al",
+    "delivery": "Kurye",
+    "cod": "Nakit",
+    "cardOnDelivery": "Kart",
+    "online": "Online",
+    "call": "Ara",
+    "map": "Haritada aç",
+    "when": "İstenen",
+    "now": "Şimdi",
+    "note": "Not",
+    "status": {
+      "received": "Alındı",
+      "preparing": "Hazırlanıyor",
+      "ready": "Hazır",
+      "on_the_way": "Yolda",
+      "delivered": "Teslim edildi",
+      "cancelled": "İptal"
+    },
+    "next": {
+      "preparing": "Hazırlanıyor",
+      "ready": "Hazır",
+      "on_the_way": "Yolda",
+      "delivered": "Teslim edildi"
+    },
+    "cancel": "İptal",
+    "cancelReason": "İptal sebebi",
+    "cancelConfirm": "İptal et",
+    "cancelBack": "Vazgeç",
+    "live": "Canlı",
+    "offline": "Bağlantı yok — yeniden bağlanıyor",
+    "store": {
+      "stub": "Yerel stub",
+      "supabase": "Supabase"
+    }
+  }
+}
