@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocale, useT } from "@/components/LocaleProvider";
 import { itemDesc, localePath } from "@/lib/i18n";
+import type { StageMap } from "@/lib/katman";
+import { STAGE_KEYS } from "@/lib/menu";
 import { HERO_ITEMS, splitTitle } from "@/lib/menu";
 import { playSwitch } from "@/lib/sound";
 import Arc from "./Arc";
@@ -26,7 +28,7 @@ type El = HTMLElement | null;
  * Ana sayfa sinematik sahnesi. `.scroller` 1200vh, `.stage` fixed.
  * Her karede `computeFrame(p)` → DOM'a doğrudan yazılır (React state yalnızca `active` ve `ci` için).
  */
-export default function Stage() {
+export default function Stage({ stages }: { stages?: StageMap }) {
   const t = useT();
   const locale = useLocale();
   const [active, setActive] = useState(0);
@@ -64,14 +66,32 @@ export default function Stage() {
     return () => mq.removeEventListener("change", on);
   }, []);
 
+  /* Kare içinde layout okuması yok: odaktaki cutout ölçüsü resize'da, ürün değişiminde ve görsel yüklenince cache'lenir */
+  const cut = useRef({ ch: 0, cw: 0 });
+  const styleCache = useRef(new Map<string, string>());
+  const measureCutout = useCallback(() => {
+    const img = dom.get("centerImg") as HTMLImageElement | null;
+    cut.current = { ch: img?.clientHeight ?? 0, cw: img?.clientWidth ?? 0 };
+  }, [dom]);
   useEffect(() => {
     const on = () => {
       size.current = { vw: window.innerWidth, vh: window.innerHeight };
+      measureCutout();
     };
     on();
     window.addEventListener("resize", on);
     return () => window.removeEventListener("resize", on);
-  }, []);
+  }, [measureCutout]);
+  useEffect(() => {
+    // paint(): odaktaki slotun kaynağı değişti → yeni görsel yüklenince ölç (wide/normal yükseklik farkı)
+    const img = dom.get("centerImg") as HTMLImageElement | null;
+    if (!img) return;
+    if (img.complete) measureCutout();
+    else {
+      img.addEventListener("load", measureCutout, { once: true });
+      return () => img.removeEventListener("load", measureCutout);
+    }
+  }, [active, dom, measureCutout]);
 
   // unmount: html üzerindeki sahne izlerini temizle
   useEffect(
@@ -89,19 +109,18 @@ export default function Stage() {
       const root = document.documentElement;
       root.style.setProperty("--accent", it.accent);
 
-      const cimg = dom.get("centerImg") as HTMLImageElement | null;
-      const f = computeFrame(p, {
-        vw,
-        vh,
-        accent: it.accent,
-        ch: cimg?.clientHeight ?? 0,
-        cw: cimg?.clientWidth ?? 0,
-      });
+      const f = computeFrame(p, { vw, vh, accent: it.accent, ch: cut.current.ch, cw: cut.current.cw });
 
-      /** DOM'a doğrudan yaz — React state değil (60fps). */
+      /** DOM'a doğrudan yaz — React state değil (60fps). Değişmeyen değere yazma (style invalidation yok). */
+      const cache = styleCache.current;
       const st = (name: string, prop: string, value: string | number) => {
+        const v = String(value);
+        const k = name + "|" + prop;
+        if (cache.get(k) === v) return;
         const el = dom.get(name);
-        if (el) el.style.setProperty(prop, String(value));
+        if (!el) return;
+        el.style.setProperty(prop, v);
+        cache.set(k, v);
       };
 
       st("stage", "background-color", f.bg);
@@ -160,6 +179,19 @@ export default function Stage() {
   );
 
   useScrollProgress(render, !reduced);
+
+  /* Preloader süresinde 5 cutout'u (ve yansımaları) decode et: ilk kaydırmada ana iş parçacığında decode takılması olmasın */
+  useEffect(() => {
+    if (reduced) return;
+    const imgs = Array.from(document.querySelectorAll<HTMLImageElement>(".item img"));
+    let cancelled = false;
+    Promise.allSettled(imgs.map((img) => (img.decode ? img.decode() : Promise.resolve()))).then(() => {
+      if (!cancelled) measureCutout();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [reduced, measureCutout]);
 
   /* hero: swap the focused product */
   const go = useCallback((d: number) => {
@@ -239,7 +271,15 @@ export default function Stage() {
           </div>
         </section>
 
-        <Claims item={it} desc={itemDesc(t, it) ?? it.desc} ci={ci} claims={t.claims} rail={t.rail} bind={bind} />
+        <Claims
+          item={it}
+          desc={itemDesc(t, it) ?? it.desc}
+          ci={ci}
+          claims={t.claims}
+          rail={t.rail}
+          bind={bind}
+          stageImage={ci >= 0 ? stages?.[it.id]?.[STAGE_KEYS[ci]] : undefined}
+        />
         <Outro t={t} bind={bind} />
 
         <div className="track" ref={bind("track")} aria-hidden="true">

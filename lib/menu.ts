@@ -7,6 +7,19 @@ export type Category = "burger" | "taco" | "noodle" | "yan" | "sos" | "icecek";
 
 export type HeroId = "smooky" | "brisket" | "berry" | "jalapeno" | "caesar";
 
+/** Katman aşamaları — ana sayfadaki 4 iddiayla aynı sıra: et → ekmek → peynir → sos */
+export type StageKey = "et" | "ekmek" | "peynir" | "sos";
+export const STAGE_KEYS: StageKey[] = ["et", "ekmek", "peynir", "sos"];
+export interface StageImage {
+  key: StageKey;
+  /** public altındaki yol; dosya varsa build'de tespit edilir (lib/katman.ts) */
+  image: string;
+}
+/** /assets/katman/<id>-1-et.webp … <id>-4-sos.webp — görseller gelince klasöre atılır, kod değişmez */
+export function stagesFor(id: string): StageImage[] {
+  return STAGE_KEYS.map((key, i) => ({ key, image: `/assets/katman/${id}-${i + 1}-${key}.webp` }));
+}
+
 export interface MenuItem {
   id: string;
   name: string;
@@ -18,6 +31,8 @@ export interface MenuItem {
   hero?: boolean;
   /** Katman animasyonu için (sonraki faz) */
   layers?: string[];
+  /** Katman aşaması görselleri (iddia bölümündeki slot) */
+  stages?: StageImage[];
 }
 
 export interface HeroItem extends MenuItem {
@@ -31,6 +46,7 @@ export const MENU: Record<Category, MenuItem[]> = {
   burger: [
     {
       id: "smooky",
+      stages: stagesFor("smooky"),
       name: "Smooky",
       price: 620,
       accent: "#E2591F",
@@ -40,6 +56,7 @@ export const MENU: Record<Category, MenuItem[]> = {
     },
     {
       id: "brisket",
+      stages: stagesFor("brisket"),
       name: "Brisket",
       price: 600,
       accent: "#C89A63",
@@ -48,6 +65,7 @@ export const MENU: Record<Category, MenuItem[]> = {
     },
     {
       id: "berry",
+      stages: stagesFor("berry"),
       name: "Mag Berry",
       price: 550,
       accent: "#8E3B52",
@@ -56,6 +74,7 @@ export const MENU: Record<Category, MenuItem[]> = {
     },
     {
       id: "jalapeno",
+      stages: stagesFor("jalapeno"),
       name: "Jalapeno",
       price: 520,
       accent: "#7E9B57",
@@ -64,6 +83,7 @@ export const MENU: Record<Category, MenuItem[]> = {
     },
     {
       id: "caesar",
+      stages: stagesFor("caesar"),
       name: "Mag Caesar",
       price: 490,
       accent: "#D8B15E",

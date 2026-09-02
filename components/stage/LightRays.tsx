@@ -100,10 +100,11 @@ export default function LightRays({ bind }: Props) {
       H = 1;
     const mouse = { x: 0.5, y: 0.5 },
       sm = { x: 0.5, y: 0.5 };
+    /* Yarı çözünürlük: tampon = CSS boyutu × res (0.75); kare süresi >16 ms olursa kalıcı 0.5. CSS canvas'ı %100'e ölçekler. */
+    let res = 0.75;
     function place() {
-      const dpr = Math.min(window.devicePixelRatio || 1, window.innerWidth < 900 ? 1 : 1.5);
-      W = Math.max(1, Math.floor(container!.clientWidth * dpr));
-      H = Math.max(1, Math.floor(container!.clientHeight * dpr));
+      W = Math.max(1, Math.floor(container!.clientWidth * res));
+      H = Math.max(1, Math.floor(container!.clientHeight * res));
       canvas.width = W;
       canvas.height = H;
       gl!.viewport(0, 0, W, H);
@@ -119,14 +120,30 @@ export default function LightRays({ bind }: Props) {
     window.addEventListener("resize", place);
     window.addEventListener("mousemove", onMove);
     let raf = 0;
+    let lastT = 0,
+      acc = 0,
+      n = 0;
     const loop = (t: number) => {
       if (parseFloat(container!.style.opacity || "0") > 0.01) {
+        if (lastT && res > 0.5) {
+          acc += t - lastT;
+          n++;
+          if (n >= 60) {
+            if (acc / n > 16) {
+              res = 0.5;
+              place();
+            }
+            acc = 0;
+            n = 0;
+          }
+        }
+        lastT = t;
         sm.x = sm.x * 0.92 + mouse.x * 0.08;
         sm.y = sm.y * 0.92 + mouse.y * 0.08;
         gl!.uniform1f(U.iTime, t * 0.001);
         gl!.uniform2f(U.mousePos, sm.x, sm.y);
         gl!.drawArrays(gl!.TRIANGLES, 0, 3);
-      }
+      } else lastT = 0;
       raf = requestAnimationFrame(loop);
     };
     loop(0);

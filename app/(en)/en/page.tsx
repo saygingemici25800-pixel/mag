@@ -2,6 +2,7 @@ import JsonLd from "@/components/seo/JsonLd";
 import Stage from "@/components/stage/Stage";
 import { getMessages } from "@/lib/i18n";
 import { restaurantJsonLd } from "@/lib/jsonld";
+import { availableStages } from "@/lib/katman";
 import { pageMetadata } from "@/lib/seo";
 
 const t = getMessages("en");
@@ -11,7 +12,7 @@ export default function HomePageEn() {
   return (
     <>
       <JsonLd data={restaurantJsonLd("en")} />
-      <Stage />
+      <Stage stages={availableStages()} />
     </>
   );
 }
