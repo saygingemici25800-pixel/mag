@@ -115,8 +115,8 @@ export function heroSpacing(vw: number): number {
 export function heroBaseY(vh: number): number {
   return vh * 0.4; // where the focus piece sits
 }
-export function defaultCutoutHeight(vh: number): number {
-  return Math.min(vh * 0.33, 248);
+export function defaultCutoutHeight(vh: number, vw: number = 1440): number {
+  return vw < 900 ? Math.min(vh * 0.26, 190) : Math.min(vh * 0.33, 248);
 }
 
 export function claimIndex(p: number): number {
@@ -283,10 +283,10 @@ export function computeFrame(p: number, env: Env): Frame {
   let discOut = 1 - Math.max(diveE, upT);
   if (tOut > 0) discOut = clamp((tOut1 - 0.72) / 0.28); // plint burger yere oturunca gelir
   const fanD = tOut > 0 ? 0 : fanE; // kapanışta yelpaze kapalı pozunda olmalı
-  const ch = env.ch || defaultCutoutHeight(vh);
-  /* oklar: odaktaki burgerin iki yanında, dikeyde tam ortasında */
+  const ch = env.ch || defaultCutoutHeight(vh, vw);
+  /* oklar: odaktaki burgerin iki yanında, dikeyde tam ortasında; mobilde her zaman ekran içinde */
   const cwid = (env.cw || 300) * 1.14;
-  const ax = cwid / 2 + (mobile ? 26 : 44);
+  const ax = mobile ? Math.min(cwid / 2 + 22, vw / 2 - 30) : cwid / 2 + 44;
   const ay = baseY + ch * 0.57;
   const dots = tOut > 0 ? clamp((tOut2 - 0.5) / 0.5) * 0.75 : discOut * 0.75 * (1 - fanD);
   const floor = tOut > 0 ? clamp(tOut1 * 1.5) : 1 - Math.max(payE * 0.9, upT);
