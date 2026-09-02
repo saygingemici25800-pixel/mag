@@ -10,10 +10,10 @@ export const SITE = {
   /** AÇIK (spec §11.2): açılış saati onayı */
   hours: { open: "11:00", close: "00:00" },
   mapsUrl: "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent("MAG Street Food Cumhuriyet Mah. Atatürk Cd. No:24 Fethiye"),
-  /** AÇIK (spec §11.5): sosyal adresler — yer tutucu */
+  /** Instagram gerçek; TikTok AÇIK (spec §11.5) — yer tutucu */
   social: {
     tiktok: "https://www.tiktok.com/@magstreetfood",
-    instagram: "https://www.instagram.com/magstreetfood",
+    instagram: "https://www.instagram.com/magstreetfood/",
   },
   rating: { value: 4.6, count: 535 },
 } as const;

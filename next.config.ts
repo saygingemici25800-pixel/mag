@@ -24,6 +24,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // iyzipay SDK dinamik require kullanır; bundle'a alınmaz, Node runtime'da doğrudan yüklenir
+  serverExternalPackages: ["iyzipay"],
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

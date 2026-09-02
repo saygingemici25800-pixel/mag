@@ -213,9 +213,6 @@
     "when": "When",
     "now": "Now",
     "orderNote": "Order note",
-    "payment": "Payment",
-    "cod": "Cash on delivery",
-    "cardOnDelivery": "Card on delivery",
     "submit": "Confirm order",
     "submitting": "Sending…",
     "closed": "We're closed right now — opening tomorrow at {open}.",
@@ -232,7 +229,26 @@
       "generic": "Could not send the order, try again."
     },
     "openCart": "Open basket",
-    "closeCart": "Close basket"
+    "closeCart": "Close basket",
+    "addShort": "+ Add",
+    "goodWith": "Goes well with",
+    "addToCart": "Add to basket",
+    "qty": "Qty",
+    "goCart": "Go to basket",
+    "itemsCount": "items",
+    "checkoutTitle": [
+      "CHECKOUT"
+    ],
+    "summary": "Basket summary",
+    "remove": "Remove",
+    "deliveryInfo": "Delivery",
+    "payNow": "Continue to payment",
+    "payingNow": "Redirecting…",
+    "onlineOnly": "Payment is online by card. No payment on delivery.",
+    "backToMenu": "Back to menu",
+    "emptyGo": "Go to menu",
+    "ingredients": "Ingredients",
+    "sheetClose": "Close"
   },
   "track": {
     "metaTitle": "Order tracking",
@@ -259,7 +275,8 @@
     "back": "Back to menu",
     "newOrder": "New order",
     "cancelReason": "Reason",
-    "live": "Live"
+    "live": "Live",
+    "paymentLabel": "Payment"
   },
   "legal": {
     "kvkk": "Privacy Notice (KVKK)",
@@ -340,6 +357,29 @@
     "store": {
       "stub": "Yerel stub",
       "supabase": "Supabase"
+    },
+    "paid": "Paid"
+  },
+  "payment": {
+    "status": {
+      "awaiting_payment": "Awaiting payment",
+      "paid": "Paid",
+      "payment_failed": "Payment failed"
+    },
+    "retry": "Retry payment",
+    "failedLead": "Payment didn't go through. Your order is waiting; you can try again.",
+    "awaitingLead": "The order reaches the kitchen once payment completes.",
+    "paidLead": "Payment received.",
+    "mock": {
+      "title": [
+        "TEST",
+        "PAYMENT"
+      ],
+      "lead": "This is a test payment page (mock provider). No real charge.",
+      "ok": "Complete payment",
+      "fail": "Fail",
+      "amount": "Amount",
+      "order": "Order"
     }
   }
 }

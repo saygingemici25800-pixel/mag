@@ -7,7 +7,9 @@ import { getZone } from "@/lib/zones";
 import { defaultNow, isOpen, timeSlots } from "@/lib/hours";
 
 export type OrderType = "pickup" | "delivery";
-export type Payment = "cod" | "card_on_delivery" | "online";
+export type Payment = "online"; // karar 3 Eyl 2026: yalnızca online
+export type PaymentStatus = "awaiting_payment" | "paid" | "payment_failed";
+export type OrderLocale = "tr" | "en";
 export type OrderStatus = "received" | "preparing" | "ready" | "on_the_way" | "delivered" | "cancelled";
 export const STATUSES: OrderStatus[] = ["received", "preparing", "ready", "on_the_way", "delivered", "cancelled"];
 export const OPEN_STATUSES: OrderStatus[] = ["received", "preparing", "ready", "on_the_way"];
@@ -53,6 +55,10 @@ export interface Order {
   requested_at: string;
   note: string | null;
   payment: Payment;
+  payment_status: PaymentStatus;
+  /** sağlayıcı referansı (mock token / iyzico token) */
+  payment_ref: string | null;
+  locale: OrderLocale;
   status: OrderStatus;
   cancel_reason?: string | null;
 }
@@ -66,14 +72,14 @@ export interface NewOrderInput {
   address?: string | null;
   requested_at: string;
   note?: string | null;
-  payment: Payment;
+  locale?: OrderLocale;
 }
 
 export interface OrderStore {
   create(order: Order): Promise<Order>;
   get(id: string): Promise<Order | null>;
-  /** en yeni önce; `limit` varsayılan 200 */
-  list(limit?: number): Promise<Order[]>;
+  /** en yeni önce; `limit` varsayılan 200; `paidOnly` panel için */
+  list(limit?: number, paidOnly?: boolean): Promise<Order[]>;
   update(id: string, patch: Partial<Order>): Promise<Order | null>;
 }
 
@@ -139,7 +145,6 @@ export function validateOrder(input: NewOrderInput, now: Date = defaultNow()): V
     const t = computeTotals(input.items ?? [], "delivery", input.zone);
     if (t.missing > 0) errs.push({ field: "items", code: "min-cart" });
   }
-  if (!["cod", "card_on_delivery"].includes(input.payment)) errs.push({ field: "payment", code: "invalid" }); // online: Faz 5
   if (typeof input.note === "string" && input.note.length > 300) errs.push({ field: "note", code: "too-long" });
   const slots = timeSlots(now);
   if (!slots.includes(input.requested_at)) errs.push({ field: "requested_at", code: "invalid" });
@@ -170,7 +175,10 @@ export function buildOrder(input: NewOrderInput, now: Date = defaultNow()): Orde
     address: input.type === "delivery" ? (input.address?.trim() ?? null) : null,
     requested_at: input.requested_at,
     note: input.note?.trim() || null,
-    payment: input.payment,
+    payment: "online",
+    payment_status: "awaiting_payment",
+    payment_ref: null,
+    locale: input.locale === "en" ? "en" : "tr",
     status: "received",
     cancel_reason: null,
   };

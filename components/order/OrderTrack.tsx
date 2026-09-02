@@ -18,11 +18,23 @@ export default function OrderTrack({ initial }: { initial: Order }) {
   const locale = useLocale();
   const [order, setOrder] = useState(initial);
   const [live, setLive] = useState(false);
+  const [retrying, setRetrying] = useState(false);
   const tr = t.track;
+  const retry = async () => {
+    setRetrying(true);
+    try {
+      const res = await fetch("/api/payments/retry", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: order.id }) });
+      const data = await res.json();
+      if (res.ok && data.redirectUrl) window.location.assign(data.redirectUrl);
+    } finally {
+      setRetrying(false);
+    }
+  };
 
   // Canlı: SSE (stub'da süreç içi olay, Supabase'de sunucu yoklaması). EventSource kopunca kendi bağlanır.
   useEffect(() => {
     if (order.status === "delivered" || order.status === "cancelled") return;
+    if (order.payment_status !== "paid" && order.payment_status !== "awaiting_payment") return;
     const es = new EventSource(`/api/orders/stream?id=${encodeURIComponent(order.id)}`);
     es.addEventListener("hello", () => setLive(true));
     es.addEventListener("order", (e) => {
@@ -31,7 +43,7 @@ export default function OrderTrack({ initial }: { initial: Order }) {
     });
     es.onerror = () => setLive(false);
     return () => es.close();
-  }, [order.id, order.status]);
+  }, [order.id, order.status, order.payment_status]);
 
   const flow = STATUS_FLOW[order.type];
   const idx = order.status === "cancelled" ? -1 : flow.indexOf(order.status);
@@ -51,6 +63,19 @@ export default function OrderTrack({ initial }: { initial: Order }) {
             <i>{order.status === "cancelled" ? tr.steps.cancelled.split(" ")[0] : tr.title[1]}</i>
           </span>
         </h1>
+        <div className={"mt-5 flex flex-wrap items-center gap-3 " + (order.payment_status === "payment_failed" ? "text-ember" : order.payment_status === "paid" ? "text-jalapeno" : "text-kraft")} data-payment={order.payment_status}>
+          <span className="badge2">
+            {tr.paymentLabel}: {t.payment.status[order.payment_status]}
+          </span>
+          <span className="text-sm">
+            {order.payment_status === "paid" ? t.payment.paidLead : order.payment_status === "payment_failed" ? t.payment.failedLead : t.payment.awaitingLead}
+          </span>
+          {order.payment_status !== "paid" ? (
+            <button type="button" className="addbtn" onClick={retry} disabled={retrying}>
+              {t.payment.retry}
+            </button>
+          ) : null}
+        </div>
         <p className="mt-4 max-w-md text-dim">
           {order.type === "pickup" ? fmt(tr.pickupHint, { address: SITE.address }) : tr.deliveryHint}
         </p>
@@ -97,10 +122,6 @@ export default function OrderTrack({ initial }: { initial: Order }) {
             <div>
               <div className="ord-label mb-1">{tr.when}</div>
               {order.requested_at === "simdi" ? t.order.now : order.requested_at}
-            </div>
-            <div>
-              <div className="ord-label mb-1">{tr.payment}</div>
-              {order.payment === "cod" ? t.order.cod : t.order.cardOnDelivery}
             </div>
             <div>
               <div className="ord-label mb-1">{order.type === "pickup" ? t.order.pickup : t.order.delivery}</div>

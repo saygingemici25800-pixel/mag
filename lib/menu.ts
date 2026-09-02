@@ -33,6 +33,8 @@ export interface MenuItem {
   layers?: string[];
   /** Katman aşaması görselleri (iddia bölümündeki slot) */
   stages?: StageImage[];
+  /** "Şununla iyi gider" — ürün sheet'inde öneri çipleri (id) */
+  pairs?: string[];
 }
 
 export interface HeroItem extends MenuItem {
@@ -46,6 +48,7 @@ export const MENU: Record<Category, MenuItem[]> = {
   burger: [
     {
       id: "smooky",
+      pairs: ["mag-sos", "truflu-mayonez", "ayran"],
       stages: stagesFor("smooky"),
       name: "Smooky",
       price: 620,
@@ -56,6 +59,7 @@ export const MENU: Record<Category, MenuItem[]> = {
     },
     {
       id: "brisket",
+      pairs: ["jalapeno-sos", "mag-sos", "zencefilli-gazoz"],
       stages: stagesFor("brisket"),
       name: "Brisket",
       price: 600,
@@ -65,6 +69,7 @@ export const MENU: Record<Category, MenuItem[]> = {
     },
     {
       id: "berry",
+      pairs: ["truflu-mayonez", "ayran"],
       stages: stagesFor("berry"),
       name: "Mag Berry",
       price: 550,
@@ -74,6 +79,7 @@ export const MENU: Record<Category, MenuItem[]> = {
     },
     {
       id: "jalapeno",
+      pairs: ["mag-sos", "zencefilli-gazoz"],
       stages: stagesFor("jalapeno"),
       name: "Jalapeno",
       price: 520,
@@ -83,6 +89,7 @@ export const MENU: Record<Category, MenuItem[]> = {
     },
     {
       id: "caesar",
+      pairs: ["truflu-mayonez", "ayran"],
       stages: stagesFor("caesar"),
       name: "Mag Caesar",
       price: 490,
@@ -91,31 +98,35 @@ export const MENU: Record<Category, MenuItem[]> = {
       desc: "Mag sos, marul, gravyer, panelenmiş tavuk",
     },
     // foto yok
-    { id: "orjinal", name: "Mag Orjinal", price: 520, desc: "Mag sos, kıtır soğan, cheddar, 130 gr burger köftesi" },
+    { id: "orjinal", pairs: ["jalapeno-sos", "mag-sos", "ayran"], name: "Mag Orjinal", price: 520, desc: "Mag sos, kıtır soğan, cheddar, 130 gr burger köftesi" },
     {
       id: "truffle",
+      pairs: ["truflu-mayonez", "zencefilli-gazoz"],
       name: "Truffle & Mush",
       price: 550,
       desc: "130 gr burger köftesi, mantar düxelles, trüflü mayonez, cheddar, soğan turşusu",
     },
-    { id: "citir", name: "Mag Çıtır", price: 490, desc: "Panelenmiş tavuk parçaları, cips, sweet chili sos" },
+    { id: "citir", pairs: ["sweet-chili", "ayran"], name: "Mag Çıtır", price: 490, desc: "Panelenmiş tavuk parçaları, cips, sweet chili sos" },
   ],
   taco: [
     // 2 adet
     {
       id: "tavuk-taco",
+      pairs: ["ayran", "zencefilli-gazoz"],
       name: "Tavuk Taco",
       price: 450,
       desc: "Sotelenmiş baharatlı tavuk, iceberg marul, gravyer peyniri, avokado, chipotle mayo",
     },
     {
       id: "tiftik-taco",
+      pairs: ["ayran", "alkolsuz-bira"],
       name: "Tiftik Taco",
       price: 530,
       desc: "Ağır ateşte pişmiş tiftik et, maydanoz & soğan, cheddar, tütsü biberli aioli",
     },
     {
       id: "karides-taco",
+      pairs: ["zencefilli-gazoz", "soda"],
       name: "Karidesli Taco",
       price: 520,
       desc: "Tereyağında sotelenmiş karides, lahanaslaw, avokado, chipotle mayo, taze soğan",
@@ -124,20 +135,22 @@ export const MENU: Record<Category, MenuItem[]> = {
   noodle: [
     {
       id: "tavuklu-noodle",
+      pairs: ["zencefilli-gazoz", "ayran"],
       name: "Tavuklu",
       price: 450,
       desc: "Tavuk göğsü, taze soğan, havuç, zencefil, kapya biber, soya sos, susam",
     },
     {
       id: "karidesli-noodle",
+      pairs: ["soda", "alkolsuz-bira"],
       name: "Karidesli",
       price: 550,
       desc: "Karides, taze soğan, havuç, zencefil, kapya biber, soya sos, susam",
     },
   ],
   yan: [
-    { id: "patates", name: "Patates kızartması (el yapımı)", price: 300 },
-    { id: "patates-parmesan", name: "Patates kızartması (parmesanlı)", price: 350 },
+    { id: "patates", pairs: ["truflu-mayonez", "sweet-chili"], name: "Patates kızartması (el yapımı)", price: 300 },
+    { id: "patates-parmesan", pairs: ["mag-sos", "jalapeno-sos"], name: "Patates kızartması (parmesanlı)", price: 350 },
   ],
   sos: [
     // 50 ₺

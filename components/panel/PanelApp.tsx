@@ -54,6 +54,10 @@ export default function PanelApp() {
     on: typeof window === "undefined" ? true : soundPref(),
   }));
   const unseenRef = useRef(0);
+  const ordersRef = useRef<Map<string, Order>>(new Map());
+  useEffect(() => {
+    ordersRef.current = orders;
+  }, [orders]);
 
   /* --- kapı --- */
   const checkGate = useCallback(async () => {
@@ -98,7 +102,9 @@ export default function PanelApp() {
   };
 
   /* --- akış --- */
-  const upsert = useCallback((o: Order, isNew: boolean) => {
+  const upsert = useCallback((o: Order, hint: boolean) => {
+    if (o.payment_status !== "paid") return; // panel yalnızca ödenmişleri görür
+    const isNew = hint || !ordersRef.current.has(o.id); // ödeme tamamlanınca gelen UPDATE de "yeni"dir
     setOrders((m) => {
       const next = new Map(m);
       next.set(o.id, o);
