@@ -35,6 +35,17 @@ export function setSoundOn(on: boolean): void {
   }
 }
 
+/** İlk kullanıcı dokunuşunda AudioContext'i önceden oluştur — ilk sesin geçiş animasyonunu dondurmaması için. */
+export function warmAudio(): void {
+  if (SND.switch || actx) return;
+  try {
+    const Ctx = window.AudioContext || (window as WebkitWindow).webkitAudioContext;
+    if (Ctx) actx = new Ctx();
+  } catch {
+    /* yok say */
+  }
+}
+
 export function playSwitch(): void {
   if (!soundOn) return;
   if (SND.switch) {

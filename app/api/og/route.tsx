@@ -24,8 +24,8 @@ export async function GET(req: Request) {
   const item = HERO_ITEMS.find((m) => m.id === itemParam) ?? HERO_ITEMS[0];
   const locale = isLocale(url.searchParams.get("locale") || "") ? url.searchParams.get("locale") : "tr";
   const { italic, upright } = await fonts();
-  const png = await readFile(path.join(process.cwd(), "assets/og", `${item.id as HeroId}.png`));
-  const src = `data:image/png;base64,${png.toString("base64")}`;
+  const png = await readFile(path.join(process.cwd(), "assets/og", `${item.id as HeroId}.png`)).catch(() => null);
+  const src = png ? `data:image/png;base64,${png.toString("base64")}` : null;
   const [l1, l2] = splitTitle(item.name);
   const sub = locale === "en" ? "STREET FOOD · FETHIYE" : "STREET FOOD · FETHİYE";
 
@@ -66,8 +66,10 @@ export async function GET(req: Request) {
           {l2 ? <span>{l2}</span> : null}
         </div>
         <div style={{ position: "absolute", left: 560, top: 90, width: 600, height: 480, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={src} height={440} style={{ objectFit: "contain" }} alt="" />
+          {src ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={src} height={440} style={{ objectFit: "contain" }} alt="" />
+          ) : null}
         </div>
         <div style={{ position: "absolute", left: 640, top: 540, width: 440, height: 26, borderRadius: 999, background: "radial-gradient(circle at center, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 70%)" }} />
       </div>

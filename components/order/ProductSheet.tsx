@@ -6,6 +6,7 @@ import { cartAdd } from "@/lib/cart";
 import { itemDesc, itemName } from "@/lib/i18n";
 import { formatPrice, type MenuItem } from "@/lib/menu";
 import { findMenuItem } from "@/lib/orders-shared";
+import Ingredients from "./Ingredients";
 import ProductImage from "./ProductImage";
 
 interface Props {
@@ -57,7 +58,9 @@ export default function ProductSheet({ item, onClose, onAdded }: Props) {
         {itemDesc(t, item) ? (
           <div>
             <div className="ord-label mb-1">{o.ingredients}</div>
-            <p className="m-0 text-dim">{itemDesc(t, item)}</p>
+            <p className="m-0 text-cream/90">
+              <Ingredients text={itemDesc(t, item)!} />
+            </p>
           </div>
         ) : null}
         <div className="flex items-center justify-between gap-3">

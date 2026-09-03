@@ -5,7 +5,7 @@
 
 export type Category = "burger" | "taco" | "noodle" | "yan" | "sos" | "icecek";
 
-export type HeroId = "smooky" | "brisket" | "berry" | "jalapeno" | "caesar";
+export type HeroId = "smooky" | "brisket" | "berry" | "jalapeno" | "caesar" | "orjinal" | "truffle" | "citir";
 
 /** Katman aşamaları — ana sayfadaki 4 iddiayla aynı sıra: et → ekmek → peynir → sos */
 export type StageKey = "et" | "ekmek" | "peynir" | "sos";
@@ -27,6 +27,8 @@ export interface MenuItem {
   desc?: string;
   /** Ürün aksan rengi (yalnızca hero burgerler) */
   accent?: string;
+  /** Arka plan gradyanı [c1, c2] — hero'da linear-gradient(135deg, c1, c2); renkler ayrıca gelecek */
+  bg?: [string, string];
   /** Ana sayfa sahnesinde cutout'u olan ürünler */
   hero?: boolean;
   /** Katman animasyonu için (sonraki faz) */
@@ -53,6 +55,7 @@ export const MENU: Record<Category, MenuItem[]> = {
       name: "Smooky",
       price: 620,
       accent: "#E2591F",
+      bg: ["#E2591F", "#14100F"],
       hero: true,
       desc: "130 gr burger köftesi, füme kaburga, karamelize soğan, cheddar, iceberg marul, tütsü biberli aioli",
       layers: ["ust-ekmek", "aioli", "iceberg", "cheddar", "fume-kaburga", "karamelize-sogan", "kofte", "alt-ekmek"],
@@ -64,6 +67,7 @@ export const MENU: Record<Category, MenuItem[]> = {
       name: "Brisket",
       price: 600,
       accent: "#C89A63",
+      bg: ["#C89A63", "#14100F"],
       hero: true,
       desc: "Ağır ateşte pişmiş tiftik et, karamelize soğan, cheddar, tütsü biberli aioli, soğan turşusu",
     },
@@ -74,6 +78,7 @@ export const MENU: Record<Category, MenuItem[]> = {
       name: "Mag Berry",
       price: 550,
       accent: "#8E3B52",
+      bg: ["#8E3B52", "#14100F"],
       hero: true,
       desc: "Karamelize vişne, gravyer peyniri, 130 gr burger köftesi",
     },
@@ -84,6 +89,7 @@ export const MENU: Record<Category, MenuItem[]> = {
       name: "Jalapeno",
       price: 520,
       accent: "#7E9B57",
+      bg: ["#7E9B57", "#14100F"],
       hero: true,
       desc: "Jalapeno sos, cheddar, çıtır soğan, 130 gr burger köftesi, roka",
     },
@@ -94,19 +100,44 @@ export const MENU: Record<Category, MenuItem[]> = {
       name: "Mag Caesar",
       price: 490,
       accent: "#D8B15E",
+      bg: ["#D8B15E", "#14100F"],
       hero: true,
       desc: "Mag sos, marul, gravyer, panelenmiş tavuk",
     },
-    // foto yok
-    { id: "orjinal", pairs: ["jalapeno-sos", "mag-sos", "ayran"], name: "Mag Orjinal", price: 520, desc: "Mag sos, kıtır soğan, cheddar, 130 gr burger köftesi" },
+    // foto yok → hero'da tipografik kutu; assets/cut/<id>.webp gelince otomatik cutout (lib/cutouts-available.ts)
+    {
+      id: "orjinal",
+      pairs: ["jalapeno-sos", "mag-sos", "ayran"],
+      stages: stagesFor("orjinal"),
+      name: "Mag Orjinal",
+      price: 520,
+      accent: "#B8672E",
+      bg: ["#B8672E", "#14100F"],
+      hero: true,
+      desc: "Mag sos, kıtır soğan, cheddar, 130 gr burger köftesi",
+    },
     {
       id: "truffle",
       pairs: ["truflu-mayonez", "zencefilli-gazoz"],
+      stages: stagesFor("truffle"),
       name: "Truffle & Mush",
       price: 550,
+      accent: "#7C6A9E",
+      bg: ["#7C6A9E", "#14100F"],
+      hero: true,
       desc: "130 gr burger köftesi, mantar düxelles, trüflü mayonez, cheddar, soğan turşusu",
     },
-    { id: "citir", pairs: ["sweet-chili", "ayran"], name: "Mag Çıtır", price: 490, desc: "Panelenmiş tavuk parçaları, cips, sweet chili sos" },
+    {
+      id: "citir",
+      pairs: ["sweet-chili", "ayran"],
+      stages: stagesFor("citir"),
+      name: "Mag Çıtır",
+      price: 490,
+      accent: "#D9A441",
+      bg: ["#D9A441", "#14100F"],
+      hero: true,
+      desc: "Panelenmiş tavuk parçaları, cips, sweet chili sos",
+    },
   ],
   taco: [
     // 2 adet
@@ -178,7 +209,7 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   icecek: "İçecek",
 };
 
-/** Ana sayfa sahnesindeki 5 burger — menü sırasıyla, her biri bir kez. */
+/** Ana sayfa sahnesindeki 8 burger — menü sırasıyla, her biri bir kez. */
 export const HERO_ITEMS: HeroItem[] = MENU.burger.filter(
   (m): m is HeroItem => m.hero === true && typeof m.accent === "string" && typeof m.desc === "string",
 );

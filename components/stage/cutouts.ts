@@ -11,17 +11,18 @@ import berryM from "@/public/assets/cut-m/berry.webp";
 import jalapenoM from "@/public/assets/cut-m/jalapeno.webp";
 import caesarM from "@/public/assets/cut-m/caesar.webp";
 
-/** Fondan kesilmiş 5 burger (WebP, 480px yükseklik). */
-export const CUTOUTS: Record<HeroId, StaticImageData> = { smooky, brisket, berry, jalapeno, caesar };
+/** Fondan kesilmiş cutout'lar (WebP, 480px). Eksik ürünler (orjinal, truffle, citir): dosya gelince build'de bulunur → lib/cutouts-available.ts */
+export const CUTOUTS: Partial<Record<HeroId, StaticImageData>> = { smooky, brisket, berry, jalapeno, caesar };
 
-/** Mobil kopyalar (300px yükseklik, kalite 72) — `pnpm assets:cut-m` üretir, <900px'te kullanılır. */
-export const CUTOUTS_M: Record<HeroId, StaticImageData> = {
-  smooky: smookyM,
-  brisket: brisketM,
-  berry: berryM,
-  jalapeno: jalapenoM,
-  caesar: caesarM,
-};
+/** Mobil kopyalar (300px, kalite 72) — `pnpm assets:cut-m`. */
+export const CUTOUTS_M: Partial<Record<HeroId, StaticImageData>> = { smooky: smookyM, brisket: brisketM, berry: berryM, jalapeno: jalapenoM, caesar: caesarM };
+
+/** Build'de dosya sisteminde bulunan ek cutout'lar (statik import'suz) */
+export interface ExtraCutout {
+  src: string;
+  srcM?: string;
+}
+export type ExtraCutouts = Partial<Record<HeroId, ExtraCutout>>;
 
 /** <900px medya sorgusu — CSS'teki kırılımla aynı. */
 export const MOBILE_MQ = "(max-width: 899px)";
