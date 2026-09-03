@@ -189,9 +189,16 @@
   transform-origin: 50% 50%;
   transform: translate(-50%, 0);
 }
-/* SSR ilk karesi: odaktaki parça hero ölçeğinde (×1.14) boyansın ki LCP hydration'ı beklemesin; JS inline transform ile ezer */
+/* SSR ilk karesi: odaktaki parça hero ölçeğinde boyansın ki LCP hydration'ı beklemesin; JS inline transform ile ezer.
+   .item üzerinde transform/filter için CSS transition YOK — tek kaynak rAF tween (Stage.render). */
 .item.focus {
   transform: translate(-50%, 0) scale(1.14);
+}
+.item,
+.item.focus,
+.item img,
+.item .ph {
+  transition: none !important;
 }
 .item picture {
   display: contents; /* <picture> yerleşimi etkilemesin; img doğrudan .item'ın çocuğu gibi */

@@ -18,6 +18,8 @@ export const S = {
   out2: [0.958, 0.99], // yanlar belirir
 } as const satisfies Record<string, readonly [number, number]>;
 
+/** Odak büyütmesi: scale = base(t_eff) × (1 + FOCUS_ZOOM × max(0, 1 − |t_eff|)) — sürekli, slota bağlı değil */
+export const FOCUS_ZOOM = 0.14;
 export const N = 8; // menu.burger sırası — hepsi hero'da
 export const CENTER = 3; // odaklanan slot; görünür slotlar t=-2..+2, |t|≥3 hazır bekler (opacity 0)
 /** |t| 2→3 arasında görünürlük 1→0 */
@@ -230,32 +232,38 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
       bl = lerp(closed.bl, opened.bl, fanE);
     let op = lerp(closed.op, opened.op, fanE) * slotVisibility(a);
 
+    /* Odaklanma ağırlığı: |t_eff| 0→1 arası 1→0. Ok geçişinde slot sıçraması yok, süreklidir. */
+    const focusW = Math.max(0, 1 - a);
+
     if (tDive > 0) {
-      if (i === CENTER) {
-        x = lerp(x, mobile ? 0 : vw * 0.2, diveE);
-        y = lerp(y, vh * 0.46, diveE);
-        sc = lerp(sc, mobile ? 1.95 : 2.25, diveE);
-        rot = lerp(rot, -4, diveE);
-        br = lerp(br, 1, diveE);
-        bl = 0;
-        op = 1;
-      } else {
-        x = lerp(x, x + (t < 0 ? -vw * 0.75 : vw * 0.75), diveE);
-        op = lerp(op, 0, Math.min(diveE * 1.7, 1));
-      }
+      // odak pozu (w=1) ile kenara kaçış (w=0) arasında harmanla — geçiş ortasında iki poz karışır
+      const fx = lerp(x, mobile ? 0 : vw * 0.2, diveE);
+      const fy = lerp(y, vh * 0.46, diveE);
+      const fsc = lerp(sc, mobile ? 1.95 : 2.25, diveE);
+      const frot = lerp(rot, -4, diveE);
+      const fbr = lerp(br, 1, diveE);
+      const sx = lerp(x, x + (t < 0 ? -vw * 0.75 : vw * 0.75), diveE);
+      const sop = lerp(op, 0, Math.min(diveE * 1.7, 1));
+      x = lerp(sx, fx, focusW);
+      y = lerp(y, fy, focusW);
+      sc = lerp(sc, fsc, focusW);
+      rot = lerp(rot, frot, focusW);
+      br = lerp(br, fbr, focusW);
+      bl = lerp(bl, 0, focusW);
+      op = lerp(sop, 1, focusW);
     }
-    if (i === CENTER && claimsT > 0) {
-      y = lerp(vh * 0.46, vh * 0.44, claimsT);
-      sc = lerp(mobile ? 1.95 : 2.25, mobile ? 2.1 : 2.45, claimsT);
-      br = lerp(1, 0.34, Math.min(claimsT * 1.4, 1));
-      rot = lerp(-4, -7, claimsT);
+    if (focusW > 0 && claimsT > 0) {
+      y = lerp(y, lerp(vh * 0.46, vh * 0.44, claimsT), focusW);
+      sc = lerp(sc, lerp(mobile ? 1.95 : 2.25, mobile ? 2.1 : 2.45, claimsT), focusW);
+      br = lerp(br, lerp(1, 0.34, Math.min(claimsT * 1.4, 1)), focusW);
+      rot = lerp(rot, lerp(-4, -7, claimsT), focusW);
     }
-    if (i === CENTER && tPay > 0) {
-      x = lerp(mobile ? 0 : vw * 0.2, 0, payE);
-      y = lerp(vh * 0.44, vh * 0.44, payE);
-      sc = lerp(mobile ? 2.1 : 2.45, 1.3, payE);
-      rot = lerp(-7, 0, payE);
-      br = lerp(0.34, 1.05, Math.min(payE * 1.5, 1));
+    if (focusW > 0 && tPay > 0) {
+      x = lerp(x, lerp(mobile ? 0 : vw * 0.2, 0, payE), focusW);
+      y = lerp(y, vh * 0.44, focusW);
+      sc = lerp(sc, lerp(mobile ? 2.1 : 2.45, 1.3, payE), focusW);
+      rot = lerp(rot, lerp(-7, 0, payE), focusW);
+      br = lerp(br, lerp(0.34, 1.05, Math.min(payE * 1.5, 1)), focusW);
     }
     if (tRange > 0) {
       const rsp = Math.min(vw * 0.135, 150);
@@ -269,39 +277,41 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
     }
 
     y -= upT * vh * 0.55;
-    if (i === CENTER) sc *= 1.14;
+    /* Odak büyütmesi t_eff'e bağlı sürekli: yana kayarken aynı anda büyür/küçülür, sonda zıplama olmaz */
+    sc *= 1 + FOCUS_ZOOM * focusW;
 
     if (outro) {
       /* p=1'deki kare, p=0'daki hero karesinin aynısı olmalı ki geçiş görünmesin */
-      const hsc = (1 - a * 0.185) * (i === CENTER ? 1.14 : 1);
+      const hsc = (1 - a * 0.185) * (1 + FOCUS_ZOOM * focusW);
       const hx = t * spacing,
         hy = baseY + a * a * 13,
         hrot = t * 3.2;
       const hbr = 1 - a * 0.42,
         hbl = a > 1.6 ? (a - 1.6) * 1.4 : 0;
-      if (i === CENTER) {
-        /* faz 1 — BİZE KATIL yukarı süzülürken burger alttan, aynı eğriyle, büyüyerek ortaya */
-        const eo = smooth(tOut1);
-        sc = lerp(hsc * 0.3, hsc, eo);
-        x = 0;
-        y = lerp(vh * 0.8, hy, eo); // barın altından başlar
-        rot = 0;
-        br = lerp(0.55, hbr, eo);
-        bl = lerp(3, hbl, eo);
-        op = 1;
-      } else {
-        /* faz 2 — yanındakiler önce koyu siluet, sonra hero yerine */
-        const lag = (a - 1) * 0.22; // dıştakiler biraz geç
-        const st = clamp((tOut2 - lag) / (1 - lag));
-        const e2 = ease(st);
-        x = lerp(hx * 0.55, hx, e2); // ortadan dışarı açılır
-        y = lerp(hy + vh * 0.03, hy, e2);
-        sc = lerp(hsc * 0.82, hsc, e2);
-        rot = lerp(0, hrot, e2);
-        br = lerp(0.05, hbr, clamp((st - 0.35) / 0.65)); // siluet → dolu
-        bl = lerp(7, hbl, e2);
-        op = clamp(st * 3.2) * slotVisibility(a);
-      }
+      /* faz 1 — odak: BİZE KATIL yukarı süzülürken burger alttan, aynı eğriyle, büyüyerek ortaya */
+      const eo = smooth(tOut1);
+      const cSc = lerp(hsc * 0.3, hsc, eo),
+        cY = lerp(vh * 0.8, hy, eo),
+        cBr = lerp(0.55, hbr, eo),
+        cBl = lerp(3, hbl, eo);
+      /* faz 2 — yanlar: önce koyu siluet, sonra hero yerine */
+      const lag = Math.max(0, a - 1) * 0.22; // dıştakiler biraz geç
+      const st = clamp((tOut2 - lag) / (1 - lag));
+      const e2 = ease(st);
+      const sX = lerp(hx * 0.55, hx, e2), // ortadan dışarı açılır
+        sY = lerp(hy + vh * 0.03, hy, e2),
+        sSc = lerp(hsc * 0.82, hsc, e2),
+        sRot = lerp(0, hrot, e2),
+        sBr = lerp(0.05, hbr, clamp((st - 0.35) / 0.65)), // siluet → dolu
+        sBl = lerp(7, hbl, e2),
+        sOp = clamp(st * 3.2) * slotVisibility(a);
+      x = lerp(sX, 0, focusW);
+      y = lerp(sY, cY, focusW);
+      sc = lerp(sSc, cSc, focusW);
+      rot = lerp(sRot, 0, focusW);
+      br = lerp(sBr, cBr, focusW);
+      bl = lerp(sBl, cBl, focusW);
+      op = lerp(sOp, 1, focusW);
     }
     const brc = Math.max(0.1, Math.min(1.2, br));
     /* yan slotlar soluk: saturate(1 − a·0.3); dive/claims/pay odaktaki için a=0 → 1 */
@@ -332,7 +342,7 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   const fanD = tOut > 0 ? 0 : fanE; // kapanışta yelpaze kapalı pozunda olmalı
   const ch = env.ch || defaultCutoutHeight(vh, vw);
   /* oklar: odaktaki burgerin iki yanında, dikeyde tam ortasında; mobilde her zaman ekran içinde */
-  const cwid = (env.cw || 300) * 1.14;
+  const cwid = (env.cw || 300) * (1 + FOCUS_ZOOM);
   const ax = mobile ? Math.min(cwid / 2 + 22, vw / 2 - 30) : cwid / 2 + 44;
   const ay = baseY + ch * 0.57;
   const dots = tOut > 0 ? clamp((tOut2 - 0.5) / 0.5) * 0.75 : discOut * 0.75 * (1 - fanD);

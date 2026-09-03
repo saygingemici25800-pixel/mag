@@ -9,7 +9,8 @@
     "lint": "eslint",
     "assets:cut-m": "node scripts/cut-m.mjs",
     "assets:order-sound": "node scripts/gen-order-sound.mjs",
-    "assets:og": "node scripts/cut-og.mjs"
+    "assets:og": "node scripts/cut-og.mjs",
+    "assets:logo": "node scripts/logo-alpha.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",
