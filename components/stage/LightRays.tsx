@@ -5,25 +5,35 @@ import { useEffect, useRef } from "react";
 interface Props {
   /** Stage'in her karede opaklık yazdığı katman referansı */
   bind: (el: HTMLElement | null) => void;
+  /** shader derlendi (ya da WebGL yok) — preloader ilerlemesi için */
+  onReady?: () => void;
 }
 
 /**
  * Tepedeki asılı diskten ürünün üstüne düşen ışık konisi (WebGL). .room'un üstünde, ürün alanının altında.
  * Opaklık Stage.render'da (raysO); 0.01'in altındayken çizim yapılmaz.
  */
-export default function LightRays({ bind }: Props) {
+export default function LightRays({ bind, onReady }: Props) {
   const ref = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const container = ref.current;
     if (!container) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const readyTimers: number[] = [];
+    const ready = () => {
+      readyTimers.push(window.setTimeout(() => onReady?.(), 0));
+    };
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      ready();
+      return;
+    }
 
     const canvas = document.createElement("canvas");
     container.appendChild(canvas);
     const gl = canvas.getContext("webgl", { alpha: true, antialias: false, premultipliedAlpha: false });
     if (!gl) {
       container.removeChild(canvas);
+      ready();
       return;
     }
     const VS =
@@ -57,7 +67,10 @@ export default function LightRays({ bind }: Props) {
     }
     const vs = sh(gl.VERTEX_SHADER, VS),
       fs = sh(gl.FRAGMENT_SHADER, FS);
-    if (!vs || !fs) return;
+    if (!vs || !fs) {
+      ready();
+      return;
+    }
     const pr = gl.createProgram();
     gl.attachShader(pr, vs);
     gl.attachShader(pr, fs);
@@ -147,14 +160,17 @@ export default function LightRays({ bind }: Props) {
       raf = requestAnimationFrame(loop);
     };
     loop(0);
+    ready(); // shader derlendi, ilk çizim yapıldı
 
     return () => {
+      readyTimers.forEach((t) => window.clearTimeout(t));
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", place);
       window.removeEventListener("mousemove", onMove);
       gl.getExtension("WEBGL_lose_context")?.loseContext();
       if (canvas.parentNode === container) container.removeChild(canvas);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- onReady yalnızca bir kez tetiklenir
   }, []);
 
   return (

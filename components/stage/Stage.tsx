@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { preload } from "react-dom";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useLocale, useT } from "@/components/LocaleProvider";
 import { itemDesc, localePath } from "@/lib/i18n";
@@ -14,7 +15,9 @@ import BigTitle from "./BigTitle";
 import Claims from "./Claims";
 import LightRays from "./LightRays";
 import Outro from "./Outro";
+import { LOGO } from "./logo";
 import Preloader from "./Preloader";
+import { useLoadProgress } from "./useLoadProgress";
 import StaticFallback from "./StaticFallback";
 import CrossFade from "./CrossFade";
 import { SLIDE_MS, computeFrame, N, slideEase } from "./stageMath";
@@ -42,6 +45,10 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
   const offsetRef = useRef(0);
   const queue = useRef<number[]>([]);
   const [reduced, setReduced] = useState(false);
+  const [preDone, setPreDone] = useState(false);
+  const load = useLoadProgress();
+  // logo ilk boyamada hazır olsun (preloader'ın tek görseli)
+  preload(LOGO.src, { as: "image", fetchPriority: "high" });
 
   const activeRef = useRef(0);
   const ciRef = useRef(-1);
@@ -214,7 +221,22 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
     [dom],
   );
 
-  useScrollProgress(render, !reduced);
+  // Preloader kalkana kadar sahne rAF'ı çalışmaz (CPU); ilk kare yine de bir kez çizilir (aşağıda)
+  useScrollProgress(render, !reduced && preDone);
+
+  /* ilk render adımı: preloader dururken sahnenin ilk karesini bir kez çiz */
+  useEffect(() => {
+    if (reduced) return;
+    let done = 0;
+    const raf = requestAnimationFrame(() => {
+      render(0);
+      done = window.setTimeout(() => load.mark("firstRender"), 0);
+    });
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(done);
+    };
+  }, [reduced, render, load]);
 
   /* Preloader süresinde 5 cutout'u (ve yansımaları) decode et: ilk kaydırmada ana iş parçacığında decode takılması olmasın */
   useEffect(() => {
@@ -222,12 +244,14 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
     const imgs = Array.from(document.querySelectorAll<HTMLImageElement>(".item img"));
     let cancelled = false;
     Promise.allSettled(imgs.map((img) => (img.decode ? img.decode() : Promise.resolve()))).then(() => {
-      if (!cancelled) measureCutout();
+      if (cancelled) return;
+      measureCutout();
+      load.mark("cutouts");
     });
     return () => {
       cancelled = true;
     };
-  }, [reduced, measureCutout]);
+  }, [reduced, measureCutout, load]);
 
   /* hero: ok/klavye/sürükleme → kayarak geçiş; sürerken istekler kuyruğa */
   const startSlide = (d: number) => {
@@ -311,7 +335,7 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
           <div className="vign" />
         </div>
 
-        <LightRays bind={bind("rays")} />
+        <LightRays bind={bind("rays")} onReady={() => load.mark("rays")} />
 
         <Arc active={active} bind={bind} extra={extra} />
 
@@ -395,7 +419,7 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
         </Link>
       </div>
 
-      <Preloader brand={t.preloader.brand} />
+      <Preloader progress={load.progress} slow={load.slow} onDone={() => setPreDone(true)} />
     </>
   );
 }
