@@ -11,6 +11,22 @@
   background: var(--char);
 }
 
+/* ---- ürün arka plan gradyanı (iki katman, JS crossfade) + krem metin için sabit perde ---- */
+.bgGrad {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0;
+  pointer-events: none;
+}
+.bgVeil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgba(12, 10, 8, 0.35);
+  pointer-events: none;
+}
+
 /* ---- room ---- */
 .room {
   position: absolute;
@@ -27,8 +43,8 @@
   height: 64%;
   background: radial-gradient(
     ellipse at 50% 100%,
-    rgba(214, 204, 190, 0.26),
-    rgba(214, 204, 190, 0.07) 42%,
+    rgba(214, 204, 190, 0.13),
+    rgba(214, 204, 190, 0.035) 42%,
     rgba(12, 10, 8, 0) 72%
   );
 }
@@ -40,7 +56,8 @@
   width: 120%;
   height: 46%;
   /* filter:blur yok — yumuşaklık gradient duraklarıyla (perf adımı 8) */
-  background: radial-gradient(ellipse at 50% 0%, rgba(242, 236, 227, 0.13) 0%, rgba(242, 236, 227, 0.09) 24%, rgba(242, 236, 227, 0.04) 48%, rgba(12, 10, 8, 0) 70%);
+  /* %40'a düşürüldü (adım 3) */
+  background: radial-gradient(ellipse at 50% 0%, rgba(242, 236, 227, 0.052) 0%, rgba(242, 236, 227, 0.036) 24%, rgba(242, 236, 227, 0.016) 48%, rgba(12, 10, 8, 0) 70%);
 }
 /* warm backlight behind the focused product — the glow from the hero photos */
 .aura {
@@ -48,21 +65,19 @@
   left: 50%;
   top: 41%;
   translate: -50% -50%;
-  width: min(96vw, 1180px);
-  height: min(84vh, 760px);
-  /* filter:blur(14px) yok — aynı yumuşaklık daha sık gradient duraklarıyla (perf adımı 8) */
+  width: min(56vw, 640px);
+  height: min(52vh, 460px);
+  /* dar elips: merkezde %44 alfa, %60'ta sıfır — yalnızca odaktaki burgerin arkası */
   background:
     radial-gradient(
       ellipse at 50% 50%,
       rgba(255, 150, 54, 0.44) 0%,
-      rgba(250, 134, 42, 0.36) 16%,
-      rgba(236, 104, 20, 0.24) 34%,
-      rgba(218, 88, 14, 0.17) 46%,
-      rgba(200, 74, 8, 0.1) 58%,
-      rgba(120, 44, 6, 0.04) 70%,
-      rgba(12, 10, 8, 0) 80%
+      rgba(250, 134, 42, 0.34) 18%,
+      rgba(236, 104, 20, 0.22) 36%,
+      rgba(200, 74, 8, 0.08) 50%,
+      rgba(12, 10, 8, 0) 60%
     ),
-    radial-gradient(ellipse at 50% 50%, rgba(255, 196, 128, 0.3) 0%, rgba(255, 176, 96, 0.16) 16%, rgba(255, 150, 54, 0) 36%);
+    radial-gradient(ellipse at 50% 50%, rgba(255, 196, 128, 0.3) 0%, rgba(255, 176, 96, 0.14) 14%, rgba(255, 150, 54, 0) 30%);
 }
 .vign {
   position: absolute;
@@ -218,6 +233,42 @@
   .item.wide img,
   .item.wide .refl {
     height: min(21vh, 150px);
+  }
+}
+/* geçici görsel: cutout kutusuyla aynı yükseklik, tipografik ürün adı (Archivo 900 italik, krem %28) */
+.item .ph {
+  display: grid;
+  place-items: center;
+  height: min(33vh, 248px);
+  aspect-ratio: 1.3;
+  width: auto;
+  border-radius: 18px;
+  background: radial-gradient(ellipse at 50% 60%, rgba(242, 236, 227, 0.06), rgba(12, 10, 8, 0.85) 70%);
+  border: 1px solid rgba(242, 236, 227, 0.08);
+  padding: 8%;
+}
+.item .ph span {
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
+  line-height: 0.85;
+  font-size: clamp(1.4rem, 3.2vw, 2.4rem);
+  color: rgba(242, 236, 227, 0.28);
+  text-align: center;
+}
+.item .ph.refl {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  transform: scaleY(-1);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0) 46%);
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0) 46%);
+  margin-top: 5px;
+}
+@media (max-width: 900px) {
+  .item .ph {
+    height: min(26vh, 190px);
   }
 }
 .item .shad {
@@ -498,12 +549,18 @@ html.lm .arrow {
 .left .big {
   font-size: clamp(1.9rem, 5.4vw, 3.3rem);
 }
+/* iddia başlığı (GÜNLÜK BRIOCHE vb.): daha büyük, krem, hafif gölge */
+.left .big.claimTitle {
+  font-size: clamp(2.2rem, 6.2vw, 3.9rem);
+  color: var(--cream);
+  text-shadow: 0 4px 24px rgba(12, 10, 8, 0.6);
+}
 .left p {
   margin: 0;
-  font-size: clamp(0.86rem, 1.7vw, 1rem);
+  font-size: 1.05rem;
   line-height: 1.55;
-  color: #d6ccbe;
-  max-width: 34ch;
+  color: var(--cream);
+  max-width: 36ch;
 }
 
 .rail {
@@ -840,6 +897,48 @@ html.lm .ctaPill {
     bottom: calc(7.4vh + 20px);
     right: 16px;
   }
+}
+
+/* çapraz geçiş (başlık, dikey harfler) — ok geçişiyle aynı 480 ms */
+.xf {
+  position: relative;
+}
+.xf-in {
+  animation: xfIn 0.48s cubic-bezier(0.22, 1, 0.28, 1) both;
+}
+.xf-out {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  animation: xfOut 0.48s cubic-bezier(0.22, 1, 0.28, 1) both;
+}
+@keyframes xfIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes xfOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+.sideL .xf-in,
+.sideL .xf-out,
+.sideR .xf-in,
+.sideR .xf-out {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.sideR .xf-in,
+.sideR .xf-out {
+  align-items: flex-end;
 }
 
 /* preloader */

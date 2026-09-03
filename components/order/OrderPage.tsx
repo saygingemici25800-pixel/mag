@@ -8,6 +8,7 @@ import { itemDesc, itemName } from "@/lib/i18n";
 import { MENU, formatPrice, type Category, type MenuItem } from "@/lib/menu";
 import { useClockMinute } from "@/lib/useClock";
 import CartBar from "./CartBar";
+import Ingredients from "./Ingredients";
 import ProductImage from "./ProductImage";
 import ProductSheet from "./ProductSheet";
 import "./order.css";
@@ -87,7 +88,11 @@ export default function OrderPage() {
                       <ProductImage m={m} name={name} eager={eager} />
                       <div className="pbody">
                         <h3 className="tname">{name}</h3>
-                        {itemDesc(t, m) ? <p className="pdesc">{itemDesc(t, m)}</p> : null}
+                        {itemDesc(t, m) ? (
+                          <p className="pdesc">
+                            <Ingredients text={itemDesc(t, m)!} />
+                          </p>
+                        ) : null}
                         <div className="prow">
                           <span className="price">{formatPrice(m.price)}</span>
                           <button

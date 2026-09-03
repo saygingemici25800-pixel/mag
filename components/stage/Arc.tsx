@@ -2,8 +2,8 @@
 
 import { getImageProps } from "next/image";
 import { preload } from "react-dom";
-import { HERO_ITEMS } from "@/lib/menu";
-import { CUTOUTS, CUTOUTS_M, DESKTOP_MQ, MOBILE_MQ, WIDE } from "./cutouts";
+import { HERO_ITEMS, type HeroId } from "@/lib/menu";
+import { CUTOUTS, CUTOUTS_M, DESKTOP_MQ, MOBILE_MQ, WIDE, type ExtraCutouts } from "./cutouts";
 import { CENTER, N, slotIndex } from "./stageMath";
 
 export type Bind = (name: string) => (el: HTMLElement | null) => void;
@@ -11,47 +11,64 @@ export type Bind = (name: string) => (el: HTMLElement | null) => void;
 interface Props {
   active: number;
   bind: Bind;
+  /** build'de dosya sisteminde bulunan ek cutout'lar (statik import'u olmayan ürünler) */
+  extra?: ExtraCutouts;
 }
 
 interface CutoutProps {
-  id: keyof typeof CUTOUTS;
+  id: HeroId;
+  name: string;
   alt: string;
   focus: boolean;
   className?: string;
   imgRef?: (el: HTMLElement | null) => void;
+  extra?: ExtraCutouts;
 }
 
 /**
  * Cutout: <900px'te 300px'lik mobil kopya, üstünde orijinal (art direction → <picture>).
- * Orijinal baytlar (unoptimized): alfa kenarları yeniden kodlanmasın. Odaktaki high, yanlar low öncelik.
+ * Statik import yoksa: build'de bulunan dosya (extra) → düz <img>; o da yoksa tipografik kutu (geçici görsel).
  */
-function Cutout({ id, alt, focus, className, imgRef }: CutoutProps) {
-  const { props } = getImageProps({
-    src: CUTOUTS[id],
-    alt,
-    unoptimized: true,
-    loading: "eager",
-    fetchPriority: focus ? "high" : "low",
-    className,
-  });
+function Cutout({ id, name, alt, focus, className, imgRef, extra }: CutoutProps) {
+  const st = CUTOUTS[id];
+  if (st) {
+    const { props } = getImageProps({ src: st, alt, unoptimized: true, loading: "eager", fetchPriority: focus ? "high" : "low", className });
+    const m = CUTOUTS_M[id];
+    return (
+      <picture>
+        {m ? <source media={MOBILE_MQ} srcSet={m.src} width={m.width} height={m.height} /> : null}
+        {/* eslint-disable-next-line jsx-a11y/alt-text -- alt getImageProps içinden geliyor */}
+        <img {...props} ref={imgRef} />
+      </picture>
+    );
+  }
+  const ex = extra?.[id];
+  if (ex) {
+    return (
+      <picture>
+        {ex.srcM ? <source media={MOBILE_MQ} srcSet={ex.srcM} /> : null}
+        <img src={ex.src} alt={alt} className={className} loading="eager" fetchPriority={focus ? "high" : "low"} ref={imgRef as (el: HTMLImageElement | null) => void} />
+      </picture>
+    );
+  }
+  // geçici görsel: cutout kutusuyla aynı boyutta tipografik kutu (refl için aynı kutu, className korunur)
   return (
-    <picture>
-      <source media={MOBILE_MQ} srcSet={CUTOUTS_M[id].src} width={CUTOUTS_M[id].width} height={CUTOUTS_M[id].height} />
-      {/* eslint-disable-next-line jsx-a11y/alt-text -- alt getImageProps içinden geliyor */}
-      <img {...props} ref={imgRef} />
-    </picture>
+    <div className={"ph " + (className ?? "")} ref={imgRef as (el: HTMLDivElement | null) => void} role={alt ? "img" : undefined} aria-label={alt || undefined}>
+      <span>{name}</span>
+    </div>
   );
 }
 
 /**
- * 5 slot: slot i → HERO_ITEMS[(active + i − CENTER) mod N]. Konumlar JS'te (Stage.render).
- * Her ürün: cutout + aynalanmış yansıma + zemin gölgesi. Üstte asılı disk, altta plint.
+ * 8 slot: slot i → HERO_ITEMS[(active + i − CENTER) mod N]. Konumlar JS'te (Stage.render).
+ * Görünür slotlar t=−2..+2; dıştakiler x=t·spacing'de opacity 0 ile hazır bekler.
  */
-export default function Arc({ active, bind }: Props) {
-  // odaktaki cutout: iki varyant için medya sorgulu preload — tarayıcı yalnızca eşleşeni çeker
+export default function Arc({ active, bind, extra }: Props) {
   const focusId = HERO_ITEMS[slotIndex(active, CENTER, HERO_ITEMS.length)].id;
-  preload(CUTOUTS[focusId].src, { as: "image", media: DESKTOP_MQ, fetchPriority: "high" });
-  preload(CUTOUTS_M[focusId].src, { as: "image", media: MOBILE_MQ, fetchPriority: "high" });
+  const fc = CUTOUTS[focusId],
+    fm = CUTOUTS_M[focusId];
+  if (fc) preload(fc.src, { as: "image", media: DESKTOP_MQ, fetchPriority: "high" });
+  if (fm) preload(fm.src, { as: "image", media: MOBILE_MQ, fetchPriority: "high" });
 
   return (
     <>
@@ -59,19 +76,13 @@ export default function Arc({ active, bind }: Props) {
       <div className="field">
         {Array.from({ length: N }, (_, i) => {
           const m = HERO_ITEMS[slotIndex(active, i, HERO_ITEMS.length)];
-          const a = Math.abs(i - CENTER);
           const focus = i === CENTER;
+          const hasImg = Boolean(CUTOUTS[m.id] || extra?.[m.id]);
           return (
-            <div
-              key={i}
-              className={"item" + (WIDE[m.id] ? " wide" : "") + (focus ? " focus" : "")}
-              ref={bind(`item${i}`)}
-              style={{ zIndex: focus ? 22 : 18 - a }}
-              data-k={m.id}
-            >
-              <Cutout id={m.id} alt={focus ? `${m.name} burger` : ""} focus={focus} imgRef={focus ? bind("centerImg") : undefined} />
+            <div key={i} className={"item" + (WIDE[m.id] ? " wide" : "") + (focus ? " focus" : "") + (hasImg ? "" : " noimg")} ref={bind(`item${i}`)} data-k={m.id} style={{ zIndex: focus ? 22 : 22 - Math.min(Math.abs(i - CENTER), 4) * 2 }}>
+              <Cutout id={m.id} name={m.name} alt={focus ? `${m.name} burger` : ""} focus={focus} imgRef={focus ? bind("centerImg") : undefined} extra={extra} />
               <span className="shad" aria-hidden="true" />
-              <Cutout id={m.id} alt="" focus={focus} className="refl" />
+              <Cutout id={m.id} name={m.name} alt="" focus={focus} className="refl" extra={extra} />
             </div>
           );
         })}

@@ -3,6 +3,7 @@
 import type { Messages } from "@/lib/i18n";
 import type { HeroItem } from "@/lib/menu";
 import { splitTitle } from "@/lib/menu";
+import Ingredients from "@/components/order/Ingredients";
 import BigTitle from "./BigTitle";
 import type { Bind } from "./Arc";
 
@@ -32,8 +33,8 @@ export default function Claims({ item, desc: itemDescription, ci, claims, rail, 
           <b>×</b>
           <s>{claim?.no ?? claims[0].no}</s>
         </div>
-        <BigTitle l1={l1} l2={l2} />
-        <p>{desc}</p>
+        <BigTitle l1={l1} l2={l2} className={claim ? "claimTitle" : ""} />
+        <p>{claim ? desc : <Ingredients text={itemDescription} />}{claim ? "" : "."}</p>
       </div>
       {stageImage ? (
         <div className="stageSlot" aria-hidden="true">

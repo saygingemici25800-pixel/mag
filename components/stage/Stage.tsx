@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useLocale, useT } from "@/components/LocaleProvider";
 import { itemDesc, localePath } from "@/lib/i18n";
 import type { StageMap } from "@/lib/katman";
+import type { ExtraCutouts } from "./cutouts";
 import { STAGE_KEYS } from "@/lib/menu";
 import { HERO_ITEMS, splitTitle } from "@/lib/menu";
-import { playSwitch } from "@/lib/sound";
+import { playSwitch, warmAudio } from "@/lib/sound";
 import Arc from "./Arc";
 import BigTitle from "./BigTitle";
 import Claims from "./Claims";
@@ -15,7 +16,8 @@ import LightRays from "./LightRays";
 import Outro from "./Outro";
 import Preloader from "./Preloader";
 import StaticFallback from "./StaticFallback";
-import { computeFrame, N } from "./stageMath";
+import CrossFade from "./CrossFade";
+import { SLIDE_MS, computeFrame, N, slideEase } from "./stageMath";
 import { useScrollProgress } from "./useScrollProgress";
 import "./stage.css";
 
@@ -28,11 +30,17 @@ type El = HTMLElement | null;
  * Ana sayfa sinematik sahnesi. `.scroller` 1200vh, `.stage` fixed.
  * Her karede `computeFrame(p)` → DOM'a doğrudan yazılır (React state yalnızca `active` ve `ci` için).
  */
-export default function Stage({ stages }: { stages?: StageMap }) {
+export default function Stage({ stages, extra }: { stages?: StageMap; extra?: ExtraCutouts }) {
   const t = useT();
   const locale = useLocale();
-  const [active, setActive] = useState(0);
+  const [active, setActive] = useState(0); // slot dizilimi (geçiş bitince kayar)
+  const [shown, setShown] = useState(0); // başlık / harfler / aksan: geçiş başlar başlamaz hedef ürün
   const [ci, setCi] = useState(-1);
+  const shownRef = useRef(0);
+  const bgFrom = useRef(0); // gradyan crossfade'inin eski ürünü
+  const slide = useRef<{ dir: number; start: number; done: boolean } | null>(null);
+  const offsetRef = useRef(0);
+  const queue = useRef<number[]>([]);
   const [reduced, setReduced] = useState(false);
 
   const activeRef = useRef(0);
@@ -57,6 +65,10 @@ export default function Stage({ stages }: { stages?: StageMap }) {
   useEffect(() => {
     activeRef.current = active;
   }, [active]);
+  useEffect(() => {
+    shownRef.current = shown;
+  }, [shown]);
+
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -105,11 +117,23 @@ export default function Stage({ stages }: { stages?: StageMap }) {
   const render = useCallback(
     (p: number) => {
       const { vw, vh } = size.current;
-      const it = HERO_ITEMS[activeRef.current];
+      const it = HERO_ITEMS[shownRef.current];
       const root = document.documentElement;
       root.style.setProperty("--accent", it.accent);
 
-      const f = computeFrame(p, { vw, vh, accent: it.accent, ch: cut.current.ch, cw: cut.current.cw });
+      /* ok geçişi: offset 0→±1, 480 ms; bitince ±1'de bekler, slotlar kayınca (useLayoutEffect) 0 olur */
+      const sl = slide.current;
+      if (sl && !sl.done) {
+        const k = Math.min((performance.now() - sl.start) / SLIDE_MS, 1);
+        offsetRef.current = sl.dir * slideEase(k);
+        if (k >= 1) {
+          offsetRef.current = sl.dir;
+          sl.done = true;
+          setActive((a) => (a + sl.dir + N) % N);
+        }
+      }
+
+      const f = computeFrame(p, { vw, vh, accent: it.accent, ch: cut.current.ch, cw: cut.current.cw }, offsetRef.current);
 
       /** DOM'a doğrudan yaz — React state değil (60fps). Değişmeyen değere yazma (style invalidation yok). */
       const cache = styleCache.current;
@@ -124,6 +148,17 @@ export default function Stage({ stages }: { stages?: StageMap }) {
       };
 
       st("stage", "background-color", f.bg);
+      /* arka plan gradyanı: odaktaki ürün (A) → yeni ürün (B) 480 ms crossfade; güç f.grad (hero 1, yelpaze .7, dalış/iddia .35, sonra 0, kapanışta 1) */
+      const bgIt = HERO_ITEMS[bgFrom.current];
+      const bgTo = HERO_ITEMS[shownRef.current];
+      const g1 = bgIt.bg ?? [bgIt.accent, "#14100F"];
+      const g2 = bgTo.bg ?? [bgTo.accent, "#14100F"];
+      st("bgA", "background-image", `linear-gradient(135deg, ${g1[0]}, ${g1[1]})`);
+      st("bgB", "background-image", `linear-gradient(135deg, ${g2[0]}, ${g2[1]})`);
+      const mixK = slide.current ? slideEase(Math.min((performance.now() - slide.current.start) / SLIDE_MS, 1)) : 1;
+      st("bgA", "opacity", (f.grad * (1 - mixK)).toFixed(3));
+      st("bgB", "opacity", (f.grad * mixK).toFixed(3));
+      if (!slide.current && bgFrom.current !== shownRef.current) bgFrom.current = shownRef.current;
       root.classList.toggle("lm", f.lm);
 
       for (let i = 0; i < N; i++) {
@@ -131,6 +166,7 @@ export default function Stage({ stages }: { stages?: StageMap }) {
         st(n, "transform", f.items[i].transform);
         st(n, "opacity", f.items[i].opacity);
         st(n, "filter", f.items[i].filter);
+        st(n, "z-index", f.items[i].z);
       }
 
       st("discA", "opacity", f.discA);
@@ -193,11 +229,29 @@ export default function Stage({ stages }: { stages?: StageMap }) {
     };
   }, [reduced, measureCutout]);
 
-  /* hero: swap the focused product */
-  const go = useCallback((d: number) => {
-    setActive((a) => (a + d + N) % N);
+  /* hero: ok/klavye/sürükleme → kayarak geçiş; sürerken istekler kuyruğa */
+  const startSlide = (d: number) => {
+    slide.current = { dir: d, start: performance.now(), done: false };
+    setShown((a) => (a + d + N) % N);
     playSwitch();
-  }, []);
+  };
+  const go = (d: number) => {
+    if (slide.current) {
+      if (queue.current.length < 4) queue.current.push(d);
+      return;
+    }
+    startSlide(d);
+  };
+  // geçiş bitti + slotlar kaydı: offset'i aynı karede sıfırla (görsel fark yok), kuyruktakini başlat
+  useLayoutEffect(() => {
+    if (slide.current?.done) {
+      slide.current = null;
+      offsetRef.current = 0;
+      bgFrom.current = shownRef.current;
+      const next = queue.current.shift();
+      if (next !== undefined) startSlide(next);
+    }
+  }, [active]);
 
   const inHeroZone = () => {
     const max = document.documentElement.scrollHeight - window.innerHeight;
@@ -206,18 +260,26 @@ export default function Stage({ stages }: { stages?: StageMap }) {
 
   useEffect(() => {
     if (reduced) return;
+    const warm = () => warmAudio();
+    window.addEventListener("pointerdown", warm, { once: true, passive: true });
+    window.addEventListener("keydown", warm, { once: true });
     const onKey = (e: KeyboardEvent) => {
       if (!inHeroZone()) return;
       if (e.key === "ArrowRight") go(1);
       if (e.key === "ArrowLeft") go(-1);
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [go, reduced]);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("pointerdown", warm);
+      window.removeEventListener("keydown", warm);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- go ref'ler üzerinden çalışır; yalnızca reduced değişince
+  }, [reduced]);
 
   if (reduced) return <StaticFallback t={t} />;
 
-  const it = HERO_ITEMS[active];
+  const it = HERO_ITEMS[shown];
   const [l1, l2] = splitTitle(it.name);
   const claim = ci >= 0 ? t.claims[ci] : null;
   const sideWord = (claim ? claim.l2 : l2 || l1).replace(/\s/g, "").slice(0, 6);
@@ -239,6 +301,9 @@ export default function Stage({ stages }: { stages?: StageMap }) {
           if (Math.abs(dx) > SWIPE_PX) go(dx < 0 ? 1 : -1);
         }}
       >
+        <div className="bgGrad" ref={bind("bgA")} aria-hidden="true" />
+        <div className="bgGrad" ref={bind("bgB")} aria-hidden="true" />
+        <div className="bgVeil" aria-hidden="true" />
         <div className="room" aria-hidden="true">
           <div className="toplight" />
           <div className="aura" ref={bind("aura")} />
@@ -248,16 +313,18 @@ export default function Stage({ stages }: { stages?: StageMap }) {
 
         <LightRays bind={bind("rays")} />
 
-        <Arc active={active} bind={bind} />
+        <Arc active={active} bind={bind} extra={extra} />
 
         <div className="streak" aria-hidden="true">
           <b ref={bind("streak")} />
         </div>
 
         <div className="sideL" aria-hidden="true">
-          {sideWord.split("").map((c, i) => (
-            <span key={i}>{c}</span>
-          ))}
+          <CrossFade k={sideWord}>
+            {sideWord.split("").map((c, i) => (
+              <span key={i}>{c}</span>
+            ))}
+          </CrossFade>
         </div>
         <div className="sideR" aria-hidden="true">
           {t.chrome.city.split("").map((c, i) => (
@@ -267,7 +334,9 @@ export default function Stage({ stages }: { stages?: StageMap }) {
 
         <section className="scene" ref={bind("scHero")}>
           <div className="heroCopy">
-            <BigTitle as="h1" l1={l1} l2={l2} />
+            <CrossFade k={it.id}>
+              <BigTitle as="h1" l1={l1} l2={l2} />
+            </CrossFade>
           </div>
         </section>
 

@@ -91,8 +91,8 @@ export default function LightRays({ bind }: Props) {
     });
     gl.uniform3f(U.raysColor, 1.0, 0.8, 0.52);
     gl.uniform1f(U.raysSpeed, 0.55);
-    gl.uniform1f(U.lightSpread, 0.55);
-    gl.uniform1f(U.rayLength, 1.1);
+    gl.uniform1f(U.lightSpread, 0.34); // dar koni: yalnızca odaktaki burgerin üstü
+    gl.uniform1f(U.rayLength, 0.85);
     gl.uniform1f(U.fadeDistance, 1.0);
     gl.uniform1f(U.mouseInfluence, 0.07);
     gl.uniform1f(U.noiseAmount, 0.06);

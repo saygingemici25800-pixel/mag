@@ -11,12 +11,11 @@ export default function StaticFallback({ t }: { t: Messages }) {
       <section className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
         {HERO_ITEMS.map((m) => (
           <article key={m.id} className="flex flex-col gap-3">
-            <Image
-              src={CUTOUTS[m.id]}
-              alt={`${m.name} burger`}
-              className="h-44 w-auto self-center object-contain"
-              sizes="(max-width: 640px) 80vw, 320px"
-            />
+            {CUTOUTS[m.id] ? (
+              <Image src={CUTOUTS[m.id]!} alt={`${m.name} burger`} className="h-44 w-auto self-center object-contain" sizes="(max-width: 640px) 80vw, 320px" />
+            ) : (
+              <div className="grid h-44 place-items-center self-center rounded-2xl border border-cream/10 px-6 font-display text-3xl font-black italic uppercase text-cream/30">{m.name}</div>
+            )}
             <h2 className="font-display text-3xl font-black italic uppercase leading-[.85] tracking-tight">{m.name}</h2>
             <p className="text-sm leading-relaxed text-dim">{m.desc}.</p>
             <p className="font-mono text-[.62rem] uppercase tracking-[.2em] text-dim">{t.hero.sub}</p>

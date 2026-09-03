@@ -18,8 +18,12 @@ export const S = {
   out2: [0.958, 0.99], // yanlar belirir
 } as const satisfies Record<string, readonly [number, number]>;
 
-export const N = 5;
-export const CENTER = Math.floor(N / 2); // odaklanan parçanın yeri
+export const N = 8; // menu.burger sırası — hepsi hero'da
+export const CENTER = 3; // odaklanan slot; görünür slotlar t=-2..+2, |t|≥3 hazır bekler (opacity 0)
+/** |t| 2→3 arasında görünürlük 1→0 */
+export function slotVisibility(a: number): number {
+  return clamp(3 - a);
+}
 
 export const SMOOTHING = 0.12; // cur += (target-cur)*0.12
 export const LOOP_AT = 0.9985; // atEnd && cur > LOOP_AT → scrollTo(0)
@@ -71,6 +75,34 @@ export interface ItemStyle {
   transform: string;
   opacity: string;
   filter: string;
+  z: number;
+}
+
+/** Ok geçişi: 480 ms, cubic-bezier(.22,1,.28,1) */
+export const SLIDE_MS = 480;
+export function slideEase(x: number): number {
+  // cubic-bezier(.22,1,.28,1) — x için t'yi Newton ile çöz
+  const p1x = 0.22,
+    p1y = 1,
+    p2x = 0.28,
+    p2y = 1;
+  const cx = 3 * p1x,
+    bx = 3 * (p2x - p1x) - cx,
+    ax = 1 - cx - bx;
+  const cy = 3 * p1y,
+    by = 3 * (p2y - p1y) - cy,
+    ay = 1 - cy - by;
+  const sampleX = (t: number) => ((ax * t + bx) * t + cx) * t;
+  const sampleY = (t: number) => ((ay * t + by) * t + cy) * t;
+  const dX = (t: number) => (3 * ax * t + 2 * bx) * t + cx;
+  let t = x;
+  for (let i = 0; i < 6; i++) {
+    const err = sampleX(t) - x;
+    const d = dX(t);
+    if (Math.abs(err) < 1e-5 || d === 0) break;
+    t -= err / d;
+  }
+  return sampleY(Math.max(0, Math.min(1, t)));
 }
 
 export interface Frame {
@@ -100,6 +132,8 @@ export interface Frame {
   rays: number;
   /** sağ alt "Sipariş ver" pill'i: dive'dan itibaren, kapanışta kaybolur */
   cta: number;
+  /** ürün arka plan gradyanının gücü: hero 1 · yelpaze .7 · dalış/iddialar .35 · manifesto ve sonrası 0 · kapanış → 1 */
+  grad: number;
 }
 
 export interface Env {
@@ -131,7 +165,10 @@ export function claimIndex(p: number): number {
   return -1;
 }
 
-export function computeFrame(p: number, env: Env): Frame {
+/**
+ * @param offset ok geçişi: 0→±1 (t_eff = t − offset); bitince 0'a döner ve slotlar bir kaydırılır
+ */
+export function computeFrame(p: number, env: Env, offset = 0): Frame {
   const { vw, vh, accent } = env;
   const mobile = vw < 900;
 
@@ -164,7 +201,7 @@ export function computeFrame(p: number, env: Env): Frame {
   const baseY = heroBaseY(vh);
   const items: ItemStyle[] = [];
   for (let i = 0; i < N; i++) {
-    const t = i - CENTER;
+    const t = i - CENTER - offset; // t_eff
     const a = Math.abs(t);
     // hero / fan pose
     const closed = {
@@ -172,7 +209,7 @@ export function computeFrame(p: number, env: Env): Frame {
       y: baseY + a * a * 13,
       sc: 1 - a * 0.185,
       rot: t * 3.2,
-      br: 1 - a * 0.24,
+      br: 1 - a * 0.42, // ışık yalnızca ortadakine: a=1 → .58, a=2 → .16
       bl: a > 1.6 ? (a - 1.6) * 1.4 : 0,
       op: 1,
     };
@@ -191,7 +228,7 @@ export function computeFrame(p: number, env: Env): Frame {
       rot = lerp(closed.rot, opened.rot, fanE);
     let br = lerp(closed.br, opened.br, fanE),
       bl = lerp(closed.bl, opened.bl, fanE);
-    let op = lerp(closed.op, opened.op, fanE);
+    let op = lerp(closed.op, opened.op, fanE) * slotVisibility(a);
 
     if (tDive > 0) {
       if (i === CENTER) {
@@ -240,7 +277,7 @@ export function computeFrame(p: number, env: Env): Frame {
       const hx = t * spacing,
         hy = baseY + a * a * 13,
         hrot = t * 3.2;
-      const hbr = 1 - a * 0.24,
+      const hbr = 1 - a * 0.42,
         hbl = a > 1.6 ? (a - 1.6) * 1.4 : 0;
       if (i === CENTER) {
         /* faz 1 — BİZE KATIL yukarı süzülürken burger alttan, aynı eğriyle, büyüyerek ortaya */
@@ -263,10 +300,13 @@ export function computeFrame(p: number, env: Env): Frame {
         rot = lerp(0, hrot, e2);
         br = lerp(0.05, hbr, clamp((st - 0.35) / 0.65)); // siluet → dolu
         bl = lerp(7, hbl, e2);
-        op = clamp(st * 3.2);
+        op = clamp(st * 3.2) * slotVisibility(a);
       }
     }
     const brc = Math.max(0.1, Math.min(1.2, br));
+    /* yan slotlar soluk: saturate(1 − a·0.3); dive/claims/pay odaktaki için a=0 → 1 */
+    const sat = Math.max(0.1, 1 - Math.min(a, 3) * 0.3);
+    const satq = Math.round(sat * 20) / 20;
     /* blur: 0.5px adımlara yuvarla (her karede yeni filtre üretilmesin), 0.4 altını yazma */
     const blq = Math.round(Math.min(bl, 9) * 2) / 2;
     items.push({
@@ -281,7 +321,8 @@ export function computeFrame(p: number, env: Env): Frame {
         rot.toFixed(2) +
         "deg)",
       opacity: Math.max(0, outro ? op : op * (1 - upT)).toFixed(3),
-      filter: "brightness(" + brc.toFixed(3) + ")" + (bl >= 0.4 ? " blur(" + blq.toFixed(1) + "px)" : ""),
+      filter: "brightness(" + brc.toFixed(3) + ")" + (satq < 0.99 ? " saturate(" + satq.toFixed(2) + ")" : "") + (bl >= 0.4 ? " blur(" + blq.toFixed(1) + "px)" : ""),
+      z: Math.round(22 - Math.min(a, 4) * 2), // odak 22, yanlar 20/18/16…
     });
   }
 
@@ -300,6 +341,10 @@ export function computeFrame(p: number, env: Env): Frame {
   const rays =
     tOut > 0 ? clamp((tOut1 - 0.25) / 0.6) * 0.9 : Math.max(0, (1 - fanE * 0.55) * (1 - Math.max(diveE * 0.85, payE, upT)));
   const cta = seg(p, S.dive[0] + 0.01, S.dive[0] + 0.05) * (1 - seg(p, S.foot[0], S.foot[0] + 0.03));
+  let grad = lerp(1, 0.7, fanE);
+  if (tDive > 0) grad = lerp(0.7, 0.35, diveE);
+  if (tPay > 0) grad = lerp(0.35, 0, ease(Math.min(tPay / 0.42, 1)));
+  if (tOut > 0) grad = ease(tOut); // p=1 ≡ p=0
 
   /* copy */
   const heroOut = 1 - seg(p, 0.015, 0.075);
@@ -343,6 +388,7 @@ export function computeFrame(p: number, env: Env): Frame {
     hint,
     rays,
     cta,
+    grad,
   };
 }
 
