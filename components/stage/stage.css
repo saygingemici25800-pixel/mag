@@ -948,7 +948,7 @@ html.lm .ctaPill {
   align-items: flex-end;
 }
 
-/* preloader */
+/* preloader — MAG SAFE logosu; ilerleme (--p) gerçek yükleme adımlarından gelir */
 .pre {
   position: fixed;
   inset: 0;
@@ -956,38 +956,106 @@ html.lm .ctaPill {
   background: var(--char);
   display: grid;
   place-items: center;
-  transition: opacity 0.6s ease;
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s cubic-bezier(0.22, 1, 0.28, 1);
 }
 .pre.gone {
   opacity: 0;
+  transform: translateY(-24px); /* hafif yukarı kayış */
   pointer-events: none;
 }
 .preInner {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 32px;
+  gap: 22px;
 }
-.preMark {
-  font-weight: 900;
-  font-style: italic;
-  font-size: clamp(3rem, 15vw, 7rem);
-  letter-spacing: -0.06em;
-  line-height: 0.9;
-  background: linear-gradient(180deg, #f2ece3, #574e44);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+.preLogo {
+  position: relative;
+  width: min(62vw, 560px);
+  line-height: 0;
+  /* soluk → tam renk: ilerlemeyle brightness .35→1, saturate .6→1 */
+  filter: brightness(calc(0.35 + 0.65 * var(--p, 0))) saturate(calc(0.6 + 0.4 * var(--p, 0)));
+  transition: filter 0.25s linear;
 }
-.preMark em {
-  font-style: italic;
-  -webkit-text-fill-color: var(--kraft);
+@media (max-width: 900px) {
+  .preLogo {
+    width: min(78vw, 560px);
+  }
+}
+.preLogo img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+/* logo şekline maskelenmiş ışık süpürgesi; konum doğrudan ilerlemeyle (--sweep) */
+.preSweep {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) calc(var(--sweep, -40%) - 14%),
+    rgba(255, 210, 235, 0.5) calc(var(--sweep, -40%) - 6%),
+    rgba(255, 255, 255, 0.85) var(--sweep, -40%),
+    rgba(255, 210, 235, 0.5) calc(var(--sweep, -40%) + 6%),
+    rgba(255, 255, 255, 0) calc(var(--sweep, -40%) + 14%)
+  );
+  -webkit-mask-image: url("/brand/mag-safe.png");
+  mask-image: url("/brand/mag-safe.png");
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  mix-blend-mode: screen;
+  transition: background 0.25s linear;
+}
+/* %100 vurgusu: pembe + teal çift halo, 1 → 1.03 → 1 */
+.pre.pop .preLogo {
+  animation: prePop 0.12s ease-out;
+}
+@keyframes prePop {
+  0% {
+    transform: scale(1);
+    filter: brightness(1) saturate(1);
+  }
+  50% {
+    transform: scale(1.03);
+    filter: brightness(1.08) saturate(1.1) drop-shadow(0 0 26px rgba(255, 95, 162, 0.75)) drop-shadow(0 0 42px rgba(63, 143, 138, 0.6));
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1) saturate(1);
+  }
 }
 .preNum {
   font-family: var(--font-mono);
-  font-size: 0.9rem;
-  letter-spacing: 0.6em;
+  font-size: 0.62rem;
+  letter-spacing: 0.4em;
   color: var(--dim);
+  transition: opacity 0.3s ease;
+}
+/* reduced-motion: süpürge yok, logo 300 ms fade-in */
+@media (prefers-reduced-motion: reduce) {
+  .preSweep {
+    display: none;
+  }
+  .preLogo {
+    filter: none;
+    animation: preFade 0.3s ease both;
+  }
+  .pre.pop .preLogo {
+    animation: none;
+  }
+  @keyframes preFade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

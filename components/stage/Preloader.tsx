@@ -1,36 +1,76 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { LOGO } from "./logo";
 
-const DURATION = 1500;
+/** %100'de vurgu (halo + hafif büyüme), sonra bekleme, sonra kalkış */
+const POP_MS = 120;
+const HOLD_MS = 350;
+const FADE_MS = 600;
 
-/** Açılış sayacı: 0→100 %, sonra .gone. Yalnızca ilk yüklemede oynar; döngüde tekrar etmez. */
-export default function Preloader({ brand }: { brand: string }) {
-  const numRef = useRef<HTMLDivElement>(null);
-  const [gone, setGone] = useState(false);
+type Phase = "load" | "pop" | "leaving" | "gone";
 
+interface Props {
+  /** 0→1, gerçek yükleme adımlarına bağlı */
+  progress: number;
+  /** yükleme uzun sürdü → yüzdeyi göster */
+  slow: boolean;
+  /** preloader tamamen kalktı → sahne rAF'ı başlayabilir */
+  onDone: () => void;
+}
+
+/**
+ * Açılış: MAG SAFE logosu. İlerleme gerçek adımlardan gelir (zamanlayıcı değil).
+ * Logo soluk başlar (brightness .35 / saturate .6) ve ilerlemeyle tam renge çıkar;
+ * üstünde logo şekline maskelenmiş bir ışık süpürgesi soldan sağa geçer.
+ * Yalnızca ilk yüklemede oynar; döngü sonunda (p=1 → 0) tekrar gösterilmez.
+ */
+export default function Preloader({ progress, slow, onDone }: Props) {
+  const [phase, setPhase] = useState<Phase>("load");
+  const doneCb = useRef(onDone);
   useEffect(() => {
-    let raf = 0;
-    const t0 = performance.now();
-    const step = (now: number) => {
-      const t = Math.min((now - t0) / DURATION, 1);
-      if (numRef.current) numRef.current.textContent = Math.round(t * 100) + "%";
-      if (t < 1) raf = requestAnimationFrame(step);
-      else setGone(true);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, []);
+    doneCb.current = onDone;
+  }, [onDone]);
+
+  // %100 → vurgu → bekle → kalk
+  useEffect(() => {
+    if (progress < 1) return;
+    const timers: number[] = [];
+    timers.push(
+      window.setTimeout(() => setPhase("pop"), 0),
+      window.setTimeout(() => setPhase("leaving"), POP_MS + HOLD_MS),
+      window.setTimeout(() => {
+        setPhase("gone");
+        doneCb.current();
+      }, POP_MS + HOLD_MS + FADE_MS),
+    );
+    return () => timers.forEach((t) => window.clearTimeout(t));
+  }, [progress]);
+
+  if (phase === "gone") return null;
+
+  const pct = Math.round(progress * 100);
+  // süpürge: %0'da sol dışarıda (-40%), %100'de sağ dışarıda (140%)
+  const sweep = -40 + progress * 180;
+  const leaving = phase === "leaving";
 
   return (
-    <div className={"pre" + (gone ? " gone" : "")} aria-hidden={gone}>
+    <div
+      className={"pre" + (leaving ? " gone" : "") + (phase === "pop" ? " pop" : "")}
+      style={{ "--p": progress, "--sweep": `${sweep}%` } as React.CSSProperties}
+      aria-hidden={phase !== "load"}
+      role="status"
+      aria-label={`Yükleniyor ${pct}%`}
+    >
       <div className="preInner">
-        <div className="preMark">
-          {brand}
-          <em>.</em>
+        <div className="preLogo">
+          {/* düz <img> — next/image değil; preload Stage'de react-dom preload() ile */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={LOGO.src} width={LOGO.width} height={LOGO.height} alt="MAG SAFE" fetchPriority="high" decoding="async" />
+          <span className="preSweep" aria-hidden="true" />
         </div>
-        <div className="preNum" ref={numRef}>
-          0%
+        <div className="preNum" style={{ opacity: slow ? 0.55 : 0 }}>
+          {pct}%
         </div>
       </div>
     </div>
