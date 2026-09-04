@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useT } from "@/components/LocaleProvider";
 import { cartAdd } from "@/lib/cart";
+import { flyToCart } from "@/lib/cartFx";
 import { itemDesc, itemName } from "@/lib/i18n";
 import { formatPrice, type MenuItem } from "@/lib/menu";
 import { findMenuItem } from "@/lib/orders-shared";
@@ -22,6 +23,8 @@ export default function ProductSheet({ item, onClose, onAdded }: Props) {
   const [qty, setQty] = useState(1);
   const [note, setNote] = useState("");
   const [addedPair, setAddedPair] = useState<Set<string>>(() => new Set());
+  /* kopyaların çıkacağı büyük görsel */
+  const imgRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -35,9 +38,15 @@ export default function ProductSheet({ item, onClose, onAdded }: Props) {
 
   const pairs = (item.pairs ?? []).map(findMenuItem).filter((m): m is MenuItem => Boolean(m));
   const addPair = (m: MenuItem) => {
-    cartAdd(m.id, 1);
-    setAddedPair((s) => new Set(s).add(m.id));
-    onAdded();
+    const source = imgRef.current?.querySelector<HTMLElement>(".pimg");
+    const commit = () => {
+      cartAdd(m.id, 1);
+      setAddedPair((s) => new Set(s).add(m.id));
+      onAdded();
+    };
+    /* çipler de aynı fonksiyonu çağırır; sheet açık kalır */
+    if (source) void flyToCart({ source, commit });
+    else commit();
   };
 
   return (
@@ -46,7 +55,9 @@ export default function ProductSheet({ item, onClose, onAdded }: Props) {
         <button type="button" className="sheet-close" onClick={onClose} aria-label={o.sheetClose}>
           ×
         </button>
-        <ProductImage m={item} name={itemName(t, item)} big />
+        <div ref={imgRef}>
+          <ProductImage m={item} name={itemName(t, item)} big />
+        </div>
         <div className="flex items-baseline justify-between gap-3">
           <h2 id="sheet-title" className="tname" style={{ fontSize: "1.6rem" }}>
             {itemName(t, item)}
@@ -94,9 +105,17 @@ export default function ProductSheet({ item, onClose, onAdded }: Props) {
           type="button"
           className="submit"
           onClick={() => {
-            cartAdd(item.id, qty, note.trim() || undefined);
-            onAdded();
-            onClose();
+            const source = imgRef.current?.querySelector<HTMLElement>(".pimg");
+            const commit = () => {
+              cartAdd(item.id, qty, note.trim() || undefined);
+              onAdded();
+            };
+            /* sheet 150 ms sonra kapanır; kopyalar fixed olduğu için uçmaya devam eder */
+            if (source) void flyToCart({ source, commit, closeSheet: onClose });
+            else {
+              commit();
+              onClose();
+            }
           }}
         >
           {o.addToCart} · {formatPrice(item.price * qty)}

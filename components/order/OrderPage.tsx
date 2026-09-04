@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useT } from "@/components/LocaleProvider";
 import { OPENS_AT_LABEL, isOpen } from "@/lib/hours";
 import { cartAdd, useCart } from "@/lib/cart";
+import { flyToCart, prefetchCartFx } from "@/lib/cartFx";
 import { itemDesc, itemName } from "@/lib/i18n";
 import { MENU, formatPrice, type Category, type MenuItem } from "@/lib/menu";
 import { useClockMinute } from "@/lib/useClock";
@@ -23,9 +24,15 @@ export default function OrderPage() {
   const cart = useCart();
   const [sheet, setSheet] = useState<MenuItem | null>(null);
   const [activeCat, setActiveCat] = useState<Category>("burger");
+  const cartHasItems = Object.keys(cart).length > 0;
   const minute = useClockMinute();
   const open = minute < 0 ? null : isOpen();
   const chipsRef = useRef<HTMLDivElement>(null);
+
+  /* gsap yalnızca bu rotada yüklenir; boşta arka planda hazırla ki ilk tıklama beklemesin */
+  useEffect(() => {
+    prefetchCartFx();
+  }, []);
 
   // görünür bölüme göre aktif çip
   useEffect(() => {
@@ -48,7 +55,7 @@ export default function OrderPage() {
   const noop = useCallback(() => {}, []);
 
   return (
-    <main className="ord ord-list">
+    <main className={"ord ord-list" + (cartHasItems ? " has-cartbar" : "")}>
       <div className="mx-auto max-w-3xl">
         <header className="mb-4 flex flex-col gap-4">
           <div className="ord-label">{open === false ? fmt(o.closedShort, { open: OPENS_AT_LABEL }) : fmt(o.hours, { open: OPENS_AT_LABEL })}</div>
@@ -84,7 +91,7 @@ export default function OrderPage() {
                   const eager = cat === "burger" && idx < 3; // ilk ekran: LCP görseli lazy olmasın
                   const qty = cart[m.id]?.qty ?? 0;
                   return (
-                    <article key={m.id} className={"pcard" + (qty ? " on" : "")} onClick={() => setSheet(m)} role="button" tabIndex={0} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), setSheet(m))}>
+                    <article key={m.id} data-pcard className={"pcard" + (qty ? " on" : "")} onClick={() => setSheet(m)} role="button" tabIndex={0} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), setSheet(m))}>
                       <ProductImage m={m} name={name} eager={eager} />
                       <div className="pbody">
                         <h3 className="tname">{name}</h3>
@@ -100,7 +107,10 @@ export default function OrderPage() {
                             className="addbtn"
                             onClick={(e) => {
                               e.stopPropagation();
-                              cartAdd(m.id, 1);
+                              /* kopyalar bu kartın görselinden çıkar */
+                              const img = e.currentTarget.closest("[data-pcard]")?.querySelector<HTMLElement>(".pimg");
+                              if (img) void flyToCart({ source: img, commit: () => cartAdd(m.id, 1) });
+                              else cartAdd(m.id, 1);
                             }}
                             aria-label={`${o.addShort} · ${name}`}
                           >
