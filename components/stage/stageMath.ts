@@ -85,8 +85,8 @@ export const LAYER_ORDER = ["ekmekUst", "sos", "peynir", "et", "ekmekAlt"] as co
 export type LayerKey = (typeof LAYER_ORDER)[number];
 /** Hangi claim hangi katman(lar)ı vurgular — EKMEK iki yarıyı birlikte */
 export const CLAIM_LAYERS: readonly LayerKey[][] = [["et"], ["ekmekUst", "ekmekAlt"], ["peynir"], ["sos"]];
-/** Toplam açıklık: yığın yüksekliğinin ~%55'i */
-export const EXPLODE_SPREAD = 0.55;
+/** Toplam açıklık: yığın yüksekliğinin ~%38'i (önce %55'ti — 1.0 ölçekte viewport'a sığmıyordu) */
+export const EXPLODE_SPREAD = 0.38;
 
 export interface ExplodeLayer {
   /** dikey kayma (px) — birleşikken 0 */
@@ -467,12 +467,17 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
 
   const layers = {} as Record<LayerKey, ExplodeLayer>;
   const activeSet = ci >= 0 && ci < CLAIM_LAYERS.length ? CLAIM_LAYERS[ci] : [];
+  /* Ayrılma/birleşme dışında katmanların pozisyonu sabit olmalı: `open` ve `gap` kayan
+     noktada sürüklendiği için her karede yeni transform yazılıyordu (120 karede 147 yazım).
+     `open`'ı 0.02 adımlara ve sonuçları tam piksele yuvarla; ayrılma bitince (open=1)
+     değerler birebir aynı kalır ve `st()` yazımı atlar. Blur kuantalamasının aynısı. */
+  const openQ = Math.round(open * 50) / 50;
   LAYER_ORDER.forEach((k, i) => {
     const isActive = activeSet.includes(k);
     /* i=0 en üst katman: yukarı çıkar (negatif ty), en alt aşağı iner */
-    const ty = (i - mid) * gap * open;
+    const ty = Math.round((i - mid) * gap * openQ);
     /* hafif perspektif: üst katmanlar biraz öne — tam profil değil, hero açısına yakın */
-    const tz = (mid - i) * 12 * open;
+    const tz = Math.round((mid - i) * 12 * openQ);
     /* Vurgu değerleri KADEMELİ: her karede yeni filter/opacity yazmak beş büyük saydam
        görselin yeniden rasterize edilmesine yol açıyordu (masaüstünde ~17→38 ms). Bunlar
        yalnızca "açık mı" ve "aktif mi" durumuna bağlı; aradaki yumuşatmayı CSS 420 ms'lik
@@ -496,8 +501,10 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   /* Ayrık yığın tek fotoğraftan çok daha uzun; açıldıkça ölçeği kıs ki ekrana sığsın.
      (Kompozit maliyeti `contain` ile çözüldü, ölçekle değil — bkz. stage.css `.explode`.) */
   /* Ayrık yığın tek fotoğraftan uzun; açıldıkça ölçeği kıs ki ekrana sığsın.
-     Masaüstünde tasarımdaki boy (1.0); mobilde dar ekran kısmayı gerektiriyor. */
-  const fitSc = focusPose.sc * lerp(1, mobile ? 0.5 : 0.70, open);
+     Açıklık %55 → %38'e indikten sonra 0.8 rahat sığıyor (1440'ta üstte 106, altta 123 px
+     boşluk) ve gerçek Chrome'da kare süresi hero ile aynı. 0.9 da sığıyor ama kenar payı
+     65 px'e düşüyor; 0.8 farklı içerik boylarına karşı daha güvenli. */
+  const fitSc = focusPose.sc * lerp(1, mobile ? 0.5 : 0.8, open);
   /* Katmanlar kutu merkezinden ±(spread/2) kadar açılır; kutunun kendisi üstten hizalı.
      Görünür yığının merkezi = kutu üstü + kutuYüksekliği/2. Onu ekran ortasına getir. */
   /* Dikey ortalama JS'te değil CSS'te: kutuya `translateY(-50%)` uygulanır (aşağıda .explode

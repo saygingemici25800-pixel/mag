@@ -266,7 +266,8 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
           st(
             `ex_${k}`,
             "transform",
-            `translate3d(0,${L.ty.toFixed(1)}px,${L.tz.toFixed(1)}px) scale(${L.scale.toFixed(3)})`,
+            /* değerler stageMath'te kuantalandı: aynı kare aynı dizgeyi üretir → st() atlar */
+            `translate3d(0,${L.ty}px,${L.tz}px) scale(${L.scale})`,
           );
           st(`ex_${k}`, "opacity", L.opacity.toFixed(2));
           st(`ex_${k}`, "--glow", L.glow.toFixed(3));
