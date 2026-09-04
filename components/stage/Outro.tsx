@@ -25,6 +25,7 @@ export default function Outro({ t, bind }: Props) {
       </section>
 
       <section className="panel scFaq" ref={bind("scFaq")}>
+        <div className="panelInner" ref={bind("faqInner")}>
         <h2>
           {t.faq.title[0]}
           <br />
@@ -38,9 +39,11 @@ export default function Outro({ t, bind }: Props) {
             </div>
           ))}
         </div>
+        </div>
       </section>
 
       <section className="panel foot scFoot" ref={bind("scFoot")}>
+        <div className="panelInner" ref={bind("footInner")}>
         <div className="signup">
           <h2>
             {t.footer.title[0]}
@@ -53,6 +56,7 @@ export default function Outro({ t, bind }: Props) {
           <div className="legal">{t.footer.legal}</div>
         </div>
         <div className="copyline">{t.footer.copy}</div>
+        </div>
         <nav className="socialbar" aria-label="Sosyal ve yasal">
           <a className="pill" href={SITE.social.tiktok}>
             {t.footer.tiktok}

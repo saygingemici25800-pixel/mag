@@ -120,59 +120,6 @@
   height: 100%;
 }
 
-/* ---- discs ---- */
-.disc {
-  position: absolute;
-  left: 50%;
-  translate: -50% 0;
-  border-radius: 50%;
-  pointer-events: none;
-}
-.discB {
-  margin-left: 12px;
-}
-.discA {
-  /* hanging above */
-  top: -6.5%;
-  width: min(46vw, 380px);
-  height: min(11vw, 92px);
-  z-index: 4;
-  background: radial-gradient(ellipse at 50% 42%, #3a342c 0%, #1b1713 52%, #0e0b09 100%);
-  box-shadow:
-    0 16px 34px rgba(0, 0, 0, 0.75),
-    inset 0 -2px 0 rgba(255, 255, 255, 0.14);
-}
-.discA::after {
-  content: "";
-  position: absolute;
-  inset: 26% 18%;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at 50% 40%, #4a4238, #161310 78%);
-  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.18);
-}
-.discB {
-  /* plinth below — ilk konum CSS'te (JS formülü baseY + ch·1.09; SSR'da odak SMOOKY = wide) ve JS ilk kareyi
-     yazana dek görünmez: hydration'da kayma (CLS) olmasın */
-  top: calc(40vh + min(27vh, 204px) * 1.09);
-  opacity: 0;
-  z-index: 19;
-  width: min(38vw, 264px);
-  height: min(8.5vw, 58px);
-  background: radial-gradient(ellipse at 50% 30%, #4a4239 0%, #221d18 54%, #0c0a08 100%);
-  box-shadow:
-    0 22px 44px rgba(0, 0, 0, 0.85),
-    inset 0 2px 0 rgba(255, 255, 255, 0.3),
-    0 -1px 0 rgba(255, 255, 255, 0.1);
-}
-.discB::after {
-  content: "";
-  position: absolute;
-  inset: 22% 20%;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at 50% 30%, #5b5146, #161311 78%);
-  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.22);
-}
-
 /* ---- arc ---- */
 .field {
   position: absolute;
@@ -230,9 +177,6 @@
 }
 /* <900px: burger viewport'a sığsın (Faz 1 kararı a) */
 @media (max-width: 900px) {
-  .discB {
-    top: calc(40vh + min(21vh, 150px) * 1.09);
-  }
   .item img,
   .item .refl {
     height: min(26vh, 190px);
@@ -613,45 +557,73 @@ html.lm .arrow {
 }
 
 /* katman aşaması slotu — ikon rayının solunda, 220px kare; yalnızca görsel varsa render edilir */
+/* katman aşaması slotu — kutu/çerçeve yok: görsel doğrudan sahnede yüzer, altında yumuşak elips gölge.
+   Görseller siyah zeminli (şeffaf değil); sahne zemini de --char olduğu için `screen` karışımı kenarları kaynatır. */
 .stageSlot {
   position: absolute;
-  right: calc(18px + 44px + 22px);
-  top: 50%;
-  translate: 0 -50%;
+  /* sol kolonun üstü: metnin üstünde, burgerin parlak gövdesinin dışında (screen karışımı koyu zeminde okunur) */
+  left: clamp(28px, 7.5vw, 132px);
+  top: 12vh;
   z-index: 31;
   width: 220px;
   height: 220px;
-  border-radius: 18px;
-  overflow: hidden;
-  background: rgba(12, 10, 8, 0.35);
-  border: 1px solid rgba(242, 236, 227, 0.12);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
   pointer-events: none;
+  /* screen karışımı sahne zeminine kadar ulaşsın: burada yeni bir yığın bağlamı açma */
+  isolation: auto;
+  mix-blend-mode: screen;
+}
+.stageSlot::after {
+  /* zemin gölgesi */
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  translate: -50% 0;
+  width: 62%;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  filter: blur(18px);
 }
 .stageSlot img {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
-  animation: slotIn 0.5s ease both;
+  animation: slotIn 0.35s cubic-bezier(0.22, 1, 0.28, 1) both;
 }
+/* aşama değişince: 350 ms crossfade + 6px yukarı kayma */
 @keyframes slotIn {
   from {
     opacity: 0;
-    transform: scale(0.96);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
     transform: none;
   }
 }
+.stageSlot .out {
+  animation: slotOut 0.35s cubic-bezier(0.22, 1, 0.28, 1) both;
+}
+@keyframes slotOut {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
 @media (max-width: 900px) {
   .stageSlot {
-    width: 140px;
-    height: 140px;
-    right: calc(9px + 34px + 10px);
-    top: 24%;
-    translate: 0 0;
+    width: 130px;
+    height: 130px;
+    left: clamp(22px, 6vw, 44px);
+    top: 11vh;
   }
 }
 
@@ -672,6 +644,49 @@ html.lm .arrow {
   line-height: 0.76;
   letter-spacing: -0.05em;
   color: rgba(12, 10, 8, 0.3);
+}
+
+/* panellerin arkasındaki sahneye koyu perde (reveal) */
+.panelVeil {
+  position: absolute;
+  inset: 0;
+  z-index: 33;
+  background: #0c0a08;
+  opacity: 0;
+  pointer-events: none;
+}
+/* "reveal": paneller alttan gelen sayfa gibi binişir; iç kapsayıcı parallax ile geç gelir */
+.panelInner {
+  /* içerik panelden geç gelir (footer-reveal parallaxı) — transform uygulanabilmesi için blok */
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  width: 100%;
+  will-change: transform;
+}
+.panel.scFaq,
+.panel.scFoot {
+  border-radius: 18px 18px 0 0;
+  border-top: 1px solid rgba(242, 236, 227, 0.1);
+  will-change: transform;
+  transform-origin: 50% 100%;
+}
+@media (max-width: 900px) {
+  .panel.scFaq,
+  .panel.scFoot {
+    border-radius: 14px 14px 0 0;
+  }
+}
+/* reduced-motion: eski fade (kaydırma yok) */
+@media (prefers-reduced-motion: reduce) {
+  .panel.scFaq,
+  .panel.scFoot {
+    transform: none !important;
+    border-radius: 0;
+  }
+  .panelInner {
+    transform: none !important;
+  }
 }
 
 .panel {
@@ -766,11 +781,16 @@ html.lm .arrow {
   justify-content: flex-start;
   padding-top: clamp(64px, 15vh, 150px);
   gap: 0;
-  background: transparent;
+  /* reveal sırasında opak (altındaki SSS okunmasın); kapanışta (out1) burger arkadan görünsün diye şeffaflaşır */
+  background: rgba(12, 10, 8, var(--footBg, 1));
   will-change: transform;
 }
 .panel.foot .signup {
   gap: 14px;
+}
+.panel.foot .panelInner {
+  gap: 0;
+  flex: none;
 }
 .copyline {
   margin-top: clamp(28px, 7vh, 70px);

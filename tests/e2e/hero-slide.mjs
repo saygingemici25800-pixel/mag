@@ -40,6 +40,7 @@ const back = bs.filter((v, i) => i > 0 && v < bs[i - 1] - 0.002).length;
 check("yeni odak ölçeği tek yönlü büyür", back === 0, `${bs[0].toFixed(3)} → ${bs[bs.length - 1].toFixed(3)}, geri dönüş ${back}`);
 // bitişte doğru poz
 const last = frames[frames.length - 1];
-check("bitişte odak x=0, scale=1.14", Math.abs(last.brisket.x) < 1 && Math.abs(last.brisket.s - 1.14) < 0.005, JSON.stringify(last.brisket));
+// x tam 0 değil: görsel ağırlık merkezi düzeltmesi (lib/cutCenters.json) birkaç px kaydırır
+check("bitişte odak ortada, scale=1.14", Math.abs(last.brisket.x) < 12 && Math.abs(last.brisket.s - 1.14) < 0.005, JSON.stringify(last.brisket));
 await b.close();
 process.exit(fail ? 1 : 0);

@@ -72,7 +72,6 @@ export default function Arc({ active, bind, extra }: Props) {
 
   return (
     <>
-      <span className="disc discA" ref={bind("discA")} aria-hidden="true" />
       <div className="field">
         {Array.from({ length: N }, (_, i) => {
           const m = HERO_ITEMS[slotIndex(active, i, HERO_ITEMS.length)];
@@ -87,8 +86,6 @@ export default function Arc({ active, bind, extra }: Props) {
           );
         })}
       </div>
-      <span className="disc discB" ref={bind("discB")} aria-hidden="true" />
-
       <div className="dots dotsL" ref={bind("dotsL")} aria-hidden="true">
         <span />
         <span />

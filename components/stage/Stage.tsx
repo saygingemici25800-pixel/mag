@@ -15,8 +15,10 @@ import BigTitle from "./BigTitle";
 import Claims from "./Claims";
 import LightRays from "./LightRays";
 import Outro from "./Outro";
+import CUT_CENTERS from "@/lib/cutCenters.json";
 import { LOGO } from "./logo";
 import Preloader from "./Preloader";
+import StageSlot from "./StageSlot";
 import { useLoadProgress } from "./useLoadProgress";
 import StaticFallback from "./StaticFallback";
 import CrossFade from "./CrossFade";
@@ -55,19 +57,33 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
   const size = useRef({ vw: 1440, vh: 860 });
   const swipe = useRef({ down: false, sx: 0 });
 
-  /** İsimle DOM referansı bağla — her isim için sabit callback (ref churn olmasın). Düz nesne: render'da okunabilir. */
+  /** İsimle DOM referansı bağla — her isim için sabit callback (ref churn olmasın). Düz nesne: render'da okunabilir.
+      React bir düğümü yeniden oluşturursa (ör. ci değişince Claims) o ismin stil önbelleği geçersiz kılınır;
+      yoksa "zaten yazıldı" sanılıp yeni düğüme opaklık/transform hiç yazılmaz. */
   const [dom] = useState(() => {
     const els: Record<string, El> = {};
     const binders: Record<string, (el: El) => void> = {};
+    const onRebind: ((name: string) => void)[] = [];
     return {
       bind: (name: string) =>
         (binders[name] ??= (el: El) => {
+          const prev = els[name];
           els[name] = el;
+          if (el && el !== prev) onRebind.forEach((f) => f(name));
         }),
       get: (name: string): El => els[name] ?? null,
+      onRebind: (f: (name: string) => void) => onRebind.push(f),
     };
   });
   const { bind } = dom;
+
+  useEffect(() => {
+    // yeni DOM düğümü bağlandığında o isme ait stil önbelleğini düşür
+    dom.onRebind((name) => {
+      const prefix = name + "|";
+      for (const k of styleCache.current.keys()) if (k.startsWith(prefix)) styleCache.current.delete(k);
+    });
+  }, [dom]);
 
   useEffect(() => {
     activeRef.current = active;
@@ -87,10 +103,18 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
 
   /* Kare içinde layout okuması yok: odaktaki cutout ölçüsü resize'da, ürün değişiminde ve görsel yüklenince cache'lenir */
   const cut = useRef({ ch: 0, cw: 0 });
+  /** slot başına görsel genişliği + ağırlık merkezi (cutCenters.json); resize/görsel yüklenince ölçülür */
+  const slotBoxes = useRef<{ w: number; cx: number }[]>([]);
   const styleCache = useRef(new Map<string, string>());
   const measureCutout = useCallback(() => {
     const img = dom.get("centerImg") as HTMLImageElement | null;
     cut.current = { ch: img?.clientHeight ?? 0, cw: img?.clientWidth ?? 0 };
+    slotBoxes.current = Array.from({ length: N }, (_, i) => {
+      const el = dom.get(`item${i}`);
+      const media = el?.querySelector("img, .ph") as HTMLElement | null;
+      const id = el?.dataset.k ?? "";
+      return { w: media?.clientWidth ?? 0, cx: (CUT_CENTERS as Record<string, { cx: number }>)[id]?.cx ?? 0.5 };
+    });
   }, [dom]);
   useEffect(() => {
     const on = () => {
@@ -140,7 +164,11 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
         }
       }
 
-      const f = computeFrame(p, { vw, vh, accent: it.accent, ch: cut.current.ch, cw: cut.current.cw }, offsetRef.current);
+      const f = computeFrame(
+        p,
+        { vw, vh, accent: it.accent, ch: cut.current.ch, cw: cut.current.cw, slots: slotBoxes.current },
+        offsetRef.current,
+      );
 
       /** DOM'a doğrudan yaz — React state değil (60fps). Değişmeyen değere yazma (style invalidation yok). */
       const cache = styleCache.current;
@@ -176,17 +204,13 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
         st(n, "z-index", f.items[i].z);
       }
 
-      st("discA", "opacity", f.discA);
-      st("discB", "opacity", f.discB.opacity);
-      st("discB", "top", f.discB.top + "px");
-      st("discB", "transform", "scale(" + f.discB.scale + ")");
-
       /* oklar: odaktaki burgerin iki yanında, dikeyde tam ortasında */
       const ax = f.arrows.ax.toFixed(0);
       const ay = f.arrows.ay.toFixed(0) + "px";
       const pe = f.arrows.opacity > 0.5 ? "auto" : "none";
-      st("arrowL", "left", "calc(50% - " + ax + "px)");
-      st("arrowR", "left", "calc(50% + " + ax + "px)");
+      const shift = f.arrows.shift.toFixed(0);
+      st("arrowL", "left", `calc(50% - ${ax}px + ${shift}px)`);
+      st("arrowR", "left", `calc(50% + ${ax}px + ${shift}px)`);
       for (const a of ["arrowL", "arrowR"]) {
         st(a, "top", ay);
         st(a, "opacity", f.arrows.opacity);
@@ -205,9 +229,15 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
       st("scDive", "opacity", f.dive);
       st("rail", "opacity", f.dive);
       st("scPay", "opacity", f.pay);
-      st("scFaq", "opacity", f.faq);
-      st("scFoot", "transform", "translateY(" + f.foot.ty.toFixed(1) + "px)");
+      st("scFaq", "opacity", f.faq.opacity);
+      st("scFaq", "transform", `translateY(${f.faq.ty.toFixed(1)}px) scale(${f.faq.scale.toFixed(3)})`);
+      st("scFaq", "filter", `brightness(${f.faq.brightness.toFixed(3)})`);
+      st("faqInner", "transform", `translateY(${f.faq.innerTy.toFixed(2)}%)`);
       st("scFoot", "opacity", f.foot.opacity);
+      st("scFoot", "transform", `translateY(${f.foot.ty.toFixed(1)}px)`);
+      st("scFoot", "--footBg", f.foot.bg.toFixed(3));
+      st("footInner", "transform", `translateY(${f.foot.innerTy.toFixed(2)}%)`);
+      st("panelVeil", "opacity", f.panelVeil);
       st("knob", "left", f.knob + "%");
       st("track", "opacity", f.track);
       st("streak", "left", f.streak + "%");
@@ -224,9 +254,12 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
   // Preloader kalkana kadar sahne rAF'ı çalışmaz (CPU); ilk kare yine de bir kez çizilir (aşağıda)
   useScrollProgress(render, !reduced && preDone);
 
-  /* ilk render adımı: preloader dururken sahnenin ilk karesini bir kez çiz */
+  /* ilk render adımı: preloader dururken sahnenin ilk karesini YALNIZCA bir kez çiz.
+     (Efekt her render'da yeniden koşarsa scroll konumu p=0'a çekilir; ok tıklaması bunu tetikliyordu.) */
+  const firstPaintDone = useRef(false);
   useEffect(() => {
-    if (reduced) return;
+    if (reduced || preDone || firstPaintDone.current) return;
+    firstPaintDone.current = true;
     let done = 0;
     const raf = requestAnimationFrame(() => {
       render(0);
@@ -236,7 +269,7 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
       cancelAnimationFrame(raf);
       window.clearTimeout(done);
     };
-  }, [reduced, render, load]);
+  }, [reduced, preDone, render, load]);
 
   /* Preloader süresinde 5 cutout'u (ve yansımaları) decode et: ilk kaydırmada ana iş parçacığında decode takılması olmasın */
   useEffect(() => {
@@ -328,6 +361,7 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
         <div className="bgGrad" ref={bind("bgA")} aria-hidden="true" />
         <div className="bgGrad" ref={bind("bgB")} aria-hidden="true" />
         <div className="bgVeil" aria-hidden="true" />
+        <div className="panelVeil" ref={bind("panelVeil")} aria-hidden="true" />
         <div className="room" aria-hidden="true">
           <div className="toplight" />
           <div className="aura" ref={bind("aura")} />
@@ -364,6 +398,7 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
           </div>
         </section>
 
+        <StageSlot image={ci >= 0 ? stages?.[it.id]?.[STAGE_KEYS[ci]] : undefined} />
         <Claims
           item={it}
           desc={itemDesc(t, it) ?? it.desc}
@@ -371,7 +406,6 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
           claims={t.claims}
           rail={t.rail}
           bind={bind}
-          stageImage={ci >= 0 ? stages?.[it.id]?.[STAGE_KEYS[ci]] : undefined}
         />
         <Outro t={t} bind={bind} />
 
