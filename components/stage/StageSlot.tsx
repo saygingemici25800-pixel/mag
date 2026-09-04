@@ -3,11 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Katman aşaması slotu — iddia bölümünde, ikon rayının solunda.
- * Kutu/çerçeve yok: görsel doğrudan sahnede yüzer, altında yumuşak elips gölge.
- * Görseller siyah zeminli (şeffaf değil) → `mix-blend-mode: screen` ile sahne zeminine kaynar.
- * Bu yüzden slot `.scene` (opacity'li) içinde DEĞİL, sahne kökünde durur: opacity yığın bağlamı
- * açıp karışımı keserdi.
+ * Katman aşaması slotu — iddia bölümünde, ikon rayının hemen solunda, rayla dikey hizalı.
+ * Görseller şeffaf WebP: kutu/çerçeve yok, karışım normal — görsel doğrudan sahnede yüzer,
+ * altında yumuşak elips gölge. Slot `.scene` dışında, sahne kökünde durur ki sahnenin
+ * opacity'si aşama görselini soldurmasın.
  */
 export default function StageSlot({ image }: { image?: string }) {
   /* aşama değişince eski görsel 350 ms daha durur (crossfade) */
