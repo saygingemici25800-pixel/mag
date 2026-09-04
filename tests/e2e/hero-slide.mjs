@@ -15,10 +15,12 @@ check(".item üzerinde transform/filter transition yok", tr.every((t) => t.start
 // ürün kimliği → kare kare {x, scale}
 const frames = await p.evaluate(() => new Promise((done) => {
   const rows = [];
-  const grab = () => Object.fromEntries([...document.querySelectorAll(".item")].map((e) => {
+  /* Kare zamanını da kaydet: yüklü makinede rAF aralığı 50 ms'ye çıkabiliyor ve tek karede
+     alınan yol büyüyor. Süreklilik ölçüsü piksel/kare değil, piksel/ms olmalı. */
+  const grab = () => Object.fromEntries([["__t", performance.now()], ...[...document.querySelectorAll(".item")].map((e) => {
     const m = e.style.transform.match(/translate\((-?[\d.]+)px,\s*(-?[\d.]+)px\)\s*scale\(([\d.]+)\)/);
     return [e.dataset.k, m ? { x: +m[1], s: +m[3] } : null];
-  }));
+  })]);
   document.querySelector("button.arrow.r").click();
   requestAnimationFrame(() => {
     const t0 = performance.now();
@@ -29,10 +31,17 @@ const frames = await p.evaluate(() => new Promise((done) => {
 
 // yeni odak (brisket) ve eski odak (smooky) sürekliliği
 for (const id of ["brisket", "smooky"]) {
-  const seq = frames.map((f) => f[id]).filter(Boolean);
-  const maxDx = Math.max(...seq.slice(1).map((v, i) => Math.abs(v.x - seq[i].x)));
-  const maxDs = Math.max(...seq.slice(1).map((v, i) => Math.abs(v.s - seq[i].s)));
-  check(`${id}: kare farkı sürekli (sıçrama yok)`, maxDx < 80 && maxDs < 0.08, `maxΔx=${maxDx.toFixed(1)}px maxΔscale=${maxDs.toFixed(3)}`);
+  const rows = frames.filter((f) => f[id]);
+  const seq = rows.map((f) => f[id]);
+  /* Hız (px/ms) üzerinden bak: 480 ms'de ~403 px yol var, ease başta hızlı → ~4 px/ms tepe.
+     Gerçek pencerede tek kare adımı 58 px; headless'ta kare düşünce 200 px'i geçebiliyor. */
+  let maxRate = 0, maxDsRate = 0;
+  for (let i = 1; i < seq.length; i++) {
+    const dt = Math.max(1, rows[i].__t - rows[i - 1].__t);
+    maxRate = Math.max(maxRate, Math.abs(seq[i].x - seq[i - 1].x) / dt);
+    maxDsRate = Math.max(maxDsRate, Math.abs(seq[i].s - seq[i - 1].s) / dt);
+  }
+  check(`${id}: hareket sürekli (hız sınırlı)`, maxRate < 6 && maxDsRate < 0.006, `maxHız=${maxRate.toFixed(2)}px/ms maxÖlçekHızı=${maxDsRate.toFixed(4)}/ms`);
 }
 // yeni odak ölçeği tek yönlü büyür
 const bs = frames.map((f) => f.brisket?.s).filter(Boolean);

@@ -2,6 +2,7 @@
 
 import { STAGE_KEYS, type HeroId, type StageKey } from "@/lib/menu";
 import type { StageMap } from "@/lib/katman";
+import METRICS from "@/lib/katmanMetrics.json";
 import type { Bind } from "./Arc";
 
 /** Yığın sırası yukarıdan aşağıya: üst ekmek · sos · peynir · et · alt ekmek */
@@ -24,6 +25,34 @@ const CLIP: Partial<Record<LayerKey, string>> = {
 
 /** `<ad>.webp` → `<ad>@2x.webp` (scripts/cut-katman.mjs iki boy üretir) */
 const srcSet2x = (src: string) => src.replace(/\.webp$/, "@2x.webp");
+
+/**
+ * Katmanların birbirine göre gerçekçi genişlik oranı (ekmek en geniş = 1).
+ * Görsellerdeki nesne genişlikleri farklı olduğu için ham hâlde ölçüler tutmuyordu.
+ */
+const TARGET_W: Record<LayerKey, number> = {
+  ekmekUst: 1,
+  sos: 0.8,
+  peynir: 0.88,
+  et: 0.92,
+  ekmekAlt: 1,
+};
+
+type Metric = { w: number; h: number; cx: number; cy: number };
+const metrics = METRICS as Record<string, Metric>;
+
+/** Dosya adından ölçüm anahtarı: "/assets/katman/smooky-1-et.webp" → "smooky-1-et" */
+const metricKey = (src: string) => src.split("/").pop()!.replace(/\.webp$/, "");
+
+/**
+ * Ölçülen içerik genişliğini hedef orana normalize eden ölçek.
+ * Referans: ekmeğin ölçülen genişliği (yığındaki en geniş parça).
+ */
+function layerScale(src: string, k: LayerKey, refW: number): number {
+  const m = metrics[metricKey(src)];
+  if (!m || !m.w) return 1;
+  return (TARGET_W[k] * refW) / m.w;
+}
 
 /** Katmanın hangi aşama görselinden geldiği */
 const SOURCE: Record<LayerKey, StageKey> = {
@@ -54,6 +83,8 @@ interface Props {
 export default function Explode({ id, stages, bind }: Props) {
   const s = stages[id];
   if (!s || !STAGE_KEYS.every((k) => s[k])) return null;
+  /* Referans genişlik: ekmeğin ölçülen içerik genişliği — diğerleri buna göre normalize edilir */
+  const refW = metrics[metricKey(s.ekmek!)]?.w ?? 1;
   return (
     <div className="explode" ref={bind("explode")} aria-hidden="true">
       {LAYER_ORDER.map((k, i) => (
@@ -71,7 +102,12 @@ export default function Explode({ id, stages, bind }: Props) {
             loading="lazy"
             fetchPriority="low"
             decoding="async"
-            style={CLIP[k] ? { clipPath: CLIP[k] } : undefined}
+            style={{
+              ...(CLIP[k] ? { clipPath: CLIP[k] } : null),
+              /* Ölçü normalizasyonu ve yatay merkez düzeltmesi katmanın KENDİ transform'unda
+                 değil, görselde: `.exLayer`in transform'unu her karede JS yazıyor. */
+              transform: `translateX(${(0.5 - (metrics[metricKey(s[SOURCE[k]]!)]?.cx ?? 0.5)) * 100}%) scale(${layerScale(s[SOURCE[k]]!, k, refW).toFixed(4)})`,
+            }}
           />
         </div>
       ))}

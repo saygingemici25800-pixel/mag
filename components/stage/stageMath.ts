@@ -199,6 +199,10 @@ export function heroBaseY(vh: number): number {
 export function defaultCutoutHeight(vh: number, vw: number = 1440): number {
   return vw < 900 ? Math.min(vh * 0.26, 190) : Math.min(vh * 0.33, 248);
 }
+/** Ok konumu için sabit referans genişlik — ürüne göre değişmez (cutout'un tipik en/boy oranı) */
+export function defaultCutoutWidth(vh: number, vw: number = 1440): number {
+  return defaultCutoutHeight(vh, vw) * 1.72;
+}
 
 export function claimIndex(p: number): number {
   if (p >= S.c0[0] && p < S.c1[0]) return 0;
@@ -393,14 +397,13 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   let heroChrome = 1 - Math.max(diveE, upT);
   if (tOut > 0) heroChrome = clamp((tOut1 - 0.72) / 0.28);
   const fanD = tOut > 0 ? 0 : fanE; // kapanışta yelpaze kapalı pozunda olmalı
-  const ch = env.ch || defaultCutoutHeight(vh, vw);
-  /* oklar: odaktaki burgerin iki yanında, dikeyde tam ortasında; mobilde her zaman ekran içinde */
-  const cwid = (env.cw || 300) * (1 + FOCUS_ZOOM);
-  const ax = mobile ? Math.min(cwid / 2 + 22, vw / 2 - 30) : cwid / 2 + 44;
-  /* oklar da düzeltilmiş merkeze göre kayar (odaktaki slot) */
-  const focusSlot = env.slots?.[CENTER];
-  const axShift = focusSlot && focusSlot.w > 0 ? (0.5 - focusSlot.cx) * focusSlot.w * (1 + FOCUS_ZOOM) : 0;
-  const ay = baseY + ch * 0.57;
+  /* Oklar sahnenin SABİT merkezine göre konumlanır; ürünün cutout genişliğine ya da
+     görsel ağırlık merkezine (cutCenters) bağlanmaz. Aksi hâlde her üründe farklı yerde
+     duruyordu (ölçüm: yatayda 37 px, dikeyde 25 px kayma). */
+  const refW = defaultCutoutWidth(vh, vw) * (1 + FOCUS_ZOOM);
+  const ax = mobile ? Math.min(refW / 2 + 22, vw / 2 - 30) : refW / 2 + 44;
+  const axShift = 0;
+  const ay = heroBaseY(vh) + defaultCutoutHeight(vh, vw) * 0.57;
   const dots = tOut > 0 ? clamp((tOut2 - 0.5) / 0.5) * 0.75 : heroChrome * 0.75 * (1 - fanD);
   const floor = tOut > 0 ? clamp(tOut1 * 1.5) : 1 - Math.max(payE * 0.9, upT);
   const aura = tOut > 0 ? clamp((tOut1 - 0.1) / 0.55) : Math.max(0, (1 - fanE * 0.72) * (1 - Math.max(payE, upT)));
@@ -424,9 +427,13 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   const faqIn = ease(tFaqSlide);
   const footIn = ease(tFootSlide);
   /* SSS: panel alttan yukarı; içerik panelden geç gelir (parallax) */
+  /* SSS'nin ÇIKIŞI: kapanışta (out1) panel sahneden çekilmeli, yoksa yükselen burgerin
+     üstünde opak kalıyor ve döngü "geri SSS'ye attı" gibi görünüyor. Reveal yazılırken
+     giriş korunmuş ama çıkış düşmüştü. */
+  const faqOut = clamp(tOut1 / 0.42);
   const faq = {
-    opacity: tFaqSlide > 0 ? 1 : 0, // panel opaklığı sabit; görünürlüğü konumu belirler
-    ty: (1 - faqIn) * vh,
+    opacity: tFaqSlide > 0 ? 1 - faqOut : 0, // giriş konumla, çıkış kapanışta soluklaşarak
+    ty: (1 - faqIn) * vh - faqOut * vh * 0.5, // foot ile birlikte yukarı süzül
     innerTy: -35 * (1 - tFaqSlide), // yüzde
     // BİZE KATIL üstüne binince altta kalır: hafifçe küçül ve karar
     scale: lerp(1, 0.96, footIn),
@@ -456,7 +463,9 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   const OPEN_IN = 0.035; // c0 başında açılma payı
   const openIn = seg(p, S.c0[0] - OPEN_IN, S.c0[0] + OPEN_IN);
   const openOut = seg(p, S.c3[1] - OPEN_IN, S.c3[1] + OPEN_IN);
-  const open = ease(openIn) * (1 - ease(openOut));
+  /* Kapanışta (foot/out1/out2) HER ZAMAN ürün fotoğrafı kullanılır, katmanlar değil:
+     burger hero pozuna otururken ve yanlar belirirken sahnede tek düzlem olsun. */
+  const open = outro ? 0 : ease(openIn) * (1 - ease(openOut));
 
   /* Katmanlar eşit aralıkla ayrılır; toplam açıklık yığın yüksekliğinin %55'i.
      Kayma değerleri kutunun KENDİ koordinatında yazılır; kutuya zaten scale uygulandığı için
