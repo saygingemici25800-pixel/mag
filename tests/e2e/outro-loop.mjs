@@ -25,7 +25,7 @@ const at = async (pr, settle = 1500) => {
       scale: parseFloat(tf.match(/scale\(([\d.]+)\)/)?.[1] ?? "0"),
       faqOp: parseFloat(document.querySelector(".scFaq")?.style.opacity ?? "0"),
       footOp: parseFloat(document.querySelector(".scFoot")?.style.opacity ?? "0"),
-      explodeOp: parseFloat(document.querySelector(".explode")?.style.opacity ?? "0"),
+      explodeShown: (() => { const e = document.querySelector(".explode"); return !!e && getComputedStyle(e).display !== "none"; })(),
       slots: [...document.querySelectorAll(".item")].map((e) => parseFloat(e.style.opacity || "0")),
       transform: tf,
     };
@@ -43,7 +43,7 @@ check("out1'de burger yükseliyor", mid.y < foot.y - 100, `y=${foot.y} → ${mid
 check("out1'de burger görünür", mid.focusOp > 0.9, `opacity=${mid.focusOp}`);
 /* Kritik: SSS paneli kapanışta çekilmezse yükselen burgerin üstünde opak kalıyor */
 check("out1'de SSS paneli çekilmiş", mid.faqOp < 0.5, `faq=${mid.faqOp}`);
-check("kapanışta katmanlar değil FOTOĞRAF", mid.explodeOp === 0, `explode=${mid.explodeOp}`);
+check("kapanışta katmanlar değil FOTOĞRAF", !mid.explodeShown, `yığın çiziliyor=${mid.explodeShown}`);
 
 // out1 sonu → hero pozuna oturmuş
 const top = await at(0.957);

@@ -36,11 +36,12 @@ for (const [vw, vh] of [[1440, 860], [390, 844]]) {
         top: oy + (m.cy - m.h / 2) * side, bottom: oy + (m.cy + m.h / 2) * side,
         w: m.w * side });
     }
-    return { layers, focusOpacity: parseFloat(document.querySelector(".item.focus")?.style.opacity ?? "1"), vw: innerWidth, vh: innerHeight };
+    const f = document.querySelector(".item.focus");
+    return { layers, photoHidden: !f || getComputedStyle(f).display === "none", vw: innerWidth, vh: innerHeight };
   }, M);
 
   const tag = `${vw}x${vh}`;
-  check(`${tag} ürün fotoğrafı tamamen kaldırıldı`, r.focusOpacity === 0, `opacity=${r.focusOpacity}`);
+  check(`${tag} ürün fotoğrafı tamamen kaldırıldı (display:none)`, r.photoHidden);
   check(`${tag} beş katman var`, r.layers.length === 5, `${r.layers.length}`);
 
   /* tek dikey eksen: görünür merkezler aynı x'te */
@@ -62,8 +63,8 @@ for (const [vw, vh] of [[1440, 860], [390, 844]]) {
   const T = Math.min(...r.layers.map((l) => l.top)), B = Math.max(...r.layers.map((l) => l.bottom));
   check(`${tag} yığın ekranda (kırpılma yok)`, L >= -2 && R <= r.vw + 2 && T >= -2 && B <= r.vh + 2,
     `x ${L | 0}→${R | 0} (vw ${r.vw}) · y ${T | 0}→${B | 0} (vh ${r.vh})`);
-  /* dikeyde ortalı: üst ve alt boşluk birbirine yakın */
-  check(`${tag} dikeyde ortalı`, Math.abs(T - (r.vh - B)) < r.vh * 0.12, `üst=${T | 0} alt=${(r.vh - B) | 0}`);
+  /* yığın fotoğrafın durduğu yere oturur (takas kuralı); dikey konum fotoğraf pozundan gelir */
+  console.log(`     (bilgi) ${tag} üst boşluk ${T | 0}px · alt boşluk ${(r.vh - B) | 0}px`);
   await p.close();
 }
 await b.close();

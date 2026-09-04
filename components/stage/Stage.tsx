@@ -17,11 +17,11 @@ import Outro from "./Outro";
 import CUT_CENTERS from "@/lib/cutCenters.json";
 import { LOGO } from "./logo";
 import Preloader from "./Preloader";
-import Explode from "./Explode";
+import Explode, { stackGeometry } from "./Explode";
 import { useLoadProgress } from "./useLoadProgress";
 import StaticFallback from "./StaticFallback";
 import CrossFade from "./CrossFade";
-import { CENTER, LAYER_ORDER, N, SLIDE_MS, computeFrame, slideEase } from "./stageMath";
+import { CENTER, LAYER_ORDER, N, SLIDE_MS, computeFrame, slideEase, type StackGeo } from "./stageMath";
 import { useScrollProgress } from "./useScrollProgress";
 import "./stage.css";
 
@@ -55,8 +55,10 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
   const ciRef = useRef(-1);
   /* Odaktaki ürünün dört katmanı da var mı? (yoksa iddia bölümünde fotoğraf kalır) */
   const layered = useRef(false);
-  /* `will-change` geçiş süresince açık kalsın diye: son açılışın zamanlayıcısı */
-  const movingTimer = useRef(0);
+  /* yığın yerleşimi — ürün ve cutout ölçüsü değişince yeniden hesaplanır */
+  const stackGeo = useRef<{ key: string; geo: StackGeo | null }>({ key: "", geo: null });
+  /* takas: yığın bir önceki karede çiziliyor muydu (fotoğraf geri gelince cutout yeniden ölçülür) */
+  const stackWasShown = useRef(false);
   const size = useRef({ vw: 1440, vh: 860 });
   const swipe = useRef({ down: false, sx: 0 });
 
@@ -109,27 +111,11 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
   /** slot başına görsel genişliği + ağırlık merkezi (cutCenters.json); resize/görsel yüklenince ölçülür */
   const slotBoxes = useRef<{ w: number; cx: number }[]>([]);
   const styleCache = useRef(new Map<string, string>());
-  /**
-   * Vurgu geçişi boyunca katmanlara `will-change` ver, bitince geri al.
-   * Kalıcı `will-change: transform` beş büyük dokuyu sürekli GPU belleğinde tutuyordu;
-   * `transitionend` ile kaldırınca kompozit maliyeti geçişle sınırlı kalıyor.
-   */
-  const markMoving = useCallback(() => {
-    const els = LAYER_ORDER.map((k) => dom.get(`ex_${k}`)).filter((e): e is HTMLElement => Boolean(e));
-    if (!els.length) return;
-    for (const el of els) el.classList.add("moving");
-    window.clearTimeout(movingTimer.current);
-    const off = () => {
-      for (const el of els) el.classList.remove("moving");
-    };
-    /* transitionend tek seferlik; geçiş hiç başlamazsa (ör. değer aynı) zamanlayıcı kurtarır */
-    els[0].addEventListener("transitionend", off, { once: true });
-    movingTimer.current = window.setTimeout(off, 520);
-  }, [dom]);
-
   const measureCutout = useCallback(() => {
     const img = dom.get("centerImg") as HTMLImageElement | null;
-    cut.current = { ch: img?.clientHeight ?? 0, cw: img?.clientWidth ?? 0 };
+    /* takas sırasında fotoğraf display:none → 0 okunur; eski ölçüyü koru */
+    if (!img || !img.clientHeight) return;
+    cut.current = { ch: img.clientHeight, cw: img.clientWidth };
     slotBoxes.current = Array.from({ length: N }, (_, i) => {
       const el = dom.get(`item${i}`);
       const media = el?.querySelector("img, .ph") as HTMLElement | null;
@@ -188,9 +174,22 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
         }
       }
 
+      const geoKey = `${it.id}|${cut.current.cw}|${cut.current.ch}`;
+      if (layered.current && stackGeo.current.key !== geoKey) {
+        stackGeo.current = { key: geoKey, geo: stackGeometry(it.id, stages ?? {}, cut.current.cw, cut.current.ch) };
+      }
       const f = computeFrame(
         p,
-        { vw, vh, accent: it.accent, ch: cut.current.ch, cw: cut.current.cw, slots: slotBoxes.current },
+        {
+          vw,
+          vh,
+          accent: it.accent,
+          ch: cut.current.ch,
+          cw: cut.current.cw,
+          slots: slotBoxes.current,
+          layered: layered.current,
+          stack: layered.current ? stackGeo.current.geo : null,
+        },
         offsetRef.current,
       );
 
@@ -223,11 +222,12 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
       for (let i = 0; i < N; i++) {
         const n = `item${i}`;
         st(n, "transform", f.items[i].transform);
-        /* patlamış burger açıkken odak fotoğrafı sönerek yerini katmanlara bırakır */
-        const hide = layered.current && i === CENTER ? 1 - f.explode.open : 1;
-        st(n, "opacity", hide < 1 ? (Number(f.items[i].opacity) * hide).toFixed(3) : f.items[i].opacity);
+        st(n, "opacity", f.items[i].opacity);
         st(n, "filter", f.items[i].filter);
         st(n, "z-index", f.items[i].z);
+        /* TAKAS: yığın çizilirken fotoğraf display:none — aynı karede ikisi asla görünmez.
+           Opaklık/ölçek geçişi yok; sönme takastan önce photoDim ile bitmiştir. */
+        if (i === CENTER) st(n, "display", f.explode.shown ? "none" : "");
       }
 
       /* oklar: odaktaki burgerin iki yanında, dikeyde tam ortasında */
@@ -251,27 +251,25 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
       st("cta", "opacity", f.cta);
       st("cta", "pointer-events", f.cta > 0.5 ? "auto" : "none");
 
-      /* patlamış burger: fotoğrafın yerine geçer, aynı pozu kullanır */
-      if (layered.current) {
+      /* patlamış burger: fotoğrafın kutusu + transform'u, tek düzlemde yalnızca translateY */
+      {
         const e = f.explode;
-        /* kutu ölçüsü odak cutout'uyla aynı olmalı: patlamış burger fotoğrafın yerine geçiyor */
         if (cut.current.cw > 0) {
           st("explode", "--cutW", `${cut.current.cw}px`);
           st("explode", "--cutH", `${cut.current.ch}px`);
         }
+        st("explode", "display", e.shown ? "block" : "none");
         st("explode", "transform", e.transform);
-        st("explode", "opacity", e.open > 0 ? e.opacity : 0);
         for (const k of LAYER_ORDER) {
           const L = e.layers[k];
-          st(
-            `ex_${k}`,
-            "transform",
-            /* değerler stageMath'te kuantalandı: aynı kare aynı dizgeyi üretir → st() atlar */
-            `translate3d(0,${L.ty}px,${L.tz}px) scale(${L.scale})`,
-          );
-          st(`ex_${k}`, "opacity", L.opacity.toFixed(2));
-          st(`ex_${k}`, "--glow", L.glow.toFixed(3));
+          st(`ex_${k}`, "transform", `translateY(${L.ty}px)`);
+          st(`ex_${k}`, "opacity", L.opacity === 1 ? "1" : "0.35");
         }
+        st("exLight", "transform", `translateY(${e.light.ty}px) scale(${e.light.sx},${e.light.sy})`);
+        st("exLight", "opacity", e.light.opacity.toFixed(2));
+        /* fotoğraf geri geldi: takas boyunca ölçülemeyen cutout'u bir sonraki karede ölç */
+        if (stackWasShown.current && !e.shown) window.setTimeout(measureCutout, 0);
+        stackWasShown.current = e.shown;
       }
 
       st("scHero", "opacity", f.hero);
@@ -295,14 +293,11 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
       if (f.ci !== ciRef.current) {
         /* katman değişiminde kısa "stage" sesi (yalnızca patlamış burgerde, iddialar arasında) */
         if (layered.current && f.ci >= 0 && ciRef.current >= 0) playStage();
-        /* Vurgu geçişi başlıyor: `will-change`i yalnızca geçiş boyunca aç (kalıcı bırakmak
-           beş büyük dokuyu sürekli GPU'da tutuyordu). transitionend'de kapanır. */
-        if (layered.current) markMoving();
         ciRef.current = f.ci;
         setCi(f.ci);
       }
     },
-    [dom, markMoving, stages],
+    [dom, measureCutout, stages],
   );
 
   // Preloader kalkana kadar sahne rAF'ı çalışmaz (CPU); ilk kare yine de bir kez çizilir (aşağıda)
