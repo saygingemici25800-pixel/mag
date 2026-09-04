@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocale, useT } from "@/components/LocaleProvider";
 import { cartClear, cartRemove, cartSet, useCart } from "@/lib/cart";
+import { animateLineOut, animateSummaryIn, prefetchCartFx } from "@/lib/cartFx";
 import { OPENS_AT_LABEL, isOpen, timeSlots } from "@/lib/hours";
 import { itemName, localePath } from "@/lib/i18n";
 import type { NewOrderInput, ValidationError } from "@/lib/orders";
@@ -32,6 +33,18 @@ export default function CheckoutPage() {
   const slots = useMemo(() => (minute < 0 ? ["simdi"] : timeSlots()), [minute]);
 
   const items = useMemo(() => Object.entries(cart).map(([id, l]) => ({ id, qty: l.qty, note: l.note || undefined })), [cart]);
+  /* sepet özeti girişi (Codrops cart drawer): bir kez, ilk çizimde */
+  /* `summary` hem mobil hem masaüstü sütununda render ediliyor; görünür olan(lar)ı canlandır */
+  useEffect(() => {
+    prefetchCartFx();
+    for (const el of document.querySelectorAll<HTMLElement>(".cartpane2")) void animateSummaryIn(el);
+  }, []);
+
+  /* satır silme: önce kaydırıp söndür, sonra veriden çıkar */
+  const removeLine = (id: string, el: HTMLElement | null) => {
+    if (!el) return cartRemove(id);
+    void animateLineOut(el).then(() => cartRemove(id));
+  };
   const totals = computeTotals(items, mode, zone);
   const count = items.reduce((s, i) => s + i.qty, 0);
   const err = (f: string) => errors.find((e) => e.field === f);
@@ -91,11 +104,11 @@ export default function CheckoutPage() {
             const m = findMenuItem(it.id);
             if (!m) return null;
             return (
-              <div key={it.id} className="line">
+              <div key={it.id} className="line" data-cart-line>
                 <div>
                   <div className="text-sm font-bold">{itemName(t, m)}</div>
                   {it.note ? <div className="text-xs text-dim">{it.note}</div> : null}
-                  <button type="button" className="ord-label mt-1 cursor-pointer hover:text-ember" onClick={() => cartRemove(it.id)}>
+                  <button type="button" className="ord-label mt-1 cursor-pointer hover:text-ember" onClick={(e) => removeLine(it.id, e.currentTarget.closest<HTMLElement>("[data-cart-line]"))}>
                     {o.remove}
                   </button>
                 </div>
@@ -116,7 +129,7 @@ export default function CheckoutPage() {
           })}
         </div>
       )}
-      <div className="flex flex-col gap-1 font-mono text-sm">
+      <div className="flex flex-col gap-1 font-mono text-sm" data-cart-totals>
         <div className="flex justify-between text-dim">
           <span>{o.subtotal}</span>
           <span>{formatPrice(totals.subtotal)}</span>

@@ -792,3 +792,29 @@ select.ctl {
   text-transform: uppercase;
   border: 1px solid currentColor;
 }
+
+/* ---- sepete ekle animasyonu (cartFx) ---- */
+.cartfx-copy {
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+.cartfx-copy .pimg {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+}
+/* çubuk görünürken içeriğin altı kapanmasın */
+.ord-list.has-cartbar {
+  padding-bottom: calc(96px + env(safe-area-inset-bottom));
+}
+/* tutar sayı geçişinde zıplamasın */
+.cb-total [data-cart-total] {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+}
+@media (prefers-reduced-motion: reduce) {
+  .cartfx-copy {
+    display: none;
+  }
+}

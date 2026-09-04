@@ -24,9 +24,9 @@ export default function CartBar() {
   return (
     <div className="cartbarwrap" data-cartbar>
       <Link href={localePath(locale, "/siparis/odeme")} className="cartbar2" prefetch={false}>
-        <span className="cb-icon" aria-hidden="true">
+        <span className="cb-icon" data-cart-icon aria-hidden="true">
           🛒
-          <b key={bump} className="cb-badge">
+          <b key={bump} className="cb-badge" data-cart-badge>
             {count}
           </b>
         </span>
@@ -34,7 +34,10 @@ export default function CartBar() {
           <small>
             {count} {t.order.itemsCount}
           </small>
-          {formatPrice(totals.subtotal)}
+          {/* cartFx tutarı sayı geçişiyle günceller: ham değer data-value'da, önek data-prefix'te */}
+          <span data-cart-total data-value={totals.subtotal} data-prefix="₺">
+            {formatPrice(totals.subtotal)}
+          </span>
         </span>
         <span className="cb-go">{t.order.goCart} →</span>
       </Link>
