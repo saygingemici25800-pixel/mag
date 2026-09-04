@@ -94,9 +94,13 @@ export interface ExplodeLayer {
   /** perspektif derinliği (px) — üst katmanlar öne */
   tz: number;
   scale: number;
-  brightness: number;
-  saturate: number;
-  /** arkasındaki yerel ışığın opaklığı (0…0.45) */
+  /**
+   * Pasif katmanı karartma: `filter: brightness()` DEĞİL, opaklık.
+   * Zemin neredeyse siyah olduğu için opacity .5 ile brightness .5 görsel olarak aynı,
+   * ama filtre beş büyük saydam katmanı kompozitörden boya aşamasına düşürüyordu.
+   */
+  opacity: number;
+  /** arkasındaki yerel ışığın opaklığı (0…0.5) */
   glow: number;
 }
 export interface ExplodeFrame {
@@ -478,9 +482,10 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
       ty,
       tz: tz + (isActive && opened ? 18 : 0),
       scale: isActive && opened ? 1.04 : 1,
-      brightness: !opened ? 1 : isActive ? 1.08 : 0.5,
-      saturate: !opened ? 1 : isActive ? 1 : 0.82,
-      glow: isActive && opened ? 0.45 : 0,
+      /* pasif katman: opacity .5 (brightness .5 ile aynı görünür, filtre maliyeti yok) */
+      opacity: !opened || isActive ? 1 : 0.5,
+      /* aktifin "1.08 parlaklığı" filtreyle değil, accent gradyanını biraz güçlendirerek */
+      glow: isActive && opened ? 0.5 : 0,
     };
   });
 
@@ -490,10 +495,9 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
      Mobilde genişlik de sınırlayıcı: dar ekranda ekmek yarıları yanlardan taşmasın. */
   /* Ayrık yığın tek fotoğraftan çok daha uzun; açıldıkça ölçeği kıs ki ekrana sığsın.
      (Kompozit maliyeti `contain` ile çözüldü, ölçekle değil — bkz. stage.css `.explode`.) */
-  /* Ayrık yığın tek fotoğraftan uzun; açıldıkça ölçeği kıs ki ekrana sığsın. 0.72'de
-     masaüstü Chrome'da kompozit eşiği aşılıyordu (28 ms); 0.61 hem sığıyor hem ~25 ms.
-     Mobilde dar ekran daha çok kısmayı gerektiriyor. */
-  const fitSc = focusPose.sc * lerp(1, mobile ? 0.5 : 0.61, open);
+  /* Ayrık yığın tek fotoğraftan uzun; açıldıkça ölçeği kıs ki ekrana sığsın.
+     Masaüstünde tasarımdaki boy (1.0); mobilde dar ekran kısmayı gerektiriyor. */
+  const fitSc = focusPose.sc * lerp(1, mobile ? 0.5 : 0.70, open);
   /* Katmanlar kutu merkezinden ±(spread/2) kadar açılır; kutunun kendisi üstten hizalı.
      Görünür yığının merkezi = kutu üstü + kutuYüksekliği/2. Onu ekran ortasına getir. */
   /* Dikey ortalama JS'te değil CSS'te: kutuya `translateY(-50%)` uygulanır (aşağıda .explode

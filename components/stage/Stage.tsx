@@ -55,6 +55,8 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
   const ciRef = useRef(-1);
   /* Odaktaki ürünün dört katmanı da var mı? (yoksa iddia bölümünde fotoğraf kalır) */
   const layered = useRef(false);
+  /* `will-change` geçiş süresince açık kalsın diye: son açılışın zamanlayıcısı */
+  const movingTimer = useRef(0);
   const size = useRef({ vw: 1440, vh: 860 });
   const swipe = useRef({ down: false, sx: 0 });
 
@@ -107,6 +109,24 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
   /** slot başına görsel genişliği + ağırlık merkezi (cutCenters.json); resize/görsel yüklenince ölçülür */
   const slotBoxes = useRef<{ w: number; cx: number }[]>([]);
   const styleCache = useRef(new Map<string, string>());
+  /**
+   * Vurgu geçişi boyunca katmanlara `will-change` ver, bitince geri al.
+   * Kalıcı `will-change: transform` beş büyük dokuyu sürekli GPU belleğinde tutuyordu;
+   * `transitionend` ile kaldırınca kompozit maliyeti geçişle sınırlı kalıyor.
+   */
+  const markMoving = useCallback(() => {
+    const els = LAYER_ORDER.map((k) => dom.get(`ex_${k}`)).filter((e): e is HTMLElement => Boolean(e));
+    if (!els.length) return;
+    for (const el of els) el.classList.add("moving");
+    window.clearTimeout(movingTimer.current);
+    const off = () => {
+      for (const el of els) el.classList.remove("moving");
+    };
+    /* transitionend tek seferlik; geçiş hiç başlamazsa (ör. değer aynı) zamanlayıcı kurtarır */
+    els[0].addEventListener("transitionend", off, { once: true });
+    movingTimer.current = window.setTimeout(off, 520);
+  }, [dom]);
+
   const measureCutout = useCallback(() => {
     const img = dom.get("centerImg") as HTMLImageElement | null;
     cut.current = { ch: img?.clientHeight ?? 0, cw: img?.clientWidth ?? 0 };
@@ -248,7 +268,7 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
             "transform",
             `translate3d(0,${L.ty.toFixed(1)}px,${L.tz.toFixed(1)}px) scale(${L.scale.toFixed(3)})`,
           );
-          st(`ex_${k}`, "filter", `brightness(${L.brightness.toFixed(3)}) saturate(${L.saturate.toFixed(2)})`);
+          st(`ex_${k}`, "opacity", L.opacity.toFixed(2));
           st(`ex_${k}`, "--glow", L.glow.toFixed(3));
         }
       }
@@ -274,11 +294,14 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
       if (f.ci !== ciRef.current) {
         /* katman değişiminde kısa "stage" sesi (yalnızca patlamış burgerde, iddialar arasında) */
         if (layered.current && f.ci >= 0 && ciRef.current >= 0) playStage();
+        /* Vurgu geçişi başlıyor: `will-change`i yalnızca geçiş boyunca aç (kalıcı bırakmak
+           beş büyük dokuyu sürekli GPU'da tutuyordu). transitionend'de kapanır. */
+        if (layered.current) markMoving();
         ciRef.current = f.ci;
         setCi(f.ci);
       }
     },
-    [dom, stages],
+    [dom, markMoving, stages],
   );
 
   // Preloader kalkana kadar sahne rAF'ı çalışmaz (CPU); ilk kare yine de bir kez çizilir (aşağıda)
