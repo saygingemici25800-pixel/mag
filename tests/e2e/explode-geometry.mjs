@@ -4,6 +4,7 @@
 import { chromium } from "playwright";
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { mapP } from "./_segments.mjs";
 const base = process.argv[2] ?? "http://localhost:3112";
 const root = process.argv[4] ?? "/Users/saygin/Downloads/mag-starter";
 const M = JSON.parse(readFileSync(path.join(root, "lib/katmanMetrics.json"), "utf8"));
@@ -17,7 +18,7 @@ for (const [vw, vh] of [[1440, 860], [390, 844]]) {
   await p.goto(base + "/", { waitUntil: "load" });
   await p.waitForFunction(() => !document.querySelector(".pre"), null, { timeout: 20000 }).catch(() => {});
   await p.waitForTimeout(700);
-  await p.evaluate(() => { const m = document.documentElement.scrollHeight - window.innerHeight; window.scrollTo(0, Math.round(0.42 * m)); });
+  await p.evaluate((v) => { const m = document.documentElement.scrollHeight - window.innerHeight; window.scrollTo(0, Math.round(v * m)); }, mapP(0.42, vw < 900));
   await p.waitForTimeout(1600);
 
   const r = await p.evaluate((M) => {

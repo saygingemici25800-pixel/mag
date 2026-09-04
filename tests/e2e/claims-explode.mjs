@@ -6,6 +6,7 @@
 import { chromium } from "playwright";
 import { mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { MOBILE_TOTAL, mapP, segmentsFor } from "./_segments.mjs";
 const base = process.argv[2] ?? "http://localhost:3112";
 const out = process.argv[3] ?? "docs/screens/explode";
 const root = process.argv[4] ?? "/Users/saygin/Downloads/mag-starter";
@@ -49,8 +50,10 @@ const probe = (p) => p.evaluate(([M, CUT]) => {
     perspective: ex ? getComputedStyle(ex).perspective : "none", stackExists: !!ex, vw: innerWidth, vh: innerHeight };
 }, [M, CUT]);
 
+/* v: MASAÜSTÜ p; mobilde aynı bölümdeki karşılığına eşlenir (segment haritası mobilde farklı) */
+let MOBILE = false;
 const at = async (p, v, settle = 1400) => {
-  await p.evaluate((v) => { const m = document.documentElement.scrollHeight - window.innerHeight; window.scrollTo(0, Math.round(v * m)); }, v);
+  await p.evaluate((v) => { const m = document.documentElement.scrollHeight - window.innerHeight; window.scrollTo(0, Math.round(v * m)); }, mapP(v, MOBILE));
   await p.waitForTimeout(settle);
   return probe(p);
 };
@@ -67,7 +70,11 @@ const inside = (b, vw, vh) => b.x0 >= -1 && b.x1 <= vw + 1 && b.y0 >= -1 && b.y1
 const b = await chromium.launch();
 for (const vp of [{ w: 1440, h: 860 }, { w: 390, h: 844 }]) {
   const tag = `${vp.w}x${vp.h}`;
+  MOBILE = vp.w < 900;
   const p = await fresh(b, vp);
+  /* segment aynası doğru mu: mobil scroller yüksekliği 1200vh × MOBILE_TOTAL olmalı */
+  const scrollerVh = await p.evaluate(() => document.querySelector(".scroller").offsetHeight / innerHeight);
+  check(`${tag} scroller yüksekliği harita ile tutarlı`, Math.abs(scrollerVh - (MOBILE ? 12 * MOBILE_TOTAL : 12)) < 0.06, `${scrollerVh.toFixed(2)}vh/100`);
 
   // ---- KURAL 1: bölüm boyunca 24 karede asla iki burger yok, hiç burger yok da yok
   let both = 0, none = 0, overflow = 0, multiLit = 0, plane = 0;
@@ -107,12 +114,29 @@ for (const vp of [{ w: 1440, h: 860 }, { w: 390, h: 844 }]) {
     if (!r.stack) { check(`${tag} ${c.n}: yığın görünür`, false); continue; }
     const lit = ALL.filter((k) => r.layers[k].opacity === 1);
     check(`${tag} ${c.n}: aydınlık = [${c.active}]`, lit.length === c.active.length && c.active.every((k) => lit.includes(k)), `aydınlık=[${lit}]`);
-    check(`${tag} ${c.n}: diğerleri karanlık (≤.4)`, ALL.filter((k) => !c.active.includes(k)).every((k) => r.layers[k].opacity <= 0.4));
+    check(`${tag} ${c.n}: diğerleri sönük (≤.15)`, ALL.filter((k) => !c.active.includes(k)).every((k) => r.layers[k].opacity <= 0.15), ALL.map((k) => r.layers[k].opacity).join(","));
     check(`${tag} ${c.n}: ışık açık (≤.5)`, r.lightOp > 0.3 && r.lightOp <= 0.5, `ışık=${r.lightOp}`);
     check(`${tag} ${c.n}: filter/blend yok`, ALL.every((k) => (r.layers[k].filter === "none") && r.layers[k].blend === "normal"));
     if (vp.w === 1440) await p.screenshot({ path: `${out}/1440-${c.n}.png` });
     else if (c.n === "ekmek") await p.screenshot({ path: `${out}/390-ekmek.png` });
   }
+  /* iddia geçişi: ET → EKMEK. Geçiş boyunca 30 ms'de bir örnekle; hiçbir karede iki iddianın
+     katmanları birden aydınlık (>.3) olmamalı — eski söner, sonra yenisi yanar. */
+  await at(p, 0.36, 1500);
+  const Sd = segmentsFor(false);
+  await p.evaluate((v) => { const m = document.documentElement.scrollHeight - window.innerHeight; window.scrollTo(0, Math.round(v * m)); }, mapP(Sd.c1[0] + 0.004, MOBILE));
+  const samples = await p.evaluate(async () => {
+    const out = []; const t0 = performance.now();
+    while (performance.now() - t0 < 1400) {
+      const o = {}; for (const el of document.querySelectorAll(".exLayer")) o[el.dataset.layer] = parseFloat(getComputedStyle(el).opacity);
+      out.push(o); await new Promise((r) => setTimeout(r, 30));
+    }
+    return out;
+  });
+  const SETS = [["et"], ["ekmekUst", "ekmekAlt"], ["peynir"], ["sos"]];
+  const mixed = samples.filter((o) => { const litKeys = ALL.filter((k) => o[k] > 0.3); return litKeys.length && !SETS.some((S) => litKeys.every((k) => S.includes(k))); });
+  check(`${tag} iddia geçişinde iki iddia aynı anda aydınlık olmadı`, mixed.length === 0, `${mixed.length}/${samples.length} karışık kare`);
+  check(`${tag} geçiş sonunda yalnızca ekmek çifti aydınlık`, (() => { const o = samples[samples.length - 1]; return o.ekmekUst > 0.9 && o.ekmekAlt > 0.9 && o.et < 0.2; })(), JSON.stringify(samples[samples.length - 1]));
   await p.close();
 }
 

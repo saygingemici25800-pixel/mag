@@ -1,6 +1,7 @@
 /* Sahne stilleri — proto/proto.html'den porte. Ölçüler ve eğriler aynen korunur. */
 
 .scroller {
+  /* masaüstü; mobilde üç bölüm kısaltıldığı için 1200 × 0.77333 = 928vh (stageMath.MOBILE_TOTAL ile eşleşir) */
   height: 1200vh;
 }
 
@@ -452,6 +453,9 @@ html.lm .arrow {
   gap: 14px;
 }
 @media (max-width: 900px) {
+  .scroller {
+    height: 928vh;
+  }
   .left {
     top: auto;
     bottom: 15vh;
@@ -487,8 +491,9 @@ html.lm .arrow {
   font-weight: 800;
 }
 .badge s {
-  background: rgba(242, 236, 227, 0.94);
-  color: var(--char);
+  /* koyu çip, yazı butonlardaki krem; çizgi yazıyı ezmesin diye %45 */
+  background: rgba(12, 10, 8, 0.5);
+  color: var(--cream);
   padding: 3px 8px;
   font-family: var(--font-mono);
   font-size: 0.6rem;
@@ -496,6 +501,7 @@ html.lm .arrow {
   text-transform: uppercase;
   text-decoration: line-through;
   text-decoration-thickness: 1px;
+  text-decoration-color: rgba(242, 236, 227, 0.45);
 }
 .left .big {
   font-size: clamp(1.9rem, 5.4vw, 3.3rem);
@@ -588,10 +594,15 @@ html.lm .arrow {
 .exLayer {
   position: absolute;
   inset: 0;
-  /* konum (translateY) her karede JS'ten, geçişsiz; yalnızca aydınlanma 420 ms */
-  transition: opacity 420ms cubic-bezier(0.22, 1, 0.28, 1);
+  /* konum (translateY) her karede JS'ten, geçişsiz. Aydınlanma toplam 420 ms ama iki parça:
+     sönen katman hemen 210 ms'de söner, yanan katman 210 ms bekleyip 210 ms'de yanar (.lit) —
+     arada iki katmanın birden aydınlık olduğu kare olmaz. */
+  transition: opacity 210ms cubic-bezier(0.22, 1, 0.28, 1);
   opacity: 0.35;
   contain: paint;
+}
+.exLayer.lit {
+  transition-delay: 210ms;
 }
 .exLayer img {
   position: absolute;

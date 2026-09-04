@@ -59,6 +59,8 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
   const stackGeo = useRef<{ key: string; geo: StackGeo | null }>({ key: "", geo: null });
   /* takas: yığın bir önceki karede çiziliyor muydu (fotoğraf geri gelince cutout yeniden ölçülür) */
   const stackWasShown = useRef(false);
+  /* katman başına .lit sınıfı durumu (DOM yazımını yalnızca değişince yap) */
+  const litState = useRef(new Map<string, boolean>());
   const size = useRef({ vw: 1440, vh: 860 });
   const swipe = useRef({ down: false, sx: 0 });
 
@@ -85,6 +87,8 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
   useEffect(() => {
     // yeni DOM düğümü bağlandığında o isme ait stil önbelleğini düşür
     dom.onRebind((name) => {
+      /* Explode ürün değişince yeniden kurulur: .lit sınıfı yeni düğümde yok, önbelleği sıfırla */
+      if (name.startsWith("ex_")) litState.current.delete(name.slice(3));
       const prefix = name + "|";
       for (const k of styleCache.current.keys()) if (k.startsWith(prefix)) styleCache.current.delete(k);
     });
@@ -189,6 +193,7 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
           slots: slotBoxes.current,
           layered: layered.current,
           stack: layered.current ? stackGeo.current.geo : null,
+          photoBody: (CUT_CENTERS as Record<string, { body?: { y0: number; y1: number } }>)[it.id]?.body ?? null,
         },
         offsetRef.current,
       );
@@ -248,6 +253,8 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
       st("floor", "opacity", f.floor);
       st("aura", "opacity", f.aura);
       st("rays", "opacity", f.rays);
+      /* koni kaynağı (vh oranı) — LightRays her karede okur, değişince uniform'u günceller */
+      st("rays", "--rayY", f.raysOriginY.toFixed(3));
       st("cta", "opacity", f.cta);
       st("cta", "pointer-events", f.cta > 0.5 ? "auto" : "none");
 
@@ -263,7 +270,13 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
         for (const k of LAYER_ORDER) {
           const L = e.layers[k];
           st(`ex_${k}`, "transform", `translateY(${L.ty}px)`);
-          st(`ex_${k}`, "opacity", L.opacity === 1 ? "1" : "0.35");
+          st(`ex_${k}`, "opacity", L.opacity.toFixed(2));
+          /* .lit: CSS'te açılma gecikmeli (210 ms), sönme hemen — eski katman sönmeden yenisi yanmaz */
+          const litNow = L.opacity === 1;
+          if (litState.current.get(k) !== litNow) {
+            dom.get(`ex_${k}`)?.classList.toggle("lit", litNow);
+            litState.current.set(k, litNow);
+          }
         }
         st("exLight", "transform", `translateY(${e.light.ty}px) scale(${e.light.sx},${e.light.sy})`);
         st("exLight", "opacity", e.light.opacity.toFixed(2));
