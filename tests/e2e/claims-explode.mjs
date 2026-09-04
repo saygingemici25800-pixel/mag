@@ -26,8 +26,9 @@ const at = async (p, pr, settle = 1500) => {
     for (const e of document.querySelectorAll(".exLayer")) {
       const cs = getComputedStyle(e);
       layers[e.dataset.layer] = {
+        /* karartma artık filter değil opacity (kompozitörde kalsın diye) */
         filter: e.style.filter,
-        brightness: parseFloat(e.style.filter?.match(/brightness\(([\d.]+)\)/)?.[1] ?? "1"),
+        opacity: parseFloat(e.style.opacity || "1"),
         scale: parseFloat(e.style.transform?.match(/scale\(([\d.]+)\)/)?.[1] ?? "1"),
         ty: parseFloat(e.style.transform?.match(/translate3d\([^,]+,\s*([-\d.]+)px/)?.[1] ?? "0"),
         glow: parseFloat(e.style.getPropertyValue("--glow") || "0"),
@@ -60,9 +61,9 @@ const b = await chromium.launch();
     for (const k of ALL) {
       const L = s.layers[k];
       if (c.active.includes(k)) {
-        check(`${c.n}: ${k} aktif (parlak + büyük + ışık)`, L.brightness > 1.05 && L.scale > 1.03 && L.glow > 0.3, `br=${L.brightness} sc=${L.scale} glow=${L.glow}`);
+        check(`${c.n}: ${k} aktif (tam opak + büyük + ışık)`, L.opacity === 1 && L.scale > 1.03 && L.glow > 0.3, `op=${L.opacity} sc=${L.scale} glow=${L.glow}`);
       } else {
-        check(`${c.n}: ${k} karartılmış`, L.brightness <= 0.55 && L.glow === 0, `br=${L.brightness} glow=${L.glow}`);
+        check(`${c.n}: ${k} karartılmış (opacity)`, L.opacity <= 0.55 && L.glow === 0, `op=${L.opacity} glow=${L.glow}`);
       }
     }
     /* aynı anda yalnızca beklenen katman(lar) aktif olmalı */
@@ -70,6 +71,7 @@ const b = await chromium.launch();
     check(`${c.n}: yalnızca ${c.active.length} katman aktif`, activeCount === c.active.length, `aktif=${activeCount}`);
     /* saydam WebP: mix-blend-mode kullanılmamalı */
     check(`${c.n}: mix-blend-mode yok`, ALL.every((k) => s.layers[k].blend === "normal"));
+    check(`${c.n}: hiçbir katmanda filter yok`, ALL.every((k) => !s.layers[k].filter || s.layers[k].filter === "none"), ALL.map((k) => s.layers[k].filter).join("|"));
     await p.screenshot({ path: `${out}/1440-${c.n}.png` });
   }
 

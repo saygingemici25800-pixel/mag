@@ -22,6 +22,9 @@ const CLIP: Partial<Record<LayerKey, string>> = {
   ekmekAlt: "inset(48% 0 0 0)",
 };
 
+/** `<ad>.webp` → `<ad>@2x.webp` (scripts/cut-katman.mjs iki boy üretir) */
+const srcSet2x = (src: string) => src.replace(/\.webp$/, "@2x.webp");
+
 /** Katmanın hangi aşama görselinden geldiği */
 const SOURCE: Record<LayerKey, StageKey> = {
   ekmekUst: "ekmek",
@@ -61,6 +64,9 @@ export default function Explode({ id, stages, bind }: Props) {
           {/* eslint-disable-next-line @next/next/no-img-element -- yol build'de doğrulanır, boyut CSS'te */}
           <img
             src={s[SOURCE[k]]}
+            srcSet={`${s[SOURCE[k]]} 560w, ${srcSet2x(s[SOURCE[k]]!)} 1024w`}
+            /* sahnede çizildiği genişlik: mobilde ~525, masaüstünde ~1010 CSS px */
+            sizes="(max-width: 900px) 525px, 1010px"
             alt=""
             loading="lazy"
             fetchPriority="low"
