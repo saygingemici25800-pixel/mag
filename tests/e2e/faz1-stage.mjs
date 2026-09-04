@@ -42,7 +42,8 @@ console.log("p≈1 :", t1);
 await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
 await page.waitForTimeout(2500);
 const y = await page.evaluate(() => window.scrollY);
-const preGone = await page.$eval(".pre", (e) => e.classList.contains("gone"));
+/* Yeni preloader kalkınca DOM'dan tamamen çıkar (eskiden .gone sınıfı kalıyordu). */
+const preGone = (await page.$(".pre")) === null;
 console.log("after end: scrollY =", y, "| preloader gone =", preGone);
 
 // light mode sınıfı pay bölümünde

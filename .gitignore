@@ -45,3 +45,6 @@ next-env.d.ts
 
 # yerel sipariş stub verisi
 /.data
+
+# testlerin kök dizine bıraktığı ekran görüntüleri
+/*.png

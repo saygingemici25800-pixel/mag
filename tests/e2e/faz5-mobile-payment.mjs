@@ -1,9 +1,10 @@
 // Faz 5 — 390×844, mock ödeme ile tam akış + başarısız dal + panel (SSE) + ekran görüntüleri
 import { chromium } from "playwright";
+import { FAKE_NOW, PANEL_KEY as KEY, assertServerReady, clearCart, fillDelivery, waitForCartCount } from "./_cart-fixture.mjs";
 const base = process.argv[2] ?? "http://localhost:3112";
 const out = process.argv[3] ?? ".";
-const KEY = process.env.PANEL_KEY ?? "test1234";
-const FAKE = new Date("2026-09-03T12:00:00+03:00");
+const FAKE = FAKE_NOW;
+await assertServerReady(base);
 const browser = await chromium.launch();
 let fail = 0; const check = (n, ok, x = "") => { console.log((ok ? "PASS" : "FAIL") + " " + n + (x ? " — " + x : "")); if (!ok) fail++; };
 const errs = [];
@@ -23,6 +24,7 @@ const before = await panel.$$eval(".ocard", (e) => e.length);
 // müşteri (390×844)
 const cctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
 const c = await cctx.newPage(); c.on("pageerror", (e) => errs.push("cust: " + e.message));
+await clearCart(c);
 await c.clock.install({ time: FAKE });
 await c.goto(base + "/siparis", { waitUntil: "load" }); await c.waitForTimeout(700);
 await c.screenshot({ path: `${out}/f5-1-liste.png` });
@@ -39,7 +41,9 @@ check("öneri sos sepete eklendi", (await chip.locator("b").innerText()) === "�
 // adet 2 → sepete ekle
 await c.locator(".sheet .qty button[aria-label=Artır]").click();
 await c.locator(".sheet .submit").click();
-await c.waitForSelector("[data-cartbar]", { timeout: 4000 }); await c.waitForTimeout(600);
+await c.waitForSelector("[data-cartbar]", { timeout: 4000 });
+/* çip + sheet eklemesi sıraya girer: veri start+0.6 s'de yazılır, uçuş ~1.9 s sürer */
+await waitForCartCount(c, 3);
 await c.screenshot({ path: `${out}/f5-3-cubuk.png` });
 const badge = await c.$eval(".cb-badge", (e) => e.textContent);
 check("sepet çubuğu göründü, rozet 3 (2 burger + 1 sos)", badge === "3", "rozet=" + badge);
@@ -48,18 +52,15 @@ await c.evaluate(() => window.scrollTo(0, 1600)); await c.waitForTimeout(500);
 const rect = await c.$eval(".cartbarwrap", (e) => { const r = e.getBoundingClientRect(); return { bottom: Math.round(r.bottom), pos: getComputedStyle(e).position }; });
 check("çubuk kaydırınca sabit (fixed, altta)", rect.pos === "fixed" && Math.abs(rect.bottom - 844) < 2, JSON.stringify(rect));
 // karttaki + Ekle ile ayran ekle → rozet 4
-await c.locator("article.pcard", { hasText: "Arslan ayran" }).locator("button.addbtn").click(); await c.waitForTimeout(300);
+await c.locator("article.pcard", { hasText: "Arslan ayran" }).locator("button.addbtn").click();
+await waitForCartCount(c, 4);
 check("+ Ekle ile rozet güncellendi", (await c.$eval(".cb-badge", (e) => e.textContent)) === "4");
 // sepete git
 await c.locator(".cartbar2").click();
 await c.waitForURL(/\/siparis\/odeme/, { timeout: 8000 }); await c.waitForTimeout(600);
 await c.screenshot({ path: `${out}/f5-4-odeme.png`, fullPage: true });
 check("ödeme sayfasında 3 satır", (await c.locator(".line:visible").count()) === 3);
-await c.getByRole("button", { name: "Kurye" }).click();
-await c.selectOption("select[aria-label=Mahalle]", "merkez");
-await c.fill("textarea", "Karagözler Mah. Ödeme Sk. No:5");
-await c.fill("input[placeholder='Ad soyad']", "Mobil Ödeme");
-await c.fill("input[placeholder='05XX XXX XX XX']", "0533 444 55 66");
+await fillDelivery(c, { address: "Karagözler Mah. Ödeme Sk. No:5", name: "Mobil Ödeme", phone: "0533 444 55 66" });
 const t0 = Date.now();
 await c.getByRole("button", { name: /Ödemeye geç/ }).click();
 await c.waitForURL(/\/odeme\/test\?ref=/, { timeout: 15000 }); await c.waitForTimeout(500);

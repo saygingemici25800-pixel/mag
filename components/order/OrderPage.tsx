@@ -91,7 +91,15 @@ export default function OrderPage() {
                   const eager = cat === "burger" && idx < 3; // ilk ekran: LCP görseli lazy olmasın
                   const qty = cart[m.id]?.qty ?? 0;
                   return (
-                    <article key={m.id} data-pcard className={"pcard" + (qty ? " on" : "")} onClick={() => setSheet(m)} role="button" tabIndex={0} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), setSheet(m))}>
+                    <article key={m.id} data-pcard className={"pcard" + (qty ? " on" : "")} onClick={() => setSheet(m)} role="button" tabIndex={0} onKeyDown={(e) => {
+                        /* Kart bir "button" gibi davranıyor ama içinde de düğmeler var.
+                           İç düğmede basılan Enter/Space buraya kabarıyordu ve sheet açılıyordu:
+                           klavye kullanıcısı "+ Ekle" düğmesini hiç kullanamıyordu. */
+                        if (e.target !== e.currentTarget) return;
+                        if (e.key !== "Enter" && e.key !== " ") return;
+                        e.preventDefault();
+                        setSheet(m);
+                      }}>
                       <ProductImage m={m} name={name} eager={eager} />
                       <div className="pbody">
                         <h3 className="tname">{name}</h3>
