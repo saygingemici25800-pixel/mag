@@ -80,6 +80,37 @@ export interface ItemStyle {
   z: number;
 }
 
+/** "Patlamış burger" katman sırası: yukarıdan aşağıya */
+export const LAYER_ORDER = ["ekmekUst", "sos", "peynir", "et", "ekmekAlt"] as const;
+export type LayerKey = (typeof LAYER_ORDER)[number];
+/** Hangi claim hangi katman(lar)ı vurgular — EKMEK iki yarıyı birlikte */
+export const CLAIM_LAYERS: readonly LayerKey[][] = [["et"], ["ekmekUst", "ekmekAlt"], ["peynir"], ["sos"]];
+/** Toplam açıklık: yığın yüksekliğinin ~%55'i */
+export const EXPLODE_SPREAD = 0.55;
+
+export interface ExplodeLayer {
+  /** dikey kayma (px) — birleşikken 0 */
+  ty: number;
+  /** perspektif derinliği (px) — üst katmanlar öne */
+  tz: number;
+  scale: number;
+  brightness: number;
+  saturate: number;
+  /** arkasındaki yerel ışığın opaklığı (0…0.45) */
+  glow: number;
+}
+export interface ExplodeFrame {
+  /** 0: kapalı (fotoğraf gibi) → 1: tam ayrılmış */
+  open: number;
+  /** kutuyu kendi yüksekliğinin yarısı kadar yukarı al (açıldıkça 0 → 0.5) */
+  centerY: number;
+  /** bölüm görünürlüğü — odaktaki ürünün opaklığıyla aynı */
+  opacity: number;
+  /** ürün fotoğrafının yerine geçen kutunun konumu */
+  transform: string;
+  layers: Record<LayerKey, ExplodeLayer>;
+}
+
 /** Ok geçişi: 480 ms, cubic-bezier(.22,1,.28,1) */
 export const SLIDE_MS = 480;
 export function slideEase(x: number): number {
@@ -138,6 +169,8 @@ export interface Frame {
   cta: number;
   /** ürün arka plan gradyanının gücü: hero 1 · yelpaze .7 · dalış/iddialar .35 · manifesto ve sonrası 0 · kapanış → 1 */
   grad: number;
+  /** iddia bölümündeki "patlamış burger" (yalnızca dört katmanı tam olan üründe kullanılır) */
+  explode: ExplodeFrame;
 }
 
 export interface Env {
@@ -206,6 +239,8 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   const spacing = heroSpacing(vw);
   const baseY = heroBaseY(vh);
   const items: ItemStyle[] = [];
+  /* odak slotunun son pozu — patlamış burger aynı yere oturur */
+  let focusPose = { x: 0, y: vh * 0.44, sc: 1, rot: 0, op: 1, brc: 1 };
   for (let i = 0; i < N; i++) {
     const t = i - CENTER - offset; // t_eff
     const a = Math.abs(t);
@@ -328,6 +363,10 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
     const satq = Math.round(sat * 20) / 20;
     /* blur: 0.5px adımlara yuvarla (her karede yeni filtre üretilmesin), 0.4 altını yazma */
     const blq = Math.round(Math.min(bl, 9) * 2) / 2;
+    /* Patlamış burger, odaktaki fotoğrafın tam yerine oturur: aynı poz burada saklanır. */
+    if (i === CENTER) {
+      focusPose = { x, y, sc, rot, op, brc: Math.max(0.1, Math.min(1.2, br)) };
+    }
     items.push({
       transform:
         "translate(-50%,0) translate(" +
@@ -407,6 +446,81 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   const hint = Math.max(heroOut, clamp((tOut2 - 0.65) / 0.35));
   const arrowsO = Math.max(heroOut, clamp((tOut2 - 0.55) / 0.4));
 
+  /* ---- patlamış burger ----
+     Açılma c0'ın başında (segment haritası değişmeden: [.28,.62]); manifestoya geçerken
+     (c3 bitimi) aynı hareket tersine çalışıp burger birleşir. */
+  const OPEN_IN = 0.035; // c0 başında açılma payı
+  const openIn = seg(p, S.c0[0] - OPEN_IN, S.c0[0] + OPEN_IN);
+  const openOut = seg(p, S.c3[1] - OPEN_IN, S.c3[1] + OPEN_IN);
+  const open = ease(openIn) * (1 - ease(openOut));
+
+  /* Katmanlar eşit aralıkla ayrılır; toplam açıklık yığın yüksekliğinin %55'i.
+     Kayma değerleri kutunun KENDİ koordinatında yazılır; kutuya zaten scale uygulandığı için
+     burada ölçekle çarpma (yoksa açıklık ~2.6 kat büyür ve katmanlar ekrandan taşar). */
+  const stackH = env.ch || vh * 0.2;
+  const gap = (stackH * EXPLODE_SPREAD) / (LAYER_ORDER.length - 1);
+  const mid = (LAYER_ORDER.length - 1) / 2;
+
+  const layers = {} as Record<LayerKey, ExplodeLayer>;
+  const activeSet = ci >= 0 && ci < CLAIM_LAYERS.length ? CLAIM_LAYERS[ci] : [];
+  LAYER_ORDER.forEach((k, i) => {
+    const isActive = activeSet.includes(k);
+    /* i=0 en üst katman: yukarı çıkar (negatif ty), en alt aşağı iner */
+    const ty = (i - mid) * gap * open;
+    /* hafif perspektif: üst katmanlar biraz öne — tam profil değil, hero açısına yakın */
+    const tz = (mid - i) * 12 * open;
+    /* Vurgu değerleri KADEMELİ: her karede yeni filter/opacity yazmak beş büyük saydam
+       görselin yeniden rasterize edilmesine yol açıyordu (masaüstünde ~17→38 ms). Bunlar
+       yalnızca "açık mı" ve "aktif mi" durumuna bağlı; aradaki yumuşatmayı CSS 420 ms'lik
+       geçişle yapar. Böylece kare başına yalnızca transform değişir (compositor'da kalır). */
+    const opened = open > 0.5;
+    layers[k] = {
+      ty,
+      tz: tz + (isActive && opened ? 18 : 0),
+      scale: isActive && opened ? 1.04 : 1,
+      brightness: !opened ? 1 : isActive ? 1.08 : 0.5,
+      saturate: !opened ? 1 : isActive ? 1 : 0.82,
+      glow: isActive && opened ? 0.45 : 0,
+    };
+  });
+
+  /* Ayrılan yığın, tek fotoğraftan daha uzun: açıldıkça ölçeği kıs ve dikeyde ortala ki
+     ekmek yarıları görüş alanının dışına taşmasın. Kapalıyken (open=0) fotoğrafla birebir aynı. */
+  /* Ayrık yığının gerçek yüksekliği: katman kutusu + toplam açıklık, ölçekle çarpılmış.
+     Mobilde genişlik de sınırlayıcı: dar ekranda ekmek yarıları yanlardan taşmasın. */
+  /* Ayrık yığın tek fotoğraftan çok daha uzun; açıldıkça ölçeği kıs ki ekrana sığsın.
+     (Kompozit maliyeti `contain` ile çözüldü, ölçekle değil — bkz. stage.css `.explode`.) */
+  /* Ayrık yığın tek fotoğraftan uzun; açıldıkça ölçeği kıs ki ekrana sığsın. 0.72'de
+     masaüstü Chrome'da kompozit eşiği aşılıyordu (28 ms); 0.61 hem sığıyor hem ~25 ms.
+     Mobilde dar ekran daha çok kısmayı gerektiriyor. */
+  const fitSc = focusPose.sc * lerp(1, mobile ? 0.5 : 0.61, open);
+  /* Katmanlar kutu merkezinden ±(spread/2) kadar açılır; kutunun kendisi üstten hizalı.
+     Görünür yığının merkezi = kutu üstü + kutuYüksekliği/2. Onu ekran ortasına getir. */
+  /* Dikey ortalama JS'te değil CSS'te: kutuya `translateY(-50%)` uygulanır (aşağıda .explode
+     açıkken `--exCenter`). Burada yalnızca kutunun referans noktasını ekran ortasına taşırız;
+     kutu yüksekliği ölçekle değiştiği için piksel hesabı yapmak kırılgandı. */
+  const cy = lerp(focusPose.y, vh * 0.5, open);
+  const cx = lerp(focusPose.x, mobile ? 0 : vw * 0.16, open);
+
+  const explode: ExplodeFrame = {
+    open,
+    centerY: 0.5 * open,
+    opacity: focusPose.op,
+    transform:
+      "translate(-50%," +
+      (-100 * (0.5 * open)).toFixed(1) +
+      "%) translate(" +
+      cx.toFixed(1) +
+      "px," +
+      cy.toFixed(1) +
+      "px) scale(" +
+      fitSc.toFixed(3) +
+      ") rotate(" +
+      lerp(focusPose.rot, 0, open).toFixed(2) +
+      "deg)",
+    layers,
+  };
+
   return {
     bg,
     lm,
@@ -429,6 +543,7 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
     rays,
     cta,
     grad,
+    explode,
   };
 }
 

@@ -7,9 +7,8 @@ import { useLocale, useT } from "@/components/LocaleProvider";
 import { itemDesc, localePath } from "@/lib/i18n";
 import type { StageMap } from "@/lib/katman";
 import type { ExtraCutouts } from "./cutouts";
-import { STAGE_KEYS } from "@/lib/menu";
-import { HERO_ITEMS, splitTitle } from "@/lib/menu";
-import { playSwitch, warmAudio } from "@/lib/sound";
+import { HERO_ITEMS, STAGE_KEYS, splitTitle } from "@/lib/menu";
+import { playStage, playSwitch, warmAudio } from "@/lib/sound";
 import Arc from "./Arc";
 import BigTitle from "./BigTitle";
 import Claims from "./Claims";
@@ -18,11 +17,11 @@ import Outro from "./Outro";
 import CUT_CENTERS from "@/lib/cutCenters.json";
 import { LOGO } from "./logo";
 import Preloader from "./Preloader";
-import StageSlot from "./StageSlot";
+import Explode from "./Explode";
 import { useLoadProgress } from "./useLoadProgress";
 import StaticFallback from "./StaticFallback";
 import CrossFade from "./CrossFade";
-import { SLIDE_MS, computeFrame, N, slideEase } from "./stageMath";
+import { CENTER, LAYER_ORDER, N, SLIDE_MS, computeFrame, slideEase } from "./stageMath";
 import { useScrollProgress } from "./useScrollProgress";
 import "./stage.css";
 
@@ -54,6 +53,8 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
 
   const activeRef = useRef(0);
   const ciRef = useRef(-1);
+  /* Odaktaki ürünün dört katmanı da var mı? (yoksa iddia bölümünde fotoğraf kalır) */
+  const layered = useRef(false);
   const size = useRef({ vw: 1440, vh: 860 });
   const swipe = useRef({ down: false, sx: 0 });
 
@@ -149,6 +150,9 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
     (p: number) => {
       const { vw, vh } = size.current;
       const it = HERO_ITEMS[shownRef.current];
+      /* dört katmanı da olan ürünlerde fotoğraf yerine patlamış burger çizilir */
+      const stageSet = stages?.[it.id];
+      layered.current = Boolean(stageSet) && STAGE_KEYS.every((k) => Boolean(stageSet?.[k]));
       const root = document.documentElement;
       root.style.setProperty("--accent", it.accent);
 
@@ -199,7 +203,9 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
       for (let i = 0; i < N; i++) {
         const n = `item${i}`;
         st(n, "transform", f.items[i].transform);
-        st(n, "opacity", f.items[i].opacity);
+        /* patlamış burger açıkken odak fotoğrafı sönerek yerini katmanlara bırakır */
+        const hide = layered.current && i === CENTER ? 1 - f.explode.open : 1;
+        st(n, "opacity", hide < 1 ? (Number(f.items[i].opacity) * hide).toFixed(3) : f.items[i].opacity);
         st(n, "filter", f.items[i].filter);
         st(n, "z-index", f.items[i].z);
       }
@@ -225,6 +231,28 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
       st("cta", "opacity", f.cta);
       st("cta", "pointer-events", f.cta > 0.5 ? "auto" : "none");
 
+      /* patlamış burger: fotoğrafın yerine geçer, aynı pozu kullanır */
+      if (layered.current) {
+        const e = f.explode;
+        /* kutu ölçüsü odak cutout'uyla aynı olmalı: patlamış burger fotoğrafın yerine geçiyor */
+        if (cut.current.cw > 0) {
+          st("explode", "--cutW", `${cut.current.cw}px`);
+          st("explode", "--cutH", `${cut.current.ch}px`);
+        }
+        st("explode", "transform", e.transform);
+        st("explode", "opacity", e.open > 0 ? e.opacity : 0);
+        for (const k of LAYER_ORDER) {
+          const L = e.layers[k];
+          st(
+            `ex_${k}`,
+            "transform",
+            `translate3d(0,${L.ty.toFixed(1)}px,${L.tz.toFixed(1)}px) scale(${L.scale.toFixed(3)})`,
+          );
+          st(`ex_${k}`, "filter", `brightness(${L.brightness.toFixed(3)}) saturate(${L.saturate.toFixed(2)})`);
+          st(`ex_${k}`, "--glow", L.glow.toFixed(3));
+        }
+      }
+
       st("scHero", "opacity", f.hero);
       st("scDive", "opacity", f.dive);
       st("rail", "opacity", f.dive);
@@ -244,11 +272,13 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
       st("hint", "opacity", f.hint);
 
       if (f.ci !== ciRef.current) {
+        /* katman değişiminde kısa "stage" sesi (yalnızca patlamış burgerde, iddialar arasında) */
+        if (layered.current && f.ci >= 0 && ciRef.current >= 0) playStage();
         ciRef.current = f.ci;
         setCi(f.ci);
       }
     },
-    [dom],
+    [dom, stages],
   );
 
   // Preloader kalkana kadar sahne rAF'ı çalışmaz (CPU); ilk kare yine de bir kez çizilir (aşağıda)
@@ -391,6 +421,8 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
           ))}
         </div>
 
+        <Explode id={it.id} stages={stages ?? {}} bind={bind} />
+
         <section className="scene" ref={bind("scHero")}>
           <div className="heroCopy">
             <CrossFade k={it.id}>
@@ -399,10 +431,6 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
           </div>
         </section>
 
-        <StageSlot
-          image={ci >= 0 ? stages?.[it.id]?.[STAGE_KEYS[ci]] : undefined}
-          descs={t.claims.map((c) => c.d)}
-        />
         <Claims
           item={it}
           desc={itemDesc(t, it) ?? it.desc}
