@@ -259,16 +259,17 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
   const firstPaintDone = useRef(false);
   useEffect(() => {
     if (reduced || preDone || firstPaintDone.current) return;
-    firstPaintDone.current = true;
-    let done = 0;
     const raf = requestAnimationFrame(() => {
+      /* Bayrağı ancak kare gerçekten çizilince kaldır: efekt yeniden kurulursa (bağımlılık
+         kimlikleri değişince) temizlik bekleyen rAF'ı iptal eder; bayrak baştan set edilseydi
+         "firstRender" adımı bir daha hiç işaretlenmez ve preloader %75'te asılı kalırdı. */
+      firstPaintDone.current = true;
       render(0);
-      done = window.setTimeout(() => load.mark("firstRender"), 0);
+      /* Adımı burada, senkron işaretle. Araya setTimeout girerse yeniden kurulan efektin
+         temizliği onu iptal edebiliyor ve preloader hiç kalkmıyordu. */
+      load.mark("firstRender");
     });
-    return () => {
-      cancelAnimationFrame(raf);
-      window.clearTimeout(done);
-    };
+    return () => cancelAnimationFrame(raf);
   }, [reduced, preDone, render, load]);
 
   /* Preloader süresinde 5 cutout'u (ve yansımaları) decode et: ilk kaydırmada ana iş parçacığında decode takılması olmasın */
@@ -398,7 +399,10 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
           </div>
         </section>
 
-        <StageSlot image={ci >= 0 ? stages?.[it.id]?.[STAGE_KEYS[ci]] : undefined} />
+        <StageSlot
+          image={ci >= 0 ? stages?.[it.id]?.[STAGE_KEYS[ci]] : undefined}
+          descs={t.claims.map((c) => c.d)}
+        />
         <Claims
           item={it}
           desc={itemDesc(t, it) ?? it.desc}
