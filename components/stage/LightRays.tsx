@@ -115,6 +115,16 @@ export default function LightRays({ bind, onReady }: Props) {
       sm = { x: 0.5, y: 0.5 };
     /* Yarı çözünürlük: tampon = CSS boyutu × res (0.75); kare süresi >16 ms olursa kalıcı 0.5. CSS canvas'ı %100'e ölçekler. */
     let res = 0.75;
+    /* Koni kaynağı: Stage her karede `--rayY` (vh oranı) yazar — burgerin üst kenarının biraz üstü,
+       tavan değil. Değişince uniform güncellenir; okunan şey inline stil, layout değil. */
+    let rayY = 0.03;
+    const readOrigin = () => {
+      const v = parseFloat(container!.style.getPropertyValue("--rayY"));
+      if (!Number.isNaN(v) && v !== rayY) {
+        rayY = v;
+        gl!.uniform2f(U.rayPos, 0.5 * W, rayY * H);
+      }
+    };
     function place() {
       W = Math.max(1, Math.floor(container!.clientWidth * res));
       H = Math.max(1, Math.floor(container!.clientHeight * res));
@@ -122,7 +132,7 @@ export default function LightRays({ bind, onReady }: Props) {
       canvas.height = H;
       gl!.viewport(0, 0, W, H);
       gl!.uniform2f(U.iResolution, W, H);
-      gl!.uniform2f(U.rayPos, 0.5 * W, 0.03 * H);
+      gl!.uniform2f(U.rayPos, 0.5 * W, rayY * H);
       gl!.uniform2f(U.rayDir, 0, 1);
     }
     place();
@@ -153,6 +163,7 @@ export default function LightRays({ bind, onReady }: Props) {
         lastT = t;
         sm.x = sm.x * 0.92 + mouse.x * 0.08;
         sm.y = sm.y * 0.92 + mouse.y * 0.08;
+        readOrigin();
         gl!.uniform1f(U.iTime, t * 0.001);
         gl!.uniform2f(U.mousePos, sm.x, sm.y);
         gl!.drawArrays(gl!.TRIANGLES, 0, 3);

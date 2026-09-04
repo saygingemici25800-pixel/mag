@@ -3,7 +3,8 @@
  * Saf fonksiyonlar: DOM yok. Stage.tsx her karede `computeFrame` çağırıp sonucu DOM'a yazar.
  */
 
-export const S = {
+/** Masaüstü segment haritası — DEĞİŞMEZ. Mobil harita bundan türetilir (aşağıda). */
+export const S_DESKTOP = {
   fan: [0.04, 0.16],
   dive: [0.16, 0.28],
   c0: [0.28, 0.38],
@@ -17,6 +18,37 @@ export const S = {
   out1: [0.905, 0.958], // tek burger yaklaşır
   out2: [0.958, 0.99], // yanlar belirir
 } as const satisfies Record<string, readonly [number, number]>;
+type SegMap = { -readonly [K in keyof typeof S_DESKTOP]: readonly [number, number] };
+
+/* Mobilde üç bölüm gereğinden uzundu: hero→iddia geçişi (fan+dive), iddia (c0..c3) ve manifesto
+   (pay). Bu bölümlerin SCROLL uzunluğu (px) üçte bir kısalır; diğer bölümlerin px uzunluğu
+   korunur. Sıra ve oranlar aynı, hiçbir aşama atlanmaz. Scroller yüksekliği de aynı oranda
+   kısalır: 1200vh × MOBILE_TOTAL (stage.css'teki mobil değer bununla eşleşmeli). */
+const MOBILE_SHRINK: Partial<Record<keyof typeof S_DESKTOP, number>> = { fan: 2 / 3, dive: 2 / 3, c0: 2 / 3, c1: 2 / 3, c2: 2 / 3, c3: 2 / 3, pay: 2 / 3 };
+function buildMobile(): { map: SegMap; total: number } {
+  const keys = Object.keys(S_DESKTOP) as (keyof typeof S_DESKTOP)[];
+  const head = S_DESKTOP.fan[0]; // hero
+  const tail = 1 - S_DESKTOP.out2[1];
+  const lens = keys.map((k) => (S_DESKTOP[k][1] - S_DESKTOP[k][0]) * (MOBILE_SHRINK[k] ?? 1));
+  const total = head + lens.reduce((a, b) => a + b, 0) + tail;
+  const map = {} as SegMap;
+  let at = head / total;
+  keys.forEach((k, i) => {
+    const len = lens[i] / total;
+    map[k] = [+at.toFixed(5), +(at + len).toFixed(5)];
+    at += len;
+  });
+  return { map, total: +total.toFixed(5) };
+}
+const MOBILE = buildMobile();
+export const S_MOBILE: SegMap = MOBILE.map;
+/** mobil scroller yüksekliği / masaüstü (1200vh × bu) */
+export const MOBILE_TOTAL = MOBILE.total;
+export function segmentsFor(mobile: boolean): SegMap {
+  return mobile ? S_MOBILE : S_DESKTOP;
+}
+/** dış referanslar için masaüstü haritası */
+export const S = S_DESKTOP;
 
 /** Odak büyütmesi: scale = base(t_eff) × (1 + FOCUS_ZOOM × max(0, 1 − |t_eff|)) — sürekli, slota bağlı değil */
 export const FOCUS_ZOOM = 0.14;
@@ -189,6 +221,8 @@ export interface Frame {
   cta: number;
   /** ürün arka plan gradyanının gücü: hero 1 · yelpaze .7 · dalış/iddialar .35 · manifesto ve sonrası 0 · kapanış → 1 */
   grad: number;
+  /** ışık konisinin çıkış noktası (vh oranı): hero'daki burger gövdesinin üst kenarının %25 üstü */
+  raysOriginY: number;
   /** iddia bölümündeki "patlamış burger" (yalnızca dört katmanı tam olan üründe kullanılır) */
   explode: ExplodeFrame;
 }
@@ -208,6 +242,8 @@ export interface Env {
   layered?: boolean;
   /** yığın yerleşimi (layered iken) */
   stack?: StackGeo | null;
+  /** odaktaki cutout'un gövde kutusu (dikey, 0..1) — ışık kaynağının konumu için */
+  photoBody?: { y0: number; y1: number } | null;
 }
 
 export function heroSpacing(vw: number): number {
@@ -224,7 +260,8 @@ export function defaultCutoutWidth(vh: number, vw: number = 1440): number {
   return defaultCutoutHeight(vh, vw) * 1.72;
 }
 
-export function claimIndex(p: number): number {
+export function claimIndex(p: number, mobile = false): number {
+  const S = segmentsFor(mobile);
   if (p >= S.c0[0] && p < S.c1[0]) return 0;
   if (p >= S.c1[0] && p < S.c2[0]) return 1;
   if (p >= S.c2[0] && p < S.c3[0]) return 2;
@@ -238,6 +275,13 @@ export function claimIndex(p: number): number {
 export function computeFrame(p: number, env: Env, offset = 0): Frame {
   const { vw, vh, accent } = env;
   const mobile = vw < 900;
+  /* segment haritası viewport'a göre (mobilde üç bölüm kısa); bantlar px cinsinden korunsun diye
+     mobilde p-bantları segment uzunluk oranıyla ölçeklenir */
+  const S = segmentsFor(mobile);
+  const bandK = mobile ? 1 / MOBILE_TOTAL : 1;
+  const cK = (S.c0[1] - S.c0[0]) / (S_DESKTOP.c0[1] - S_DESKTOP.c0[0]);
+  /* iddia/dalış pozunda burgerin dikey hedefi: mobilde metin bloğu (alt %35) ile çakışmasın diye yukarıda */
+  const claimY = mobile ? vh * 0.3 : vh * 0.46;
 
   const tFan = seg(p, S.fan[0], S.fan[1]),
     tDive = seg(p, S.dive[0], S.dive[1]);
@@ -248,7 +292,7 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
     payE = ease(tPay),
     rangeE = ease(tRange);
   const claimsT = seg(p, S.c0[0], S.c3[1]);
-  let upT = seg(p, S.faq[0] - 0.03, S.faq[0] + 0.02);
+  let upT = seg(p, S.faq[0] - 0.03 * bandK, S.faq[0] + 0.02 * bandK);
   /* kapanış: burger uzaktan gelip tam hero pozuna oturur, sayfa oradan başa döner */
   const tOut1 = seg(p, S.out1[0], S.out1[1]); // odaktaki burger uzaktan gelir
   const tOut2 = seg(p, S.out2[0], S.out2[1]); // yanındakiler siluet olarak belirir
@@ -261,9 +305,9 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
      açılır, kapanırken önce kapanır. [c0[0], P_IN] bandında fotoğraf .35'e söner ve döndürmesi
      sıfırlanır ki takasın iki yanı da aynı boyda, karanlık, düz bir burger olsun. */
   const layered = Boolean(env.layered && env.stack) && !outro;
-  const P_IN = S.c0[0] + 0.02;
-  const P_OUT = S.c3[1] - 0.02;
-  const BAND = 0.045;
+  const P_IN = S.c0[0] + 0.02 * cK;
+  const P_OUT = S.c3[1] - 0.02 * cK;
+  const BAND = 0.045 * cK;
   const tIn = seg(p, S.c0[0], P_IN);
   const tOpen = seg(p, P_IN, P_IN + BAND);
   const tClose = seg(p, P_OUT - BAND, P_OUT);
@@ -321,7 +365,7 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
     if (tDive > 0) {
       // odak pozu (w=1) ile kenara kaçış (w=0) arasında harmanla — geçiş ortasında iki poz karışır
       const fx = lerp(x, mobile ? 0 : vw * 0.2, diveE);
-      const fy = lerp(y, vh * 0.46, diveE);
+      const fy = lerp(y, claimY, diveE);
       const fsc = lerp(sc, mobile ? 1.95 : 2.25, diveE);
       const frot = lerp(rot, -4, diveE);
       const fbr = lerp(br, 1, diveE);
@@ -340,12 +384,12 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
         /* Takas pozu: dalışın bitiş pozu DONDURULUR (y, ölçek, parlaklık sabit) — yığın bu kutuya
            oturur ve iddialar boyunca kutu hiç kımıldamaz. Yalnızca döndürme takasa kadar 0'a iner
            (tek düzlem). Sönme filtreyle değil opaklıkla (photoDim). */
-        y = lerp(y, vh * 0.46, focusW);
+        y = lerp(y, claimY, focusW);
         sc = lerp(sc, mobile ? 1.95 : 2.25, focusW);
         br = lerp(br, 1, focusW);
         rot = lerp(rot, lerp(-4, 0, tIn), focusW);
       } else {
-        y = lerp(y, lerp(vh * 0.46, vh * 0.44, claimsT), focusW);
+        y = lerp(y, lerp(claimY, claimY - vh * 0.02, claimsT), focusW);
         sc = lerp(sc, lerp(mobile ? 1.95 : 2.25, mobile ? 2.1 : 2.45, claimsT), focusW);
         br = lerp(br, lerp(1, 0.34, Math.min(claimsT * 1.4, 1)), focusW);
         rot = lerp(rot, lerp(-4, -7, claimsT), focusW);
@@ -353,7 +397,7 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
     }
     if (focusW > 0 && tPay > 0) {
       /* manifestoya giriş, iddiaların bitiş pozundan başlar: layered'da dondurulmuş takas pozu */
-      const fy = layered ? vh * 0.46 : vh * 0.44;
+      const fy = layered ? claimY : claimY - vh * 0.02;
       const fsc = layered ? (mobile ? 1.95 : 2.25) : mobile ? 2.1 : 2.45;
       const frot = layered ? 0 : -7;
       const fbr = layered ? 1 : 0.34;
@@ -459,9 +503,13 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   const ay = heroBaseY(vh) + defaultCutoutHeight(vh, vw) * 0.57;
   const dots = tOut > 0 ? clamp((tOut2 - 0.5) / 0.5) * 0.75 : heroChrome * 0.75 * (1 - fanD);
   const floor = tOut > 0 ? clamp(tOut1 * 1.5) : 1 - Math.max(payE * 0.9, upT);
-  const aura = tOut > 0 ? clamp((tOut1 - 0.1) / 0.55) : Math.max(0, (1 - fanE * 0.72) * (1 - Math.max(payE, upT)));
-  const rays =
-    tOut > 0 ? clamp((tOut1 - 0.25) / 0.6) * 0.9 : Math.max(0, (1 - fanE * 0.55) * (1 - Math.max(diveE * 0.85, payE, upT)));
+  /* Kapanışta ışık bir anda açılmasın: opaklık burgerin yükselme ilerlemesine (riseE = smooth(tOut1),
+     kutu math'iyle aynı) bağlı, riseE^1.8 eğrisiyle 0'dan tam değere. Burger oturduğunda (riseE=1)
+     ışık da tam — daha erken değil. */
+  const riseE = smooth(tOut1);
+  const lightIn = Math.pow(riseE, 1.8);
+  const aura = tOut > 0 ? lightIn : Math.max(0, (1 - fanE * 0.72) * (1 - Math.max(payE, upT)));
+  const rays = tOut > 0 ? lightIn * 0.9 : Math.max(0, (1 - fanE * 0.55) * (1 - Math.max(diveE * 0.85, payE, upT)));
   const cta = seg(p, S.dive[0] + 0.01, S.dive[0] + 0.05) * (1 - seg(p, S.foot[0], S.foot[0] + 0.03));
   let grad = lerp(1, 0.7, fanE);
   if (tDive > 0) grad = lerp(0.7, 0.35, diveE);
@@ -472,11 +520,11 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   const heroOut = 1 - seg(p, 0.015, 0.075);
   const hero = Math.max(heroOut, clamp((tOut2 - 0.55) / 0.4));
   const dive = seg(p, 0.195, 0.245) * (1 - seg(p, S.pay[0] - 0.015, S.pay[0] + 0.012));
-  const ci = claimIndex(p);
+  const ci = claimIndex(p, mobile);
   const pay = seg(p, S.pay[0] + 0.02, S.pay[0] + 0.055) * (1 - seg(p, S.pay[1] - 0.05, S.pay[1]));
   /* --- "reveal": paneller alttan gelen sayfalar gibi binişir (stacked pages) --- */
-  const tFaqSlide = seg(p, S.faq[0] - 0.035, S.faq[0] + 0.035);
-  const tFootSlide = seg(p, S.foot[0] - 0.035, S.foot[0] + 0.035);
+  const tFaqSlide = seg(p, S.faq[0] - 0.035 * bandK, S.faq[0] + 0.035 * bandK);
+  const tFootSlide = seg(p, S.foot[0] - 0.035 * bandK, S.foot[0] + 0.035 * bandK);
   const faqIn = ease(tFaqSlide);
   const footIn = ease(tFootSlide);
   /* SSS: panel alttan yukarı; içerik panelden geç gelir (parallax) */
@@ -535,7 +583,9 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
     const H = botS - topS;
     const MARGIN = 12;
     const upRoom = Math.max(0, topS - MARGIN);
-    const downRoom = Math.max(0, vh - botS - MARGIN);
+    /* mobilde alt sınır metin bloğunun üstü: en uzun iddia metninde (ET, 3 satır) blok üstü ~%63 vh,
+       bu yüzden %62 (ölçüldü: %65'te −2 px çakışıyordu); masaüstünde viewport */
+    const downRoom = Math.max(0, (mobile ? vh * 0.62 : vh) - botS - MARGIN);
     /* istenen açıklık gövdenin %38'i; sığmazsa daralt (ölçek DEĞİL, aralık) */
     const g = Math.min((EXPLODE_SPREAD * H) / 4, (upRoom + downRoom) / 4);
     /* aşağıda yer yoksa yığın yukarı doğru açılır (alt ekmek olduğu yerde kalır) */
@@ -544,7 +594,9 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
     const mid = (LAYER_ORDER.length - 1) / 2;
     LAYER_ORDER.forEach((k, i) => {
       const ty = Math.round((((i - mid) * g + off) * gapQ) / psc);
-      layers[k] = { ty, opacity: lit && activeSet.includes(k) ? 1 : 0.35 };
+      /* ışık yanınca yalnızca aktif katman 1; DİĞER TÜMÜ söner (.13 — sadece silüet). Takas
+         karesinde (ışık kapalı) hepsi .35: fotoğrafın sönük hâliyle aynı. */
+      layers[k] = { ty, opacity: lit ? (activeSet.includes(k) ? 1 : 0.13) : 0.35 };
     });
     /* ışık: aktif katman(lar)ın birleşik kutusunu saran elips — katmanla birlikte kayar */
     const set = activeSet.length ? activeSet : ["peynir" as LayerKey];
@@ -565,6 +617,15 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
     for (const k of LAYER_ORDER) layers[k] = { ty: 0, opacity: 0.35 };
   }
   void cw;
+
+  /* Koni kaynağı: tavan değil, burgerin hemen üstü. Hero pozunda kutu üstü heroBaseY, ölçek 1+FOCUS_ZOOM
+     merkez etrafında; gövde üst kenarı + gövde yüksekliğinin %25'i kadar yukarı. Ürün başına sabit. */
+  const hz = 1 + FOCUS_ZOOM;
+  const heroTop = heroBaseY(vh) + ch / 2 - (ch * hz) / 2;
+  const pb = env.photoBody ?? { y0: 0, y1: 1 };
+  const bodyTop = heroTop + pb.y0 * ch * hz;
+  const bodyHpx = (pb.y1 - pb.y0) * ch * hz;
+  const raysOriginY = Math.round(((bodyTop - 0.25 * bodyHpx) / vh) * 1000) / 1000;
 
   const explode: ExplodeFrame = {
     shown: stackShown,
@@ -605,6 +666,7 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
     cta,
     grad,
     explode,
+    raysOriginY,
   };
 }
 
