@@ -244,82 +244,249 @@ html.lm .lang a[aria-current="page"] {
 }
 
 /* ---- İletişim overlay ---- */
-.overlay {
+/* ---- İLETİŞİM katmanı (aynı sayfada, rota yok) ----
+   Animasyon Web Animations API'den (ContactOverlay.tsx); burada yalnızca başlangıç durumları ve düzen.
+   Siyah zemin, krem tipografi, bol boşluk. */
+.contact {
   position: fixed;
   inset: 0;
   z-index: 85;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-  background: rgba(12, 10, 8, 0.86);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: #0b0908;
   color: var(--cream);
+  overflow: hidden;
 }
-.overlay-in {
-  width: min(560px, 100%);
+/* açılış panelleri: 3 üst (33.333vw × 50vh, height→0), 3 alt (width→0) */
+.cPanels {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: 50% 50%;
+  pointer-events: none;
+  z-index: 3;
+}
+.cCell {
+  position: relative;
+  display: block;
+  overflow: hidden;
+}
+.cPanel {
+  position: absolute;
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #1a120c 0%, #0d0a08 100%);
+}
+.cPanel.top {
+  top: 0;
+  left: 0;
+}
+.cPanel.bot {
+  top: 0;
+  left: 0;
+  background: linear-gradient(0deg, #1a120c 0%, #0d0a08 100%);
+}
+/* içerik: sol hizalı, dar sütun, dikey ortalı; küçük ekranda kaydırılabilir */
+.cIn {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  max-height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  box-sizing: border-box;
+  padding: clamp(84px, 14vh, 140px) clamp(24px, 8vw, 120px) clamp(40px, 8vh, 80px);
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  justify-content: center;
+  gap: clamp(22px, 3.6vh, 36px);
+  max-width: 760px;
 }
-.overlay .big {
+/* maskeli satır: dış kutu gizler, iç öğe y:100% + skewY 7° başlar (JS 0'a getirir) */
+.cLine {
+  overflow: hidden;
   margin: 0;
-  font-size: clamp(2.6rem, 9vw, 5rem);
-  line-height: 0.8;
-  letter-spacing: -0.04em;
+}
+.cLine > * {
+  display: block;
+  transform: translateY(100%) skewY(7deg);
+  will-change: transform;
+}
+.cTitle > span {
+  font-size: clamp(2.8rem, 9vw, 6.4rem);
+  line-height: 0.82;
+  letter-spacing: -0.045em;
   text-transform: uppercase;
   font-weight: 900;
   font-style: italic;
+  padding: 0.06em 0 0.1em;
 }
-.overlay .big span,
-.overlay .big span i {
-  display: block;
-  font-style: italic;
+.cRows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
-.overlay dl {
-  margin: 0;
+.cRow > span {
   display: grid;
-  grid-template-columns: max-content 1fr;
-  gap: 14px 24px;
+  grid-template-columns: 9ch 1fr;
+  gap: 18px;
   align-items: baseline;
+  font-size: clamp(0.98rem, 1.5vw, 1.12rem);
+  line-height: 1.5;
+  padding: 2px 0;
 }
-.overlay dt {
+.cRow b {
   font-family: var(--font-mono);
+  font-weight: 400;
   font-size: 0.62rem;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--dim);
 }
-.overlay dd {
-  margin: 0;
-  font-size: clamp(1rem, 2.2vw, 1.25rem);
-}
-.overlay dd a {
+.cRow a {
   color: var(--cream);
   text-decoration: none;
-  border-bottom: 1px solid rgba(242, 236, 227, 0.3);
+  border-bottom: 1px solid rgba(242, 236, 227, 0.28);
 }
-.overlay dd a:hover {
-  border-color: var(--cream);
+.cRow a:hover,
+.cRow a:focus-visible {
+  border-bottom-color: var(--accent, #e2591f);
+  outline: none;
 }
-.overlay dd small {
-  display: block;
-  margin-top: 4px;
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+.cRow em {
+  font-style: normal;
   color: var(--dim);
 }
-.overlay .cta {
-  align-self: flex-start;
+.cRow i {
+  font-style: normal;
 }
-@media (max-width: 600px) {
-  .overlay dl {
+.cSocial {
+  display: inline-flex;
+  gap: 10px;
+  align-items: baseline;
+}
+.cSocial s {
+  text-decoration: none;
+  color: var(--dim);
+}
+/* yürüme mesafesi */
+.cWalk h3 > span {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 0.62rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--dim);
+  padding: 4px 0;
+}
+.cWalk ul {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  max-width: 460px;
+}
+.cWalk li > span {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 11px 0;
+  border-top: 1px solid rgba(242, 236, 227, 0.14);
+  font-size: clamp(0.98rem, 1.5vw, 1.08rem);
+}
+.cWalk li:last-child > span {
+  border-bottom: 1px solid rgba(242, 236, 227, 0.14);
+}
+.cWalk li b {
+  font-weight: 500;
+}
+.cWalk li em {
+  font-style: normal;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  color: var(--cream);
+  white-space: nowrap;
+}
+/* YOL TARİFİ AL */
+.cMapsWrap > span {
+  padding: 6px 0;
+}
+.cMaps {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--cream);
+  color: var(--char);
+  border-radius: 999px;
+  padding: 15px 26px 15px 20px;
+  font-weight: 800;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  box-shadow: 0 0 30px rgba(242, 236, 227, 0.22);
+}
+.cMaps:focus-visible {
+  outline: 2px solid var(--accent, #e2591f);
+  outline-offset: 3px;
+}
+/* kapatma: daire çizilir, sonra çarpı (stroke-dashoffset) */
+.cClose {
+  position: absolute;
+  top: clamp(18px, 3vh, 30px);
+  right: clamp(18px, 3vw, 40px);
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--cream);
+  cursor: pointer;
+  z-index: 4;
+}
+.cClose svg {
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+.cClose circle {
+  stroke-dasharray: 94.3;
+  stroke-dashoffset: 94.3;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+.cClose line {
+  stroke-dasharray: 17;
+  stroke-dashoffset: 17;
+}
+.cClose:focus-visible {
+  outline: 2px solid var(--accent, #e2591f);
+  outline-offset: 4px;
+  border-radius: 50%;
+}
+@media (max-width: 767px) {
+  /* tek sütun: altı panel üst üste, her biri tam genişlik × 1/6 yükseklik */
+  .cPanels {
     grid-template-columns: 1fr;
-    gap: 6px;
+    grid-template-rows: repeat(6, 1fr);
   }
-  .overlay dd {
-    margin-bottom: 8px;
+  .cRow > span {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cPanel {
+    display: none;
+  }
+  .cLine > * {
+    transform: none;
+  }
+  .cClose circle,
+  .cClose line {
+    stroke-dashoffset: 0;
   }
 }

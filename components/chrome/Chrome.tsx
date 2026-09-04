@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { getMessages, localePath, type Locale } from "@/lib/i18n";
-import { SITE } from "@/lib/site";
 import ContactOverlay from "./ContactOverlay";
 import LangSwitch from "./LangSwitch";
 import SoundToggle from "./SoundToggle";
@@ -31,7 +30,7 @@ export default function Chrome({ locale }: { locale: Locale }) {
             </span>
             <span>{c.menu}</span>
           </Link>
-          <ContactOverlay t={t.contact} social={SITE.social} />
+          <ContactOverlay t={t.contact} />
         </nav>
       </header>
       <span className="bracket b1" aria-hidden="true" />

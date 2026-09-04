@@ -115,7 +115,13 @@
     "map": "Open in Google Maps",
     "social": "Social",
     "close": "Close",
-    "open": "Contact"
+    "open": "Contact",
+    "walk": "WALKING DISTANCE",
+    "directions": "GET DIRECTIONS",
+    "minutes": "min",
+    "pending": "— coming soon",
+    "instagram": "Instagram",
+    "tiktok": "TikTok"
   },
   "categories": {
     "burger": "Burgers",
