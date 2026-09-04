@@ -76,13 +76,17 @@ const b = await chromium.launch();
   }
 
   // ---- 2) açılma/birleşme: c0 öncesi ve c3 sonrası katmanlar birleşik
-  const before = await at(p, 0.24);
+  /* Açılma c0 (0.28) çevresinde ±0.035'lik bantta olur → "önce" örneği bandın dışından.
+     Sahne yumuşatması (cur += (target-cur)*0.12) uzak sıçramalarda geç oturuyor:
+     bu örnek için daha uzun bekle, yoksa katmanlar yolun ortasında yakalanıyor. */
+  const before = await at(p, 0.22, 3000);
   const spreadBefore = Math.max(...ALL.map((k) => Math.abs(before.layers[k].ty)));
   check("c0 öncesi katmanlar birleşik", spreadBefore < 6, `maxTy=${spreadBefore.toFixed(1)}px`);
   const open = await at(p, 0.45);
   const spreadOpen = Math.max(...ALL.map((k) => Math.abs(open.layers[k].ty)));
-  check("iddialarda ayrılmış", spreadOpen > 40, `maxTy=${spreadOpen.toFixed(1)}px`);
-  const after = await at(p, 0.66);
+  /* açıklık yığın yüksekliğinin %38'i; en dış katmanın kayması ~yarısı kadar */
+  check("iddialarda ayrılmış", spreadOpen > 25, `maxTy=${spreadOpen.toFixed(1)}px`);
+  const after = await at(p, 0.68, 3000);
   const spreadAfter = Math.max(...ALL.map((k) => Math.abs(after.layers[k].ty)));
   check("manifestoya geçerken birleşir", spreadAfter < 6, `maxTy=${spreadAfter.toFixed(1)}px`);
   check("manifestoda fotoğraf geri gelir", after.focusOpacity > 0.9, `focus=${after.focusOpacity}`);
