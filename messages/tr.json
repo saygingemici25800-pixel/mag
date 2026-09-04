@@ -282,7 +282,13 @@
     "map": "Google Haritalar'da aç",
     "social": "Sosyal",
     "close": "Kapat",
-    "open": "İletişim"
+    "open": "İletişim",
+    "walk": "YÜRÜME MESAFESİ",
+    "directions": "YOL TARİFİ AL",
+    "minutes": "dk",
+    "pending": "— yakında",
+    "instagram": "Instagram",
+    "tiktok": "TikTok"
   },
   "categories": {
     "burger": "Burger",
