@@ -11,7 +11,6 @@
     "assets:order-sound": "node scripts/gen-order-sound.mjs",
     "assets:og": "node scripts/cut-og.mjs",
     "assets:logo": "node scripts/logo-alpha.mjs",
-    "assets:katman": "node scripts/katman-import.mjs",
     "assets:centers": "node scripts/cut-center.mjs"
   },
   "dependencies": {

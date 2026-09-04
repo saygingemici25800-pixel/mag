@@ -556,21 +556,19 @@ html.lm .arrow {
   }
 }
 
-/* katman aşaması slotu — ikon rayının solunda, 220px kare; yalnızca görsel varsa render edilir */
-/* katman aşaması slotu — kutu/çerçeve yok: görsel doğrudan sahnede yüzer, altında yumuşak elips gölge.
-   Görseller siyah zeminli (şeffaf değil); sahne zemini de --char olduğu için `screen` karışımı kenarları kaynatır. */
+/* katman aşaması slotu — ikon rayının hemen solunda, rayla dikey hizalı.
+   Görseller şeffaf WebP: kutu/çerçeve yok, karışım normal — görsel doğrudan sahnede yüzer,
+   altında yumuşak elips gölge. Slot `.scene` dışında, sahne kökünde durur. */
 .stageSlot {
   position: absolute;
-  /* sol kolonun üstü: metnin üstünde, burgerin parlak gövdesinin dışında (screen karışımı koyu zeminde okunur) */
-  left: clamp(28px, 7.5vw, 132px);
-  top: 12vh;
+  /* ray: right 18px + 44px genişlik + 20px boşluk */
+  right: 82px;
+  top: 50%;
+  translate: 0 -50%;
   z-index: 31;
   width: 220px;
   height: 220px;
   pointer-events: none;
-  /* screen karışımı sahne zeminine kadar ulaşsın: burada yeni bir yığın bağlamı açma */
-  isolation: auto;
-  mix-blend-mode: screen;
 }
 .stageSlot::after {
   /* zemin gölgesi */
@@ -620,10 +618,10 @@ html.lm .arrow {
 }
 @media (max-width: 900px) {
   .stageSlot {
-    width: 130px;
-    height: 130px;
-    left: clamp(22px, 6vw, 44px);
-    top: 11vh;
+    /* mobil ray: right 9px + 34px genişlik + 10px boşluk */
+    right: 53px;
+    width: 140px;
+    height: 140px;
   }
 }
 
