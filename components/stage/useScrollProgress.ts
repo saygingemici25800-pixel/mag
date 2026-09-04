@@ -65,8 +65,11 @@ export function useScrollProgress(onFrame: (p: number) => void, enabled: boolean
     measure();
     window.addEventListener("resize", measure);
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.scrollTo(0, 0);
-    cb.current(0);
+    /* Sahne preloader kalkınca başlar; o ana kadar kullanıcı kaydırmış olabilir.
+       Sayfayı başa atmak yerine mevcut konumdan devral (yoksa kaydırma yok sayılırdı). */
+    onScroll();
+    cur = target;
+    cb.current(cur);
     raf = requestAnimationFrame(tick);
 
     return () => {

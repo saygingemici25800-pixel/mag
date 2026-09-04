@@ -111,9 +111,7 @@ export interface Frame {
   bg: string;
   lm: boolean;
   items: ItemStyle[];
-  discA: number;
-  discB: { opacity: number; top: number; scale: number };
-  arrows: { ax: number; ay: number; opacity: number };
+  arrows: { ax: number; ay: number; opacity: number; shift: number };
   dots: number;
   floor: number;
   aura: number;
@@ -122,8 +120,12 @@ export interface Frame {
   /** aktif iddia (−1: ürün kopyası) */
   ci: number;
   pay: number;
-  faq: number;
-  foot: { ty: number; opacity: number };
+  /** SSS paneli — alttan gelen sayfa: panel/iç kapsayıcı kaydırma, üstüne binildikçe küçülüp kararma */
+  faq: { opacity: number; ty: number; innerTy: number; scale: number; brightness: number };
+  /** BİZE KATIL — SSS'nin üstüne biner; out1'de mevcut yukarı süzülme */
+  foot: { ty: number; opacity: number; innerTy: number; bg: number };
+  /** panellerin arkasındaki sahneye koyu perde (0→.45) */
+  panelVeil: number;
   /** knob left % */
   knob: number;
   track: number;
@@ -147,6 +149,8 @@ export interface Env {
   ch: number;
   /** odaktaki cutout img clientWidth (0 → varsayılan) */
   cw: number;
+  /** slot başına [görselGenişliği, cx] — görsel ağırlık merkezi düzeltmesi (lib/cutCenters.json) */
+  slots?: { w: number; cx: number }[];
 }
 
 export function heroSpacing(vw: number): number {
@@ -313,6 +317,11 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
       bl = lerp(sBl, cBl, focusW);
       op = lerp(sOp, 1, focusW);
     }
+    /* görsel ağırlık merkezi düzeltmesi: (0.5 − cx) × görselGenişliği × ölçek.
+       Smooky gibi tek yana taşan cutout'lar kutu merkezine göre değil, göze göre ortalanır. */
+    const slot = env.slots?.[i];
+    if (slot && slot.w > 0) x += (0.5 - slot.cx) * slot.w * sc;
+
     const brc = Math.max(0.1, Math.min(1.2, br));
     /* yan slotlar soluk: saturate(1 − a·0.3); dive/claims/pay odaktaki için a=0 → 1 */
     const sat = Math.max(0.1, 1 - Math.min(a, 3) * 0.3);
@@ -337,15 +346,19 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   }
 
   /* discs follow the focus piece, and leave once we dive */
-  let discOut = 1 - Math.max(diveE, upT);
-  if (tOut > 0) discOut = clamp((tOut1 - 0.72) / 0.28); // plint burger yere oturunca gelir
+  /* hero yerleşimi görünürlüğü (noktalar) — diskler kaldırıldı, eğri korunuyor */
+  let heroChrome = 1 - Math.max(diveE, upT);
+  if (tOut > 0) heroChrome = clamp((tOut1 - 0.72) / 0.28);
   const fanD = tOut > 0 ? 0 : fanE; // kapanışta yelpaze kapalı pozunda olmalı
   const ch = env.ch || defaultCutoutHeight(vh, vw);
   /* oklar: odaktaki burgerin iki yanında, dikeyde tam ortasında; mobilde her zaman ekran içinde */
   const cwid = (env.cw || 300) * (1 + FOCUS_ZOOM);
   const ax = mobile ? Math.min(cwid / 2 + 22, vw / 2 - 30) : cwid / 2 + 44;
+  /* oklar da düzeltilmiş merkeze göre kayar (odaktaki slot) */
+  const focusSlot = env.slots?.[CENTER];
+  const axShift = focusSlot && focusSlot.w > 0 ? (0.5 - focusSlot.cx) * focusSlot.w * (1 + FOCUS_ZOOM) : 0;
   const ay = baseY + ch * 0.57;
-  const dots = tOut > 0 ? clamp((tOut2 - 0.5) / 0.5) * 0.75 : discOut * 0.75 * (1 - fanD);
+  const dots = tOut > 0 ? clamp((tOut2 - 0.5) / 0.5) * 0.75 : heroChrome * 0.75 * (1 - fanD);
   const floor = tOut > 0 ? clamp(tOut1 * 1.5) : 1 - Math.max(payE * 0.9, upT);
   const aura = tOut > 0 ? clamp((tOut1 - 0.1) / 0.55) : Math.max(0, (1 - fanE * 0.72) * (1 - Math.max(payE, upT)));
   const rays =
@@ -362,12 +375,30 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   const dive = seg(p, 0.195, 0.245) * (1 - seg(p, S.pay[0] - 0.015, S.pay[0] + 0.012));
   const ci = claimIndex(p);
   const pay = seg(p, S.pay[0] + 0.02, S.pay[0] + 0.055) * (1 - seg(p, S.pay[1] - 0.05, S.pay[1]));
-  const faq = seg(p, S.faq[0], S.faq[0] + 0.03) * (1 - seg(p, S.faq[1] - 0.03, S.faq[1]));
+  /* --- "reveal": paneller alttan gelen sayfalar gibi binişir (stacked pages) --- */
+  const tFaqSlide = seg(p, S.faq[0] - 0.035, S.faq[0] + 0.035);
+  const tFootSlide = seg(p, S.foot[0] - 0.035, S.foot[0] + 0.035);
+  const faqIn = ease(tFaqSlide);
+  const footIn = ease(tFootSlide);
+  /* SSS: panel alttan yukarı; içerik panelden geç gelir (parallax) */
+  const faq = {
+    opacity: tFaqSlide > 0 ? 1 : 0, // panel opaklığı sabit; görünürlüğü konumu belirler
+    ty: (1 - faqIn) * vh,
+    innerTy: -35 * (1 - tFaqSlide), // yüzde
+    // BİZE KATIL üstüne binince altta kalır: hafifçe küçül ve karar
+    scale: lerp(1, 0.96, footIn),
+    brightness: lerp(1, 0.6, footIn),
+  };
   const footE = smooth(tOut1);
   const foot = {
-    ty: -footE * vh * 0.78,
-    opacity: seg(p, S.foot[0], S.foot[0] + 0.02) * (1 - clamp((footE - 0.58) / 0.3)),
+    ty: (1 - footIn) * vh - footE * vh * 0.78, // giriş: alttan; çıkış: mevcut yukarı süzülme
+    opacity: tFootSlide > 0 ? 1 - clamp((footE - 0.58) / 0.3) : 0,
+    innerTy: -35 * (1 - tFootSlide),
+    // giriş boyunca opak; kapanış başlayınca (out1) burger arkadan görünsün diye saydamlaşır
+    bg: 1 - clamp(tOut1 / 0.35),
   };
+  /* arkadaki sahneye koyu perde: paneller bindikçe 0 → .45 */
+  const panelVeil = Math.max(faqIn, footIn) * 0.45;
 
   let knob = 8 + p * 84;
   if (tOut > 0) knob = lerp(8 + S.out1[0] * 84, 8, ease(tOut));
@@ -380,9 +411,7 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
     bg,
     lm,
     items,
-    discA: discOut * (1 - fanD * 0.55),
-    discB: { opacity: discOut, top: baseY + ch * 1.09, scale: 1 - fanD * 0.12 },
-    arrows: { ax, ay, opacity: arrowsO },
+    arrows: { ax, ay, opacity: arrowsO, shift: axShift },
     dots,
     floor,
     aura,
@@ -392,6 +421,7 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
     pay,
     faq,
     foot,
+    panelVeil,
     knob,
     track,
     streak,
