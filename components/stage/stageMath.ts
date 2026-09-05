@@ -107,56 +107,22 @@ export interface ItemStyle {
   z: number;
 }
 
-/** "Patlamış burger" katman sırası: yukarıdan aşağıya */
-export const LAYER_ORDER = ["ekmekUst", "sos", "peynir", "et", "ekmekAlt"] as const;
-export type LayerKey = (typeof LAYER_ORDER)[number];
-/** Hangi claim hangi katman(lar)ı vurgular — EKMEK iki yarıyı birlikte */
-export const CLAIM_LAYERS: readonly LayerKey[][] = [["et"], ["ekmekUst", "ekmekAlt"], ["peynir"], ["sos"]];
-/** Toplam açıklık: yığın yüksekliğinin ~%38'i (önce %55'ti — 1.0 ölçekte viewport'a sığmıyordu) */
-export const EXPLODE_SPREAD = 0.38;
+/** İddia → dilim eşlemesi (dilimler üstten alta 0..3: üst ekmek, malzeme, köfte-peynir, alt ekmek).
+    Metin sırası CLAIMS içeriğinden: KIYMA → köfte, BRIOCHE → üst ekmek, PEYNİR → köfte-peynir, SOS → malzeme. */
+export const CLAIM_SLICE = [2, 0, 2, 1] as const;
+/** Dilimlerin dikey kayması, görsel yüksekliğinin oranı × SLICE_GAP (CSS --gap ile aynı: 4.6%, mobil 3.2%) */
+export const SLICE_SHIFT = [-1.6, -0.55, 0.55, 1.6] as const;
+/** Dilim geçişi süresi (CSS ile aynı) */
+export const SLICE_MS = 800;
 
-export interface ExplodeLayer {
-  /** dikey kayma (kutu-yerel px) — birleşikken 0; TEK DÜZLEM: başka dönüşüm yok */
-  ty: number;
-  /** karanlık taban .35, aktif katman 1 (filtre değil, opaklık) */
-  opacity: number;
+export interface SlicesFrame {
+  /** aralık açık: dilimler bu karede fotoğrafın yerinde ve açık (Stage kapanış geçişi için 800 ms daha gösterir) */
+  open: boolean;
+  /** iddia bölgesi civarı — kapanış geçişi sırasında dilimlerin kalabileceği aralık */
+  near: boolean;
+  /** aktif dilim 0..3 */
+  active: number;
 }
-export interface ExplodeLight {
-  /** ışık merkezinin kare merkezinden dikey uzaklığı (kutu-yerel px) */
-  ty: number;
-  /** kare kenarına göre ölçek: genişlik ~1.3×, yükseklik ~.85× aktif katman */
-  sx: number;
-  sy: number;
-  /** en fazla .5 */
-  opacity: number;
-}
-export interface ExplodeFrame {
-  /** yığın bu karede çiziliyor mu (fotoğraf o zaman display:none — ikisi aynı anda asla) */
-  shown: boolean;
-  /** aralık 0 (birleşik) → 1 (tam açık) */
-  gap: number;
-  /** yığın kutusunun konumu: fotoğrafla aynı kutu, aynı transform (döndürme 0) */
-  transform: string;
-  /** fotoğrafın takas öncesi/sonrası sönüklüğü (1 → .35 → 1) */
-  photoDim: number;
-  layers: Record<LayerKey, ExplodeLayer>;
-  light: ExplodeLight;
-}
-
-/** Yığının fotoğraf kutusu içindeki yerleşimi (kutu-yerel, ölçeksiz px) — Explode.stackGeometry */
-export interface StackGeo {
-  /** kare kenarı */
-  S: number;
-  /** kare merkezi = fotoğraf gövdesinin merkezi */
-  cx: number;
-  cy: number;
-  /** ekmeğin (bütün) içerik aralığı, kare üstünden */
-  bunY0: number;
-  bunY1: number;
-  /** katman başına içerik genişliği ve dikey aralığı (kare üstünden) */
-  layers: Record<LayerKey, { w: number; y0: number; y1: number }>;
-}
-
 
 /** Ok geçişi: 480 ms, cubic-bezier(.22,1,.28,1) */
 export const SLIDE_MS = 480;
@@ -217,8 +183,8 @@ export interface Frame {
   cta: number;
   /** ışık konisinin çıkış noktası (vh oranı): hero'daki burger gövdesinin üst kenarının %25 üstü */
   raysOriginY: number;
-  /** iddia bölümündeki "patlamış burger" (yalnızca dört katmanı tam olan üründe kullanılır) */
-  explode: ExplodeFrame;
+  /** iddia bölümü: fotoğrafın dilimleri (yalnızca meta.json'da olan üründe) */
+  slices: SlicesFrame;
 }
 
 export interface Env {
@@ -230,10 +196,8 @@ export interface Env {
   cw: number;
   /** slot başına [görselGenişliği, cx] — görsel ağırlık merkezi düzeltmesi (lib/cutCenters.json) */
   slots?: { w: number; cx: number }[];
-  /** odaktaki ürünün dört katmanı da var → iddia bölümünde fotoğraf yerine yığın */
-  layered?: boolean;
-  /** yığın yerleşimi (layered iken) */
-  stack?: StackGeo | null;
+  /** odaktaki ürünün dört dilimi var → iddia bölümünde fotoğraf yerine dilimler */
+  sliced?: boolean;
   /** odaktaki cutout'un gövde kutusu (dikey, 0..1) — ışık kaynağının konumu için */
   photoBody?: { y0: number; y1: number } | null;
 }
@@ -291,21 +255,16 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   const tOut = seg(p, S.out1[0], S.out2[1]); // tüm kapanış
   const outro = p >= S.foot[0]; // BİZE KATIL'dan itibaren burger barın altından görünür
 
-  /* ---- patlamış burger: takas noktaları ----
-     Fotoğraf → yığın takası c0 başladıktan biraz sonra (P_IN), yığın → fotoğraf c3 bitmeden
-     biraz önce (P_OUT). Takas TEK KAREDE, yığın birleşikken yapılır; aralık takastan sonra
-     açılır, kapanırken önce kapanır. [c0[0], P_IN] bandında fotoğraf .35'e söner ve döndürmesi
-     sıfırlanır ki takasın iki yanı da aynı boyda, karanlık, düz bir burger olsun. */
-  const layered = Boolean(env.layered && env.stack) && !outro;
+  /* ---- dilimler: takas noktaları ----
+     Fotoğraf → dilim takası c0 başladıktan biraz sonra (P_IN), dilim → fotoğraf c3 bitmeden biraz
+     önce (P_OUT). Dilimler fotoğrafın kendisi olduğu için takas görünmez; [c0[0], P_IN] bandında
+     yalnızca döndürme 0'a iner ki ışık elipsi düz dursun. Aralık/ışık geçişleri CSS'te (800 ms). */
+  const sliced = Boolean(env.sliced) && !outro;
   const P_IN = S.c0[0] + 0.02 * cK;
   const P_OUT = S.c3[1] - 0.02 * cK;
-  const BAND = 0.045 * cK;
   const tIn = seg(p, S.c0[0], P_IN);
-  const tOpen = seg(p, P_IN, P_IN + BAND);
-  const tClose = seg(p, P_OUT - BAND, P_OUT);
-  const tRelit = seg(p, P_OUT, S.c3[1]);
-  const stackShown = layered && p >= P_IN && p < P_OUT;
-  const photoDim = layered ? (p < P_IN ? lerp(1, 0.35, tIn) : lerp(0.35, 1, tRelit)) : 1;
+  const slicesOpen = sliced && p >= P_IN && p < P_OUT;
+  const slicesNear = sliced && p >= S.c0[0] - 0.01 * cK && p < S.c3[1] + 0.01 * cK;
   if (tOut > 0) upT = upT * (1 - ease(Math.min(tOut1 * 1.6, 1)));
 
   /* background */
@@ -318,8 +277,6 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   const spacing = heroSpacing(vw);
   const baseY = heroBaseY(vh);
   const items: ItemStyle[] = [];
-  /* odak slotunun son pozu — patlamış burger aynı yere oturur */
-  let focusPose = { x: 0, y: vh * 0.44, sc: 1, rot: 0, op: 1, brc: 1 };
   for (let i = 0; i < N; i++) {
     const t = i - CENTER - offset; // t_eff
     const a = Math.abs(t);
@@ -371,10 +328,9 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
       op = lerp(sop, 1, focusW);
     }
     if (focusW > 0 && claimsT > 0) {
-      if (layered) {
-        /* Takas pozu: dalışın bitiş pozu DONDURULUR (y, ölçek, parlaklık sabit) — yığın bu kutuya
-           oturur ve iddialar boyunca kutu hiç kımıldamaz. Yalnızca döndürme takasa kadar 0'a iner
-           (tek düzlem). Sönme filtreyle değil opaklıkla (photoDim). */
+      if (sliced) {
+        /* Dilim pozu: dalışın bitiş pozu DONDURULUR (y, ölçek, parlaklık sabit) — dilimler fotoğrafın
+           kutusunda durur, iddialar boyunca kutu kımıldamaz. Yalnızca döndürme takasa kadar 0'a iner. */
         y = lerp(y, claimY, focusW);
         sc = lerp(sc, mobile ? 1.95 : 2.25, focusW);
         br = lerp(br, 1, focusW);
@@ -387,11 +343,11 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
       }
     }
     if (focusW > 0 && tPay > 0) {
-      /* manifestoya giriş, iddiaların bitiş pozundan başlar: layered'da dondurulmuş takas pozu */
-      const fy = layered ? claimY : claimY - vh * 0.02;
-      const fsc = layered ? (mobile ? 1.95 : 2.25) : mobile ? 2.1 : 2.45;
-      const frot = layered ? 0 : -7;
-      const fbr = layered ? 1 : 0.34;
+      /* manifestoya giriş, iddiaların bitiş pozundan başlar: dilimli üründe dondurulmuş poz */
+      const fy = sliced ? claimY : claimY - vh * 0.02;
+      const fsc = sliced ? (mobile ? 1.95 : 2.25) : mobile ? 2.1 : 2.45;
+      const frot = sliced ? 0 : -7;
+      const fbr = sliced ? 1 : 0.34;
       x = lerp(x, lerp(mobile ? 0 : vw * 0.2, 0, payE), focusW);
       y = lerp(y, lerp(fy, vh * 0.44, payE), focusW);
       sc = lerp(sc, lerp(fsc, 1.3, payE), focusW);
@@ -446,6 +402,19 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
       bl = lerp(sBl, cBl, focusW);
       op = lerp(sOp, 1, focusW);
     }
+    /* Dilimli üründe fotoğraf (= dilimler) dalıştan manifestoya kadar viewport'a SIĞMALI: hiçbir dilim
+       taşmaz. Kutu merkezi ağırlık düzeltmesiyle kayar (aşağıdaki satır), açıkken translateX(-2%) +
+       rotate(-1.4°) ~%4 pay ister; ölçek min(poz, sığan) — sürekli, sıçrama yok. */
+    if (i === CENTER && sliced && (tDive > 0 || claimsT > 0) && tRange === 0) {
+      const slotC = env.slots?.[i];
+      const w = slotC && slotC.w > 0 ? slotC.w : defaultCutoutWidth(vh, vw);
+      const cxk = slotC ? 0.5 - slotC.cx : 0;
+      const M = mobile ? 10 : 16;
+      const half = 0.52;
+      const right = (vw / 2 - M - x) / (w * (cxk + half));
+      const left = (vw / 2 + x - M) / (w * (half - cxk));
+      sc = Math.min(sc, right, left);
+    }
     /* görsel ağırlık merkezi düzeltmesi: (0.5 − cx) × görselGenişliği × ölçek.
        Smooky gibi tek yana taşan cutout'lar kutu merkezine göre değil, göze göre ortalanır. */
     const slot = env.slots?.[i];
@@ -457,12 +426,6 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
     const satq = Math.round(sat * 20) / 20;
     /* blur: 0.5px adımlara yuvarla (her karede yeni filtre üretilmesin), 0.4 altını yazma */
     const blq = Math.round(Math.min(bl, 9) * 2) / 2;
-    /* Patlamış burger, odaktaki fotoğrafın tam yerine oturur: aynı poz burada saklanır. */
-    if (i === CENTER) {
-      focusPose = { x, y, sc, rot, op, brc: Math.max(0.1, Math.min(1.2, br)) };
-      /* takas bantlarında fotoğraf .35'e söner (yığının karanlık taban durumuyla aynı) */
-      op *= photoDim;
-    }
     items.push({
       transform:
         "translate(-50%,0) translate(" +
@@ -475,7 +438,9 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
         rot.toFixed(2) +
         "deg)",
       opacity: Math.max(0, outro ? op : op * (1 - upT)).toFixed(3),
-      filter: "brightness(" + brc.toFixed(3) + ")" + (satq < 0.99 ? " saturate(" + satq.toFixed(2) + ")" : "") + (bl >= 0.4 ? " blur(" + blq.toFixed(1) + "px)" : ""),
+      /* filtre yalnızca gerekince: odaktaki (br=1, sat=1, blur=0) öğede "none" — filtre efekti katmanı açılmasın
+         (dilimler bu öğenin içinde; brightness(1) bile dört görseli her karede filtreden geçiriyordu) */
+      filter: brc >= 0.995 && brc <= 1.005 && satq >= 0.99 && bl < 0.4 ? "none" : "brightness(" + brc.toFixed(3) + ")" + (satq < 0.99 ? " saturate(" + satq.toFixed(2) + ")" : "") + (bl >= 0.4 ? " blur(" + blq.toFixed(1) + "px)" : ""),
       z: Math.round(22 - Math.min(a, 4) * 2), // odak 22, yanlar 20/18/16…
     });
   }
@@ -545,66 +510,7 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   const hint = Math.max(heroOut, clamp((tOut2 - 0.65) / 0.35));
   const arrowsO = Math.max(heroOut, clamp((tOut2 - 0.55) / 0.4));
 
-  /* ---- patlamış burger: aralık, ışık, kutu ----
-     Kutu = fotoğrafın kutusu (aynı ölçü, aynı transform, döndürme 0). Yığın karesi bu kutunun
-     içinde fotoğraf gövdesine oturur (Explode.stackGeometry). Katmanlar TEK DÜZLEMDE yalnızca
-     dikey kayar; aralık, viewport'taki gerçek boşluktan hesaplanır ve hiçbir katman taşmaz. */
-  const stack = env.stack;
-  const cw = env.cw || 300;
   const ch = env.ch || defaultCutoutHeight(vh, vw);
-  const layers = {} as Record<LayerKey, ExplodeLayer>;
-  let light: ExplodeLight = { ty: 0, sx: 1, sy: 1, opacity: 0 };
-  /* aralık kademeli (0.02) → aynı kare aynı dizgeyi üretir, st() yazımı atlar */
-  const gapQ = Math.round((stackShown ? ease(tOpen) * (1 - ease(tClose)) : 0) * 50) / 50;
-  /* ışık: takas karesinde KAPALI (yığın fotoğraf gibi karanlık), aralık açılınca yanar;
-     kapanışın ilk üçte birinde söner ki takasa kadar 420 ms'lik geçiş bitmiş olsun */
-  const lit = stackShown && gapQ > 0.04 && tClose < 0.35;
-  const activeSet = ci >= 0 && ci < CLAIM_LAYERS.length ? CLAIM_LAYERS[ci] : [];
-  const psc = focusPose.sc;
-
-  if (layered && stack) {
-    /* ekran koordinatında yığın: kutu merkezi (vw/2 + x, y + ch/2), kare merkezi gövdeye kaymış */
-    const cyS = focusPose.y + ch / 2 + (stack.cy - ch / 2) * psc;
-    const topS = cyS - (stack.S / 2) * psc + stack.bunY0 * psc;
-    const botS = cyS - (stack.S / 2) * psc + stack.bunY1 * psc;
-    const H = botS - topS;
-    const MARGIN = 12;
-    const upRoom = Math.max(0, topS - MARGIN);
-    /* mobilde alt sınır metin bloğunun üstü: en uzun iddia metninde (ET, 3 satır) blok üstü ~%63 vh,
-       bu yüzden %62 (ölçüldü: %65'te −2 px çakışıyordu); masaüstünde viewport */
-    const downRoom = Math.max(0, (mobile ? vh * 0.62 : vh) - botS - MARGIN);
-    /* istenen açıklık gövdenin %38'i; sığmazsa daralt (ölçek DEĞİL, aralık) */
-    const g = Math.min((EXPLODE_SPREAD * H) / 4, (upRoom + downRoom) / 4);
-    /* aşağıda yer yoksa yığın yukarı doğru açılır (alt ekmek olduğu yerde kalır) */
-    const dDown = Math.min(2 * g, downRoom);
-    const off = dDown - 2 * g;
-    const mid = (LAYER_ORDER.length - 1) / 2;
-    LAYER_ORDER.forEach((k, i) => {
-      const ty = Math.round((((i - mid) * g + off) * gapQ) / psc);
-      /* ışık yanınca yalnızca aktif katman 1; DİĞER TÜMÜ söner (.13 — sadece silüet). Takas
-         karesinde (ışık kapalı) hepsi .35: fotoğrafın sönük hâliyle aynı. */
-      layers[k] = { ty, opacity: lit ? (activeSet.includes(k) ? 1 : 0.13) : 0.35 };
-    });
-    /* ışık: aktif katman(lar)ın birleşik kutusunu saran elips — katmanla birlikte kayar */
-    const set = activeSet.length ? activeSet : ["peynir" as LayerKey];
-    let y0 = Infinity, y1 = -Infinity, w = 0;
-    for (const k of set) {
-      const L = stack.layers[k];
-      y0 = Math.min(y0, L.y0 + layers[k].ty);
-      y1 = Math.max(y1, L.y1 + layers[k].ty);
-      w = Math.max(w, L.w);
-    }
-    light = {
-      ty: Math.round((y0 + y1) / 2 - stack.S / 2),
-      sx: Math.round(((1.3 * w) / stack.S) * 100) / 100,
-      sy: Math.round(((0.85 * (y1 - y0)) / stack.S) * 100) / 100,
-      opacity: lit ? 0.5 : 0,
-    };
-  } else {
-    for (const k of LAYER_ORDER) layers[k] = { ty: 0, opacity: 0.35 };
-  }
-  void cw;
-
   /* Koni kaynağı: tavan değil, burgerin hemen üstü. Hero pozunda kutu üstü heroBaseY, ölçek 1+FOCUS_ZOOM
      merkez etrafında; gövde üst kenarı + gövde yüksekliğinin %25'i kadar yukarı. Ürün başına sabit. */
   const hz = 1 + FOCUS_ZOOM;
@@ -614,20 +520,10 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   const bodyHpx = (pb.y1 - pb.y0) * ch * hz;
   const raysOriginY = Math.round(((bodyTop - 0.25 * bodyHpx) / vh) * 1000) / 1000;
 
-  const explode: ExplodeFrame = {
-    shown: stackShown,
-    gap: gapQ,
-    photoDim,
-    transform:
-      "translate(-50%,0) translate(" +
-      focusPose.x.toFixed(1) +
-      "px," +
-      focusPose.y.toFixed(1) +
-      "px) scale(" +
-      psc.toFixed(3) +
-      ") rotate(0deg)",
-    layers,
-    light,
+  const slices: SlicesFrame = {
+    open: slicesOpen,
+    near: slicesNear,
+    active: ci >= 0 && ci < CLAIM_SLICE.length ? CLAIM_SLICE[ci] : CLAIM_SLICE[0],
   };
 
   return {
@@ -651,7 +547,7 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
     hint,
     rays,
     cta,
-    explode,
+    slices,
     raysOriginY,
   };
 }

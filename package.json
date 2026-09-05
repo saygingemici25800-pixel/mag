@@ -11,9 +11,7 @@
     "assets:order-sound": "node scripts/gen-order-sound.mjs",
     "assets:og": "node scripts/cut-og.mjs",
     "assets:logo": "node scripts/logo-alpha.mjs",
-    "assets:centers": "node scripts/cut-center.mjs",
-    "assets:katman": "node scripts/cut-katman.mjs",
-    "assets:katman-metrics": "node scripts/katman-metrics.mjs"
+    "assets:centers": "node scripts/cut-center.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",

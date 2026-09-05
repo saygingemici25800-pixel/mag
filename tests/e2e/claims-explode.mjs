@@ -1,162 +1,170 @@
-// İddia bölümü "patlamış burger" — iki kesin kural + ışık:
-//  (1) ekranda asla iki burger yok: aynı karede fotoğraf ve yığın birlikte görünmez; takas display ile
-//  (2) tek düzlem: katmanlar yalnızca translateY, perspektif/translateZ/döndürme/ölçek yok, viewport içinde
-//  ışık: taban .35, yalnızca aktif katman(lar) 1; ışık elemanı aktif katmanla kayar
-//  takas hizası: kapalı yığın ile fotoğraf gövdesi aynı yükseklik ve aynı merkez
+// İddia bölümü — hero fotoğrafının dilimleri (public/assets/dilim):
+//  - tek burger: fotoğraf ve dilimler aynı karede birlikte görünmez (takas .item.sliced ile tek karede)
+//  - aralık kapalıyken dört dilim üst üste = orijinal fotoğraf (canvas piksel karşılaştırması)
+//  - yalnızca translateY (yana kayma yok), hiçbir dilim viewport dışına taşmaz, metin bloğuyla çakışmaz
+//  - ışık: aktif dilim 1, diğerleri .12; ışık elipsi meta.json bandCenterPct'sine oturur; aynı anda iki dilim aydınlık olmaz
+//  - reduced-motion: aralık açık, dönme yok; mobil: aralık daha küçük
+//  - eski katman sistemi (katman/, Explode, hasLayers) kalmadı
 import { chromium } from "playwright";
-import { mkdirSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
-import { MOBILE_TOTAL, mapP, segmentsFor } from "./_segments.mjs";
+import { mapP } from "./_segments.mjs";
 const base = process.argv[2] ?? "http://localhost:3112";
-const out = process.argv[3] ?? "docs/screens/explode";
-const root = process.argv[4] ?? "/Users/saygin/Downloads/mag-starter";
+const out = process.argv[3] ?? "docs/screens/dilim";
+const root = process.argv[4] ?? process.env.ROOT ?? "/Users/saygin/Downloads/mag-starter";
 mkdirSync(out, { recursive: true });
-const M = JSON.parse(readFileSync(path.join(root, "lib/katmanMetrics.json"), "utf8"));
-const CUT = JSON.parse(readFileSync(path.join(root, "lib/cutCenters.json"), "utf8"));
-
-const CLAIMS = [
-  { n: "et", p: 0.36, active: ["et"] },
-  { n: "ekmek", p: 0.42, active: ["ekmekUst", "ekmekAlt"] },
-  { n: "peynir", p: 0.5, active: ["peynir"] },
-  { n: "sos", p: 0.555, active: ["sos"] },
-];
-const ALL = ["ekmekUst", "sos", "peynir", "et", "ekmekAlt"];
+const META = JSON.parse(readFileSync(path.join(root, "public/assets/dilim/meta.json"), "utf8"));
+const CLAIM_SLICE = [2, 0, 2, 1]; // stageMath.CLAIM_SLICE ile aynı
+const SHIFT = [-1.6, -0.55, 0.55, 1.6];
 let fail = 0;
 const check = (n, ok, x = "") => { console.log((ok ? "PASS" : "FAIL") + " " + n + (x ? " — " + x : "")); if (!ok) fail++; };
 
-/* Görünür kutular alfa ölçümlerinden (katmanMetrics / cutCenters.body) — <img> kutusundan değil */
-const probe = (p) => p.evaluate(([M, CUT]) => {
-  const vis = (el) => !!el && getComputedStyle(el).display !== "none" && parseFloat(getComputedStyle(el).opacity) > 0.02;
-  const item = document.querySelector(".item.focus"); const img = item?.querySelector("img"); const ex = document.querySelector(".explode");
-  let photo = null;
-  if (vis(item) && img) { const r = img.getBoundingClientRect(); const bd = CUT[item.dataset.k]?.body ?? CUT[item.dataset.k]?.box;
-    if (bd) photo = { x0: r.x + bd.x0 * r.width, x1: r.x + bd.x1 * r.width, y0: r.y + bd.y0 * r.height, y1: r.y + bd.y1 * r.height }; }
-  let stack = null; const layers = {};
-  if (vis(ex)) {
-    let X0 = 1e9, X1 = -1e9, Y0 = 1e9, Y1 = -1e9;
-    for (const el of document.querySelectorAll(".exLayer")) {
-      const im = el.querySelector("img"); const m = M[im.currentSrc.split("/").pop().replace(/(@2x)?\.webp$/, "")];
-      const bb = im.getBoundingClientRect(); const side = Math.min(bb.width, bb.height);
-      const ox = bb.x + (bb.width - side) / 2, oy = bb.y + (bb.height - side) / 2, k = el.dataset.layer;
-      let y0 = oy + (m.cy - m.h / 2) * side, y1 = oy + (m.cy + m.h / 2) * side; const cut = oy + 0.48 * side;
-      if (k === "ekmekUst") y1 = Math.min(y1, cut); if (k === "ekmekAlt") y0 = Math.max(y0, cut);
-      X0 = Math.min(X0, ox + (m.cx - m.w / 2) * side); X1 = Math.max(X1, ox + (m.cx + m.w / 2) * side); Y0 = Math.min(Y0, y0); Y1 = Math.max(Y1, y1);
-      layers[k] = { opacity: parseFloat(el.style.opacity), tf: el.style.transform, filter: getComputedStyle(el).filter, blend: getComputedStyle(el).mixBlendMode };
-    }
-    stack = { x0: X0, x1: X1, y0: Y0, y1: Y1 };
-  }
-  const light = document.querySelector(".exLight");
-  return { photo, stack, layers, lightOp: light ? parseFloat(light.style.opacity || "0") : 0, lightTf: light?.style.transform ?? "",
-    perspective: ex ? getComputedStyle(ex).perspective : "none", stackExists: !!ex, vw: innerWidth, vh: innerHeight };
-}, [M, CUT]);
+/* ---- statik: ölü kod yok ---- */
+const walk = (d) => readdirSync(d).flatMap((f) => { const p = path.join(d, f); return statSync(p).isDirectory() ? walk(p) : [p]; });
+const src = ["components", "lib", "app", "scripts"].flatMap((d) => walk(path.join(root, d))).filter((f) => /\.(ts|tsx|mjs|css)$/.test(f));
+const dead = src.filter((f) => /assets\/katman|lib\/katman|hasLayers|\bExplode\b|exLayer|LAYER_ORDER|stagesFor|STAGE_KEYS/.test(readFileSync(f, "utf8")));
+check("eski katman sistemi kaynakta yok (katman/hasLayers/Explode/exLayer)", dead.length === 0, dead.map((f) => path.relative(root, f)).join(" "));
+check("public/assets/katman ve Explode.tsx silindi", !existsSync(path.join(root, "public/assets/katman")) && !existsSync(path.join(root, "components/stage/Explode.tsx")));
+check("meta.json 5 ürün × 4 bandCenterPct", Object.keys(META).length === 5 && Object.values(META).every((m) => m.bandCenterPct.length === 4));
 
-/* v: MASAÜSTÜ p; mobilde aynı bölümdeki karşılığına eşlenir (segment haritası mobilde farklı) */
+/* ---- çalışma zamanı ---- */
+const probe = (p) => p.evaluate(() => {
+  const item = document.querySelector(".item.focus");
+  const img = item?.querySelector(":scope > picture > img");
+  const sl = item?.querySelector(".slices");
+  const cs = (el) => getComputedStyle(el);
+  const imgVis = !!img && cs(img).visibility !== "hidden" && cs(item).display !== "none";
+  const slVis = !!sl && cs(sl).display !== "none";
+  const slices = sl ? [...sl.querySelectorAll("img")].map((s) => {
+    const m = new DOMMatrixReadOnly(cs(s).transform); const r = s.getBoundingClientRect();
+    return { op: +cs(s).opacity.slice(0, 5), tx: +m.e.toFixed(1), ty: +m.f.toFixed(1), a: +m.a.toFixed(3), b: +m.b.toFixed(3), x0: r.x, x1: r.right, y0: r.y, y1: r.bottom, h: s.offsetHeight };
+  }) : [];
+  const light = sl?.querySelector(".sLight");
+  const box = item?.getBoundingClientRect(); // döndürülmemiş kutu: .item (rotate 0), dilimler aynı kutuda
+  const M = sl ? new DOMMatrixReadOnly(cs(sl).transform) : null;
+  const left = document.querySelector(".left")?.getBoundingClientRect();
+  return {
+    id: item?.dataset.k, imgVis, slVis, cls: sl?.className ?? "", itemCls: item?.className ?? "", slices,
+    light: light ? { op: +cs(light).opacity, top: light.getBoundingClientRect().y + light.getBoundingClientRect().height / 2, h: light.getBoundingClientRect().height } : null,
+    box: box ? { x: box.x, y: box.y, w: box.width, h: box.height } : null,
+    rot: M ? +((Math.atan2(M.b, M.a) * 180) / Math.PI).toFixed(2) : 0, gap: sl ? cs(sl).getPropertyValue("--gap").trim() : "",
+    left: left ? { x0: left.x, x1: left.right, y0: left.y, y1: left.bottom } : null, vw: innerWidth, vh: innerHeight,
+    filters: sl ? [...sl.querySelectorAll("img")].map((s) => cs(s).filter).join("|") : "",
+  };
+});
 let MOBILE = false;
-const at = async (p, v, settle = 1400) => {
+const at = async (p, v, settle = 1500) => {
   await p.evaluate((v) => { const m = document.documentElement.scrollHeight - window.innerHeight; window.scrollTo(0, Math.round(v * m)); }, mapP(v, MOBILE));
   await p.waitForTimeout(settle);
   return probe(p);
 };
-const fresh = async (b, opts = {}) => {
-  const p = await b.newPage({ viewport: { width: opts.w ?? 1440, height: opts.h ?? 860 }, reducedMotion: opts.reduced ? "reduce" : "no-preference" });
+const fresh = async (b, o = {}) => {
+  const p = await b.newPage({ viewport: { width: o.w ?? 1440, height: o.h ?? 860 }, reducedMotion: o.reduced ? "reduce" : "no-preference", isMobile: !!o.mobile, hasTouch: !!o.mobile });
   await p.addInitScript(() => localStorage.setItem("mag:sound", "0"));
   await p.goto(base + "/", { waitUntil: "load" });
   await p.waitForFunction(() => !document.querySelector(".pre"), null, { timeout: 20000 }).catch(() => {});
   await p.waitForTimeout(700);
   return p;
 };
-const inside = (b, vw, vh) => b.x0 >= -1 && b.x1 <= vw + 1 && b.y0 >= -1 && b.y1 <= vh + 1;
+const oneBurger = (s) => (s.imgVis ? 1 : 0) + (s.slVis ? 1 : 0) === 1;
+const litCount = (s) => s.slices.filter((x) => x.op > 0.6).length;
 
 const b = await chromium.launch();
-for (const vp of [{ w: 1440, h: 860 }, { w: 390, h: 844 }]) {
-  const tag = `${vp.w}x${vp.h}`;
-  MOBILE = vp.w < 900;
-  const p = await fresh(b, vp);
-  /* segment aynası doğru mu: mobil scroller yüksekliği 1200vh × MOBILE_TOTAL olmalı */
-  const scrollerVh = await p.evaluate(() => document.querySelector(".scroller").offsetHeight / innerHeight);
-  check(`${tag} scroller yüksekliği harita ile tutarlı`, Math.abs(scrollerVh - (MOBILE ? 12 * MOBILE_TOTAL : 12)) < 0.06, `${scrollerVh.toFixed(2)}vh/100`);
+let p = await fresh(b);
 
-  // ---- KURAL 1: bölüm boyunca 24 karede asla iki burger yok, hiç burger yok da yok
-  let both = 0, none = 0, overflow = 0, multiLit = 0, plane = 0;
-  for (let i = 0; i < 24; i++) {
-    const r = await at(p, 0.26 + (0.4 * i) / 23, i === 0 ? 3000 : 1100);
-    if (r.photo && r.stack) both++;
-    if (!r.photo && !r.stack) none++;
-    const box = r.stack ?? r.photo;
-    if (box && !inside(box, r.vw, r.vh)) overflow++;
-    const lit = ALL.filter((k) => r.layers[k]?.opacity === 1);
-    if (r.stack && lit.length > 2) multiLit++;
-    if (r.stack && !(ALL.every((k) => /^translateY\(-?\d+px\)$/.test(r.layers[k].tf)) && r.perspective === "none")) plane++;
-    if (vp.w === 1440) await p.screenshot({ path: `${out}/f${String(i + 1).padStart(2, "0")}.png` });
+/* kapalı → açık takas */
+const before = await at(p, 0.29);
+check("P_IN öncesi: fotoğraf görünür, dilimler gizli", before.imgVis && !before.slVis, before.itemCls);
+const open0 = await at(p, 0.31);
+check("c0: takas yapıldı (item.sliced), fotoğraf gizli, dilimler açık", !open0.imgVis && open0.slVis && /open a2/.test(open0.cls), open0.cls);
+check("her karede tek burger (P_IN öncesi/sonrası)", oneBurger(before) && oneBurger(open0));
+
+/* kapalı dilimler = fotoğraf: canvas karşılaştırması (aynı kutu, aynı boyut) */
+const eq = await p.evaluate(async () => {
+  const item = document.querySelector(".item.focus");
+  const img = item.querySelector(":scope > picture > img");
+  const sl = [...item.querySelectorAll(".slices img")];
+  await Promise.all([img, ...sl].map((i) => i.decode().catch(() => {})));
+  const W = img.naturalWidth, H = img.naturalHeight;
+  const cv = (draw) => { const c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d"); draw(x); return x.getImageData(0, 0, W, H).data; };
+  const A = cv((x) => x.drawImage(img, 0, 0, W, H));
+  const B = cv((x) => sl.forEach((s) => x.drawImage(s, 0, 0, W, H)));
+  let bad = 0, sumA = 0, n = 0, seam = 0;
+  for (let i = 0; i < A.length; i += 4) {
+    const aA = A[i + 3], aB = B[i + 3];
+    if (aA < 8 && aB < 8) continue;
+    n++;
+    const d = Math.max(Math.abs(A[i] - B[i]), Math.abs(A[i + 1] - B[i + 1]), Math.abs(A[i + 2] - B[i + 2]));
+    const da = Math.abs(aA - aB);
+    if (d > 24 && aA > 200 && aB > 200) bad++;
+    if (da > 24) seam++;
+    sumA += da;
   }
-  check(`${tag} 24 karede fotoğraf+yığın aynı anda hiç görünmedi`, both === 0, `iki burger=${both}`);
-  check(`${tag} 24 karede burgersiz kare yok`, none === 0, `boş=${none}`);
-  check(`${tag} 24 karede taşma yok (görünür kutu viewport içinde)`, overflow === 0, `taşan=${overflow}`);
-  check(`${tag} 24 karede en fazla 2 katman aydınlık`, multiLit === 0, `fazla=${multiLit}`);
-  check(`${tag} tek düzlem (yalnızca translateY, perspektif yok)`, plane === 0, `ihlal=${plane}`);
+  return { W, H, n, bad, seam, meanAlphaDiff: +(sumA / n).toFixed(2), sliceNatural: sl.map((s) => s.naturalWidth + "x" + s.naturalHeight).join(",") };
+});
+check("dilimler fotoğrafla aynı boyut (natural)", eq.sliceNatural.split(",").every((s) => s === `${eq.W}x${eq.H}`), eq.sliceNatural);
+check("kapalı dilimler ≡ fotoğraf: renk farkı > 24 olan opak piksel < %0.5", eq.bad / eq.n < 0.005, `${eq.bad}/${eq.n}`);
+check("kesim çizgilerinde alfa farkı sınırlı (< %4 piksel)", eq.seam / eq.n < 0.04, `${eq.seam}/${eq.n} · ort. alfa farkı ${eq.meanAlphaDiff}`);
 
-  // ---- takas hizası: P_OUT=.60 (yığın kapalı) — aynı yükseklik, aynı merkez
-  const A = await at(p, 0.5995, 3000), B = await at(p, 0.6005, 3000);
-  check(`${tag} çıkış takası: önce yığın, sonra fotoğraf`, !!A.stack && !A.photo && !!B.photo && !B.stack);
-  if (A.stack && B.photo) {
-    const dh = (A.stack.y1 - A.stack.y0) - (B.photo.y1 - B.photo.y0);
-    const dcx = (A.stack.x0 + A.stack.x1 - B.photo.x0 - B.photo.x1) / 2, dcy = (A.stack.y0 + A.stack.y1 - B.photo.y0 - B.photo.y1) / 2;
-    check(`${tag} takas: yükseklik eşit`, Math.abs(dh) <= 2, `Δ=${dh.toFixed(1)}px`);
-    check(`${tag} takas: merkez eşit`, Math.abs(dcx) <= 2 && Math.abs(dcy) <= 2, `Δx=${dcx.toFixed(1)} Δy=${dcy.toFixed(1)}`);
-    console.log(`     (bilgi) ${tag} takas genişlik farkı ${((A.stack.x1 - A.stack.x0) - (B.photo.x1 - B.photo.x0)).toFixed(0)}px — fotoğraf/ekmek en-boy oranı farkı, varlık kaynaklı`);
-  }
-  const C = await at(p, 0.2995, 3000), D = await at(p, 0.3005, 3000);
-  check(`${tag} giriş takası: önce fotoğraf, sonra yığın`, !!C.photo && !C.stack && !!D.stack && !D.photo);
+/* hareket: yalnızca translateY, sahne rotate(-1.4deg) */
+const mv = open0.slices;
+check("dilimlerde yana kayma yok (tx = 0), yalnızca translateY", mv.every((s) => s.tx === 0) && mv.some((s) => s.ty !== 0), mv.map((s) => `${s.tx},${s.ty}`).join(" "));
+check("dilim transform'unda ölçek/döndürme yok (a=1, b=0)", mv.every((s) => s.a === 1 && s.b === 0));
+const expShift = SHIFT.map((k, i) => k * 0.046 * mv[i].h); // yerel px: görsel yüksekliğinin yüzdesi (ölçek öncesi)
+check("kayma oranları [-1.6,-.55,.55,1.6] × 4.6% (görsel yüksekliği, ±1 px)", mv.every((s, i) => Math.abs(s.ty - expShift[i]) < 1), mv.map((s) => s.ty).join(" ") + ` (beklenen ${expShift.map((v) => v.toFixed(1)).join(" ")})`);
+check("sahne açıkken rotate(-1.4deg)", Math.abs(open0.rot + 1.4) < 0.05, String(open0.rot));
+check("filtre yok (karartma opaklıkla)", open0.filters.split("|").every((f) => f === "none"), open0.filters);
+check("hiçbir dilim viewport dışında değil", mv.every((s) => s.x0 >= -1 && s.x1 <= open0.vw + 1 && s.y0 >= -1 && s.y1 <= open0.vh + 1), mv.map((s) => `${s.x0.toFixed(0)},${s.y0.toFixed(0)}→${s.x1.toFixed(0)},${s.y1.toFixed(0)}`).join(" ") + ` vp ${open0.vw}×${open0.vh}`);
 
-  // ---- IŞIK: her iddiada yalnızca beklenen katman(lar) 1, diğerleri .35, ışık açık
-  for (const c of CLAIMS) {
-    const r = await at(p, c.p, 1600);
-    if (!r.stack) { check(`${tag} ${c.n}: yığın görünür`, false); continue; }
-    const lit = ALL.filter((k) => r.layers[k].opacity === 1);
-    check(`${tag} ${c.n}: aydınlık = [${c.active}]`, lit.length === c.active.length && c.active.every((k) => lit.includes(k)), `aydınlık=[${lit}]`);
-    check(`${tag} ${c.n}: diğerleri sönük (≤.15)`, ALL.filter((k) => !c.active.includes(k)).every((k) => r.layers[k].opacity <= 0.15), ALL.map((k) => r.layers[k].opacity).join(","));
-    check(`${tag} ${c.n}: ışık açık (≤.5)`, r.lightOp > 0.3 && r.lightOp <= 0.5, `ışık=${r.lightOp}`);
-    check(`${tag} ${c.n}: filter/blend yok`, ALL.every((k) => (r.layers[k].filter === "none") && r.layers[k].blend === "normal"));
-    if (vp.w === 1440) await p.screenshot({ path: `${out}/1440-${c.n}.png` });
-    else if (c.n === "ekmek") await p.screenshot({ path: `${out}/390-ekmek.png` });
-  }
-  /* iddia geçişi: ET → EKMEK. Geçiş boyunca 30 ms'de bir örnekle; hiçbir karede iki iddianın
-     katmanları birden aydınlık (>.3) olmamalı — eski söner, sonra yenisi yanar. */
-  await at(p, 0.36, 1500);
-  const Sd = segmentsFor(false);
-  await p.evaluate((v) => { const m = document.documentElement.scrollHeight - window.innerHeight; window.scrollTo(0, Math.round(v * m)); }, mapP(Sd.c1[0] + 0.004, MOBILE));
-  const samples = await p.evaluate(async () => {
-    const out = []; const t0 = performance.now();
-    while (performance.now() - t0 < 1400) {
-      const o = {}; for (const el of document.querySelectorAll(".exLayer")) o[el.dataset.layer] = parseFloat(getComputedStyle(el).opacity);
-      out.push(o); await new Promise((r) => setTimeout(r, 30));
-    }
-    return out;
-  });
-  const SETS = [["et"], ["ekmekUst", "ekmekAlt"], ["peynir"], ["sos"]];
-  const mixed = samples.filter((o) => { const litKeys = ALL.filter((k) => o[k] > 0.3); return litKeys.length && !SETS.some((S) => litKeys.every((k) => S.includes(k))); });
-  check(`${tag} iddia geçişinde iki iddia aynı anda aydınlık olmadı`, mixed.length === 0, `${mixed.length}/${samples.length} karışık kare`);
-  check(`${tag} geçiş sonunda yalnızca ekmek çifti aydınlık`, (() => { const o = samples[samples.length - 1]; return o.ekmekUst > 0.9 && o.ekmekAlt > 0.9 && o.et < 0.2; })(), JSON.stringify(samples[samples.length - 1]));
-  await p.close();
+/* ışık: aktif dilim 1, diğerleri .12, ışık merkezi bandCenterPct */
+const stages = [[0.31, 0], [0.42, 1], [0.50, 2], [0.58, 3]];
+for (const [v, ci] of stages) {
+  const s = await at(p, v, 1700);
+  const act = CLAIM_SLICE[ci];
+  const ok = s.slices.every((x, i) => (i === act ? x.op >= 0.98 : Math.abs(x.op - 0.12) < 0.02));
+  check(`c${ci}: aktif dilim ${act} = 1, diğerleri .12`, ok && new RegExp(`\\ba${act}\\b`).test(s.cls), s.slices.map((x) => x.op).join(" "));
+  const m = META[s.id];
+  const scale = s.box.h / s.slices[act].h;
+  const expTop = s.box.y + (m.bandCenterPct[act] / 100) * s.box.h + s.slices[act].ty * scale;
+  check(`c${ci}: ışık merkezi meta bandCenterPct[${act}]=${m.bandCenterPct[act]}% (+kayma)`, !!s.light && s.light.op > 0.95 && Math.abs(s.light.top - expTop) < 6, `ölçülen ${s.light?.top.toFixed(1)} · beklenen ${expTop.toFixed(1)}`);
+  check(`c${ci}: tek burger`, oneBurger(s));
 }
+/* geçişte aynı anda iki dilim aydınlık olmaz: c2 → c3 arası 50 ms örnekleme */
+await at(p, 0.50, 1200);
+await p.evaluate((v) => { const m = document.documentElement.scrollHeight - window.innerHeight; window.scrollTo(0, Math.round(v * m)); }, mapP(0.58, false));
+let maxLit = 0; const trace = [];
+for (let i = 0; i < 26; i++) { await p.waitForTimeout(50); const s = await probe(p); maxLit = Math.max(maxLit, litCount(s)); trace.push(s.slices.map((x) => x.op.toFixed(2)).join("/")); }
+check("c2→c3 geçişinde hiçbir karede iki dilim > .6 değil", maxLit <= 1, "örnek: " + trace.filter((_, i) => i % 5 === 0).join("  "));
 
-// ---- hasLayers=false ürün: fotoğraf kalır, yığın hiç çizilmez
-{
-  const p = await fresh(b);
-  await p.click('button[aria-label="Sonraki ürün"]'); await p.waitForTimeout(700);
-  await p.click('button[aria-label="Sonraki ürün"]'); await p.waitForTimeout(900);
-  const r = await at(p, 0.42);
-  check("katmansız üründe fotoğraf kalır, yığın yok", !!r.photo && !r.stack, `foto=${!!r.photo} yığın=${!!r.stack}`);
-  await p.screenshot({ path: `${out}/1440-katmansiz.png` });
-  await p.close();
-}
-// ---- reduced-motion: hareketli sahne yok
-{
-  const p = await fresh(b, { reduced: true });
-  check("reduced-motion: hareketli sahne çizilmez", !(await p.evaluate(() => Boolean(document.querySelector(".explode") || document.querySelector(".field")))));
-  await p.screenshot({ path: `${out}/1440-reduced.png` });
-  await p.close();
-}
+/* kapanış: P_OUT sonrası fotoğraf geri, dilimler gizli */
+const after = await at(p, 0.615, 1600);
+check("P_OUT sonrası: fotoğraf görünür, dilimler gizli", after.imgVis && !after.slVis, after.itemCls);
+check("her karede tek burger (P_OUT sonrası)", oneBurger(after));
+await p.close();
+
+/* reduced-motion: sahne yok, statik sayfa — iddia kartlarında dilimler sabit açık, dönme yok, vurgu opaklıkla */
+p = await fresh(b, { reduced: true });
+const rm = await p.evaluate(() => {
+  const figs = [...document.querySelectorAll(".sliceFig .slices")];
+  const cs = (el) => getComputedStyle(el);
+  return figs.map((f) => ({ cls: f.className, rot: cs(f).transform, s: [...f.querySelectorAll("img.s")].map((i) => { const m = new DOMMatrixReadOnly(cs(i).transform); return { op: +cs(i).opacity, tx: m.e, ty: +m.f.toFixed(1) }; }) }));
+});
+check("reduced-motion: 4 iddia kartında dilimler sabit açık, dönme yok", rm.length === 4 && rm.every((f) => /open/.test(f.cls) && f.rot === "none" && f.s.some((x) => x.ty !== 0) && f.s.every((x) => x.tx === 0)), rm.map((f) => f.rot).join("|"));
+check("reduced-motion: vurgu yalnızca opaklıkla (aktif 1, diğerleri .12), iddia→dilim eşlemesi", rm.every((f, ci) => f.s.every((x, i) => (i === CLAIM_SLICE[ci] ? x.op >= 0.98 : Math.abs(x.op - 0.12) < 0.02))));
+await p.close();
+
+/* mobil */
+MOBILE = true;
+p = await fresh(b, { w: 390, h: 844, mobile: true });
+const mb = await at(p, 0.42, 1700);
+check("mobil: dilimler açık, aralık daha küçük (--gap 3.2%)", mb.slVis && mb.gap === "3.2%", mb.gap);
+check("mobil: hiçbir dilim viewport dışında değil", mb.slices.every((s) => s.x0 >= -1 && s.x1 <= mb.vw + 1 && s.y0 >= -1 && s.y1 <= mb.vh + 1), mb.slices.map((s) => `${s.x0.toFixed(0)},${s.y0.toFixed(0)}→${s.x1.toFixed(0)},${s.y1.toFixed(0)}`).join(" ") + ` vp ${mb.vw}×${mb.vh}`);
+const sy1 = Math.max(...mb.slices.filter((s) => s.op > 0.05).map((s) => s.y1));
+check("mobil: burger metin bloğuyla çakışmıyor", !!mb.left && sy1 <= mb.left.y0 + 1, `burger alt ${sy1.toFixed(0)} · metin üst ${mb.left?.y0.toFixed(0)}`);
+check("mobil: tek burger, tek dilim aydınlık", oneBurger(mb) && litCount(mb) === 1);
+await p.screenshot({ path: `${out}/390-c1.png` });
+await p.close();
+
 await b.close();
-console.log(fail ? `\n${fail} kontrol başarısız` : "\nHepsi geçti");
+console.log(fail ? `\n${fail} FAIL` : "\nHepsi geçti");
 process.exit(fail ? 1 : 0);
