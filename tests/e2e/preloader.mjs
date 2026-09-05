@@ -12,11 +12,11 @@ const probe = (p) => p.evaluate(() => {
   const pre = document.querySelector(".pre");
   const now = performance.now();
   if (!pre) return { gone: true, now };
-  const sharp = pre.querySelector(".preSharp"), basei = pre.querySelector(".preBase"), edge = pre.querySelector(".preEdge");
+  const sharp = pre.querySelector(".preSharp"), basei = pre.querySelector(".preBase");
   return {
     now, gone: false, p: parseFloat(pre.style.getPropertyValue("--p") || "0"), cls: pre.className,
     clip: sharp?.style.clipPath ?? "", blur: parseFloat(basei?.style.filter.match(/blur\(([\d.]+)px\)/)?.[1] ?? "16"),
-    baseDisplay: basei ? getComputedStyle(basei).display : "none", edgeOp: parseFloat(edge?.style.opacity || "0"), edgeLeft: edge?.style.left ?? "",
+    baseDisplay: basei ? getComputedStyle(basei).display : "none", edge: !!pre.querySelector(".preEdge"),
     bar: pre.querySelector(".preBar i")?.style.transform ?? "", num: pre.querySelector(".preNum")?.textContent ?? "",
     logoOp: parseFloat(getComputedStyle(pre.querySelector(".preLogo")).opacity),
   };
@@ -54,7 +54,7 @@ for (const vp of [{ w: 1440, h: 860 }, { w: 390, h: 844 }]) {
   /* tarayıcı inset(0 59% 0 0) → inset(0px 59.296% 0px 0px) normalize eder */
   const X = (c) => parseFloat(c.match(/inset\(0(?:px)? ([\d.]+)%/)?.[1] ?? "NaN");
   check(`${tag} üst katman soldan sağa açılır (clip-path)`, X(firstClip) > 50 && mid && X(mid.clip) > 25 && X(mid.clip) < 65 && reach && X(reach.clip) === 0, `${firstClip} → ${mid?.clip} → ${reach?.clip}`);
-  check(`${tag} kenar çizgisi ortada görünür, %100'de gizli`, mid && mid.edgeOp === 0.8 && reach && reach.edgeOp === 0, `orta=${mid?.edgeOp} son=${reach?.edgeOp}`);
+  check(`${tag} kenar ışık şeridi yok (.preEdge kaldırıldı)`, mid && !mid.edge && reach && !reach.edge);
   check(`${tag} yükleme çizgisi ilerler`, mid && /scaleX\(0\.[4-6]/.test(mid.bar) && reach && /scaleX\(1/.test(reach.bar), `${mid?.bar} → ${reach?.bar}`);
   const badNum = live.filter((s) => !/YÜKLENİYOR · %\d+|LOADING · \d+%/.test(s.num));
   check(`${tag} "YÜKLENİYOR · %NN" her karede`, badNum.length === 0 && new Set(live.map((s) => s.num)).size >= 10, badNum.length ? `uymayan ${badNum.length}: ${JSON.stringify(badNum[0].num)} (p=${badNum[0].p}, cls=${badNum[0].cls})` : `${first.num} … ${reach?.num}`);
