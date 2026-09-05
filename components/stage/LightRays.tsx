@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { PALETTE, hexToRgb } from "@/lib/palette";
+
+/** ışık konisinin rengi: sıcak ada (palette.warm) beyazla yarı yarıya — mor zemine sıcak ama pastel bir koni */
+const RAY_RGB = hexToRgb(PALETTE.warm).map((c) => (c / 255 + 1) / 2) as [number, number, number];
 
 interface Props {
   /** Stage'in her karede opaklık yazdığı katman referansı */
@@ -102,7 +106,7 @@ export default function LightRays({ bind, onReady }: Props) {
     ].forEach((n) => {
       U[n] = gl.getUniformLocation(pr, n);
     });
-    gl.uniform3f(U.raysColor, 1.0, 0.8, 0.52);
+    gl.uniform3f(U.raysColor, RAY_RGB[0], RAY_RGB[1], RAY_RGB[2]);
     gl.uniform1f(U.raysSpeed, 0.55);
     gl.uniform1f(U.lightSpread, 0.34); // dar koni: yalnızca odaktaki burgerin üstü
     gl.uniform1f(U.rayLength, 0.85);

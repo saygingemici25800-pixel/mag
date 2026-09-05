@@ -9,7 +9,7 @@ export default function ProductImage({ m, name, size = 96, big = false, eager = 
   const src = m.hero ? CUTOUTS_M[m.id as HeroId] : undefined;
   if (src) {
     return (
-      <div className={"pimg" + (big ? " big" : "")} style={{ "--acc": m.accent ?? "var(--kraft)" } as React.CSSProperties}>
+      <div className={"pimg" + (big ? " big" : "")}>
         <Image src={src} alt="" sizes={big ? "(max-width: 640px) 90vw, 480px" : `${size}px`} loading={eager || big ? "eager" : "lazy"} fetchPriority={eager ? "high" : undefined} />
       </div>
     );

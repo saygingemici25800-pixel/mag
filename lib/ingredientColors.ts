@@ -1,15 +1,15 @@
 /**
- * İçindekiler satırında malzeme bazlı renk: et → ember · peynir → gold · yeşil → #8DB56A · sos → kraft · turşu/vişne → #C2185B.
+ * İçindekiler satırında malzeme sözcükleri vurgulanır: tek palet (mor/limon) — her tür ana yazı renginde (--cream), gövde ikincil (--dim) kalır.
  * Hem ana sayfa (dive kopyası) hem sipariş sayfası (kart açıklaması, sheet) aynı fonksiyondan geçer. TR + EN anahtar kelimeler.
  */
 export type IngredientKind = "meat" | "cheese" | "green" | "sauce" | "pickle" | "plain";
 
 export const INGREDIENT_COLORS: Record<Exclude<IngredientKind, "plain">, string> = {
-  meat: "var(--ember)",
-  cheese: "var(--gold)",
-  green: "#8DB56A",
-  sauce: "var(--kraft)",
-  pickle: "#C2185B",
+  meat: "var(--cream)",
+  cheese: "var(--cream)",
+  green: "var(--cream)",
+  sauce: "var(--cream)",
+  pickle: "var(--cream)",
 };
 
 const WORDS: Record<Exclude<IngredientKind, "plain">, string[]> = {

@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { OG_LOCALE, getMessages, localePath, type Locale } from "@/lib/i18n";
 import type { HeroId } from "@/lib/menu";
+import { PALETTE } from "@/lib/palette";
 import { SITE, siteUrl } from "@/lib/site";
 
-export const viewport: Viewport = { themeColor: "#0C0A08", colorScheme: "dark" };
+export const viewport: Viewport = { themeColor: PALETTE.purpleDeep, colorScheme: "dark" };
 
 /** Kök layout metadata'sı: title şablonu, metadataBase, varsayılan OG. */
 export function baseMetadata(locale: Locale): Metadata {

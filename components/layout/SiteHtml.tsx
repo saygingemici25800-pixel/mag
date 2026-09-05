@@ -1,6 +1,6 @@
 import Chrome from "@/components/chrome/Chrome";
 import { LocaleProvider } from "@/components/LocaleProvider";
-import { fontClass } from "@/lib/fonts";
+import { FontPreload } from "@/components/layout/FontPreload";
 import { getMessages, type Locale } from "@/lib/i18n";
 import "@/app/globals.css";
 
@@ -8,7 +8,10 @@ import "@/app/globals.css";
 export default function SiteHtml({ locale, children }: { locale: Locale; children: React.ReactNode }) {
   const t = getMessages(locale);
   return (
-    <html lang={locale} className={fontClass}>
+    <html lang={locale}>
+      <head>
+        <FontPreload />
+      </head>
       <body>
         <LocaleProvider locale={locale} messages={t}>
           <Chrome locale={locale} />

@@ -13,15 +13,14 @@
   margin-bottom: 20px;
 }
 .pnl-mark {
+  font-family: var(--font-display);
   font-weight: 900;
-  font-style: italic;
   font-size: 1.6rem;
   letter-spacing: -0.055em;
   line-height: 1;
 }
 .pnl-mark i {
-  font-style: italic;
-  color: var(--ember);
+  color: var(--accent);
 }
 .pnl-hud {
   display: flex;
@@ -36,11 +35,10 @@
   min-height: 48px;
   padding: 0 18px;
   border-radius: 999px;
-  border: 1px solid rgba(242, 236, 227, 0.25);
-  background: rgba(242, 236, 227, 0.04);
+  border: 1px solid color-mix(in srgb, var(--cream) 25%, transparent);
+  background: color-mix(in srgb, var(--cream) 4%, transparent);
   color: var(--cream);
-  font: inherit;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.7rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -50,11 +48,11 @@
     border-color 0.25s ease;
 }
 .pill:hover {
-  background: rgba(242, 236, 227, 0.1);
+  background: color-mix(in srgb, var(--cream) 10%, transparent);
 }
 .pill.on {
-  border-color: var(--kraft);
-  color: var(--kraft);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 .pill.solid {
   background: var(--cream);
@@ -66,17 +64,18 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--jalapeno);
-  box-shadow: 0 0 10px var(--jalapeno);
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
 }
 .dot.off {
-  background: var(--ember);
+  background: var(--dim);
+  box-shadow: none;
   box-shadow: none;
 }
 .tabs {
   display: flex;
   gap: 4px;
-  border: 1px solid rgba(242, 236, 227, 0.2);
+  border: 1px solid color-mix(in srgb, var(--cream) 20%, transparent);
   border-radius: 999px;
   padding: 4px;
   width: max-content;
@@ -90,7 +89,6 @@
   border-radius: 999px;
   background: transparent;
   color: var(--dim);
-  font: inherit;
   font-weight: 800;
   font-size: 0.74rem;
   letter-spacing: 0.1em;
@@ -103,7 +101,7 @@
 }
 .tabs b {
   margin-left: 8px;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-weight: 400;
   font-size: 0.7rem;
 }
@@ -113,16 +111,16 @@
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr));
 }
 .ocard {
-  --acc: var(--kraft);
+  --acc: var(--accent);
   position: relative;
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 18px 18px 18px 22px;
-  border: 1px solid rgba(242, 236, 227, 0.14);
+  border: 1px solid color-mix(in srgb, var(--cream) 14%, transparent);
   border-left: 4px solid var(--acc);
   border-radius: 14px;
-  background: linear-gradient(180deg, rgba(242, 236, 227, 0.035), rgba(242, 236, 227, 0.01));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--cream) 4%, transparent), color-mix(in srgb, var(--cream) 1%, transparent));
   transition:
     box-shadow 0.4s ease,
     border-color 0.4s ease;
@@ -139,10 +137,10 @@
 @keyframes blink {
   0%,
   100% {
-    background: rgba(242, 236, 227, 0.03);
+    background: color-mix(in srgb, var(--cream) 3%, transparent);
   }
   50% {
-    background: color-mix(in srgb, var(--acc) 38%, rgba(12, 10, 8, 1));
+    background: color-mix(in srgb, var(--acc) 38%, color-mix(in srgb, var(--char) 100%, transparent));
   }
 }
 .ocard.done {
@@ -156,7 +154,7 @@
   flex-wrap: wrap;
 }
 .oid {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.72rem;
   letter-spacing: 0.16em;
   color: var(--dim);
@@ -167,11 +165,11 @@
   gap: 6px;
   padding: 6px 10px;
   border-radius: 6px;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.62rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  border: 1px solid rgba(242, 236, 227, 0.25);
+  border: 1px solid color-mix(in srgb, var(--cream) 25%, transparent);
 }
 .badge2.type {
   background: var(--acc);
@@ -180,8 +178,8 @@
   font-weight: 700;
 }
 .oname {
+  font-family: var(--font-display);
   font-weight: 900;
-  font-style: italic;
   text-transform: uppercase;
   letter-spacing: -0.02em;
   font-size: 1.35rem;
@@ -200,9 +198,9 @@
   align-items: baseline;
 }
 .oitems b {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-weight: 500;
-  color: var(--kraft);
+  color: var(--accent);
 }
 .oitems small {
   grid-column: 2 / 4;
@@ -221,7 +219,7 @@
   min-height: 44px;
   padding: 0 14px;
   border-radius: 8px;
-  border: 1px solid rgba(242, 236, 227, 0.2);
+  border: 1px solid color-mix(in srgb, var(--cream) 20%, transparent);
   color: var(--cream);
   text-decoration: none;
   font-size: 0.92rem;
@@ -240,10 +238,9 @@
   min-height: 56px;
   padding: 0 18px;
   border-radius: 10px;
-  border: 1px solid rgba(242, 236, 227, 0.3);
+  border: 1px solid color-mix(in srgb, var(--cream) 30%, transparent);
   background: transparent;
   color: var(--cream);
-  font: inherit;
   font-weight: 800;
   font-size: 0.8rem;
   letter-spacing: 0.1em;
@@ -259,7 +256,7 @@
   border-color: var(--cream);
 }
 .act.primary:hover {
-  background: #fff;
+  background: var(--cream);
 }
 .act.ghost {
   flex: 0 0 auto;
@@ -267,8 +264,8 @@
 }
 .act.danger {
   flex: 0 0 auto;
-  color: var(--ember);
-  border-color: rgba(226, 89, 31, 0.5);
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
 }
 .act:disabled {
   opacity: 0.4;
@@ -284,13 +281,13 @@
   min-height: 52px;
   padding: 0 14px;
   border-radius: 10px;
-  border: 1px solid rgba(242, 236, 227, 0.3);
-  background: rgba(242, 236, 227, 0.04);
+  border: 1px solid color-mix(in srgb, var(--cream) 30%, transparent);
+  background: color-mix(in srgb, var(--cream) 4%, transparent);
   color: var(--cream);
-  font: inherit;
 }
 .total {
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 1.1rem;
   font-weight: 500;
 }
@@ -310,10 +307,9 @@
   min-height: 56px;
   padding: 0 16px;
   border-radius: 10px;
-  border: 1px solid rgba(242, 236, 227, 0.25);
-  background: rgba(242, 236, 227, 0.04);
+  border: 1px solid color-mix(in srgb, var(--cream) 25%, transparent);
+  background: color-mix(in srgb, var(--cream) 4%, transparent);
   color: var(--cream);
-  font: inherit;
   font-size: 1rem;
 }
 .login .act.primary {

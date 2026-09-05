@@ -108,7 +108,7 @@ export default function CheckoutPage() {
                 <div>
                   <div className="text-sm font-bold">{itemName(t, m)}</div>
                   {it.note ? <div className="text-xs text-dim">{it.note}</div> : null}
-                  <button type="button" className="ord-label mt-1 cursor-pointer hover:text-ember" onClick={(e) => removeLine(it.id, e.currentTarget.closest<HTMLElement>("[data-cart-line]"))}>
+                  <button type="button" className="ord-label mt-1 cursor-pointer hover:text-cream" onClick={(e) => removeLine(it.id, e.currentTarget.closest<HTMLElement>("[data-cart-line]"))}>
                     {o.remove}
                   </button>
                 </div>
@@ -122,14 +122,14 @@ export default function CheckoutPage() {
                       +
                     </button>
                   </span>
-                  <span className="min-w-14 text-right font-mono text-sm">{formatPrice(m.price * it.qty)}</span>
+                  <span className="min-w-14 text-right font-display text-sm">{formatPrice(m.price * it.qty)}</span>
                 </div>
               </div>
             );
           })}
         </div>
       )}
-      <div className="flex flex-col gap-1 font-mono text-sm" data-cart-totals>
+      <div className="flex flex-col gap-1 font-display text-sm" data-cart-totals>
         <div className="flex justify-between text-dim">
           <span>{o.subtotal}</span>
           <span>{formatPrice(totals.subtotal)}</span>

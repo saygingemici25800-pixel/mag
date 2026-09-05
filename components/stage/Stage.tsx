@@ -41,7 +41,6 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
   const [shown, setShown] = useState(0); // başlık / harfler / aksan: geçiş başlar başlamaz hedef ürün
   const [ci, setCi] = useState(-1);
   const shownRef = useRef(0);
-  const bgFrom = useRef(0); // gradyan crossfade'inin eski ürünü
   const slide = useRef<{ dir: number; start: number; done: boolean } | null>(null);
   const offsetRef = useRef(0);
   const queue = useRef<number[]>([]);
@@ -151,7 +150,6 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
   useEffect(
     () => () => {
       document.documentElement.classList.remove("lm");
-      document.documentElement.style.removeProperty("--accent");
     },
     [],
   );
@@ -164,7 +162,6 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
       const stageSet = stages?.[it.id];
       layered.current = Boolean(stageSet) && STAGE_KEYS.every((k) => Boolean(stageSet?.[k]));
       const root = document.documentElement;
-      root.style.setProperty("--accent", it.accent);
 
       /* ok geçişi: offset 0→±1, 480 ms; bitince ±1'de bekler, slotlar kayınca (useLayoutEffect) 0 olur */
       const sl = slide.current;
@@ -187,7 +184,6 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
         {
           vw,
           vh,
-          accent: it.accent,
           ch: cut.current.ch,
           cw: cut.current.cw,
           slots: slotBoxes.current,
@@ -210,18 +206,8 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
         cache.set(k, v);
       };
 
-      st("stage", "background-color", f.bg);
-      /* arka plan gradyanı: odaktaki ürün (A) → yeni ürün (B) 480 ms crossfade; güç f.grad (hero 1, yelpaze .7, dalış/iddia .35, sonra 0, kapanışta 1) */
-      const bgIt = HERO_ITEMS[bgFrom.current];
-      const bgTo = HERO_ITEMS[shownRef.current];
-      const g1 = bgIt.bg ?? [bgIt.accent, "#14100F"];
-      const g2 = bgTo.bg ?? [bgTo.accent, "#14100F"];
-      st("bgA", "background-image", `linear-gradient(135deg, ${g1[0]}, ${g1[1]})`);
-      st("bgB", "background-image", `linear-gradient(135deg, ${g2[0]}, ${g2[1]})`);
-      const mixK = slide.current ? slideEase(Math.min((performance.now() - slide.current.start) / SLIDE_MS, 1)) : 1;
-      st("bgA", "opacity", (f.grad * (1 - mixK)).toFixed(3));
-      st("bgB", "opacity", (f.grad * mixK).toFixed(3));
-      if (!slide.current && bgFrom.current !== shownRef.current) bgFrom.current = shownRef.current;
+      /* aydınlık bölüm (manifesto): tek palet — zemin gradyanının üstüne limon perde, gücü f.bright (0→1→0) */
+      st("bgBright", "opacity", f.bright.toFixed(3));
       root.classList.toggle("lm", f.lm);
 
       for (let i = 0; i < N; i++) {
@@ -367,7 +353,6 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
     if (slide.current?.done) {
       slide.current = null;
       offsetRef.current = 0;
-      bgFrom.current = shownRef.current;
       const next = queue.current.shift();
       if (next !== undefined) startSlide(next);
     }
@@ -429,9 +414,7 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
           if (Math.abs(dx) > SWIPE_PX) go(dx < 0 ? 1 : -1);
         }}
       >
-        <div className="bgGrad" ref={bind("bgA")} aria-hidden="true" />
-        <div className="bgGrad" ref={bind("bgB")} aria-hidden="true" />
-        <div className="bgVeil" aria-hidden="true" />
+        <div className="bgBright" ref={bind("bgBright")} aria-hidden="true" />
         <div className="panelVeil" ref={bind("panelVeil")} aria-hidden="true" />
         <div className="room" aria-hidden="true">
           <div className="toplight" />

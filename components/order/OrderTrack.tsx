@@ -53,7 +53,7 @@ export default function OrderTrack({ initial }: { initial: Order }) {
       <div className="mx-auto max-w-2xl">
         <div className="ord-label">
           {tr.id} · {shortId(order.id)}
-          {live ? <span className="ml-3 text-jalapeno">● {tr.live}</span> : null}
+          {live ? <span className="ml-3 text-accent">● {tr.live}</span> : null}
         </div>
         <h1 className="big in mt-4">
           <span>
@@ -63,7 +63,7 @@ export default function OrderTrack({ initial }: { initial: Order }) {
             <i>{order.status === "cancelled" ? tr.steps.cancelled.split(" ")[0] : tr.title[1]}</i>
           </span>
         </h1>
-        <div className={"mt-5 flex flex-wrap items-center gap-3 " + (order.payment_status === "payment_failed" ? "text-ember" : order.payment_status === "paid" ? "text-jalapeno" : "text-kraft")} data-payment={order.payment_status}>
+        <div className={"mt-5 flex flex-wrap items-center gap-3 " + (order.payment_status === "payment_failed" ? "text-cream" : order.payment_status === "paid" ? "text-accent" : "text-dim")} data-payment={order.payment_status}>
           <span className="badge2">
             {tr.paymentLabel}: {t.payment.status[order.payment_status]}
           </span>
@@ -110,10 +110,10 @@ export default function OrderTrack({ initial }: { initial: Order }) {
                   </div>
                   {it.note ? <div className="text-xs text-dim">{it.note}</div> : null}
                 </div>
-                <span className="font-mono text-sm">{formatPrice(it.price * it.qty)}</span>
+                <span className="font-display text-sm">{formatPrice(it.price * it.qty)}</span>
               </div>
             ))}
-            <div className="mt-3 flex justify-between font-mono text-base font-bold">
+            <div className="mt-3 flex justify-between font-display text-base">
               <span>{t.order.total}</span>
               <span>{formatPrice(order.total)}</span>
             </div>
