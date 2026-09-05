@@ -1027,19 +1027,6 @@ html.lm .ctaPill {
 .preSharp {
   clip-path: inset(0 100% 0 0);
 }
-/* açılan kenarı takip eden 22 px'lik limon ışık çizgisi (dikey gradyan, opaklık .8) */
-.preEdge {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 22px;
-  translate: -50% 0;
-  opacity: 0;
-  pointer-events: none;
-  background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--cream) 85%, transparent) 18%, var(--cream) 50%, color-mix(in srgb, var(--cream) 85%, transparent) 82%, transparent 100%);
-  mix-blend-mode: screen;
-}
 /* %100 vurgusu: limon + mor çift halo, 1 → 1.03 → 1 (120 ms) */
 .pre.pop .preLogo {
   animation: prePop 0.12s ease-out;
@@ -1081,11 +1068,10 @@ html.lm .ctaPill {
   letter-spacing: 0.24em;
   color: var(--dim);
 }
-/* reduced-motion: blur/wipe/kenar çizgisi yok; logo fade-in JS'te (WAAPI, 300 ms); çizgi ilerler */
+/* reduced-motion: blur/wipe yok; logo fade-in JS'te (WAAPI, 300 ms); çizgi ilerler */
 @media (prefers-reduced-motion: reduce) {
   /* `.preLogo img` (0,1,1) seçicisini geçmek için aynı özgüllük */
-  .preLogo .preBase,
-  .preLogo .preEdge {
+  .preLogo .preBase {
     display: none;
   }
   .preSharp {

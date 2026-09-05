@@ -47,7 +47,6 @@ export default function Preloader({ progress, label, onDone }: Props) {
   const logo = useRef<HTMLDivElement>(null);
   const base = useRef<HTMLImageElement>(null);
   const sharp = useRef<HTMLImageElement>(null);
-  const edge = useRef<HTMLSpanElement>(null);
   const fill = useRef<HTMLElement>(null);
   const num = useRef<HTMLDivElement>(null);
 
@@ -72,10 +71,6 @@ export default function Preloader({ progress, label, onDone }: Props) {
         if (!rm) {
           if (base.current) base.current.style.filter = `blur(${(16 * (1 - shown)).toFixed(2)}px) brightness(${(0.55 + 0.45 * shown).toFixed(3)}) saturate(${(0.7 + 0.3 * shown).toFixed(3)})`;
           if (sharp.current) sharp.current.style.clipPath = `inset(0 ${((1 - shown) * 100).toFixed(3)}% 0 0)`;
-          if (edge.current) {
-            edge.current.style.left = `${(shown * 100).toFixed(3)}%`;
-            edge.current.style.opacity = shown > 0 && shown < 1 ? "0.8" : "0";
-          }
         }
         if (fill.current) fill.current.style.transform = `scaleX(${shown.toFixed(4)})`;
         if (num.current) num.current.textContent = label.replace("{n}", String(pct));
@@ -124,8 +119,6 @@ export default function Preloader({ progress, label, onDone }: Props) {
           {/* üst katman: net ve tam renk, soldan sağa açılır */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img ref={sharp} className="preSharp" src={LOGO.src} width={LOGO.width} height={LOGO.height} alt="MAG SAFE" fetchPriority="high" decoding="async" />
-          {/* açılan kenarı takip eden ışık çizgisi */}
-          <span ref={edge} className="preEdge" aria-hidden="true" />
         </div>
         <div className="preBar" aria-hidden="true">
           <i ref={fill} />
