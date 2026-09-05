@@ -997,15 +997,13 @@ html.lm .ctaPill {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 22px;
 }
+/* logo: iki katman üst üste, aynı kutu */
 .preLogo {
   position: relative;
   width: min(62vw, 560px);
+  aspect-ratio: 1120 / 825;
   line-height: 0;
-  /* soluk → tam renk: ilerlemeyle brightness .35→1, saturate .6→1 */
-  filter: brightness(calc(0.35 + 0.65 * var(--p, 0))) saturate(calc(0.6 + 0.4 * var(--p, 0)));
-  transition: filter 0.25s linear;
 }
 @media (max-width: 900px) {
   .preLogo {
@@ -1013,76 +1011,86 @@ html.lm .ctaPill {
   }
 }
 .preLogo img {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-/* logo şekline maskelenmiş ışık süpürgesi; konum doğrudan ilerlemeyle (--sweep) */
-.preSweep {
   position: absolute;
   inset: 0;
-  pointer-events: none;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0) calc(var(--sweep, -40%) - 14%),
-    rgba(255, 210, 235, 0.5) calc(var(--sweep, -40%) - 6%),
-    rgba(255, 255, 255, 0.85) var(--sweep, -40%),
-    rgba(255, 210, 235, 0.5) calc(var(--sweep, -40%) + 6%),
-    rgba(255, 255, 255, 0) calc(var(--sweep, -40%) + 14%)
-  );
-  -webkit-mask-image: url("/brand/mag-safe.png");
-  mask-image: url("/brand/mag-safe.png");
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  mix-blend-mode: screen;
-  transition: background 0.25s linear;
+  display: block;
+  width: 100%;
+  height: 100%;
 }
-/* %100 vurgusu: pembe + teal çift halo, 1 → 1.03 → 1 */
+/* alt katman: bulanık + sönük başlar (JS her karede blur 16→0, brightness .55→1, saturate .7→1) */
+.preBase {
+  filter: blur(16px) brightness(0.55) saturate(0.7);
+}
+/* üst katman: net, tam renk; soldan sağa açılır (JS: clip-path inset(0 X 0 0), X = (1−shown)·100%) */
+.preSharp {
+  clip-path: inset(0 100% 0 0);
+}
+/* açılan kenarı takip eden 22 px'lik beyaz-pembe ışık çizgisi (dikey gradyan, opaklık .8) */
+.preEdge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 22px;
+  translate: -50% 0;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 200, 228, 0.85) 18%, #ffffff 50%, rgba(255, 200, 228, 0.85) 82%, rgba(255, 255, 255, 0) 100%);
+  mix-blend-mode: screen;
+}
+/* %100 vurgusu: pembe + teal çift halo, 1 → 1.03 → 1 (120 ms) */
 .pre.pop .preLogo {
   animation: prePop 0.12s ease-out;
 }
 @keyframes prePop {
   0% {
     transform: scale(1);
-    filter: brightness(1) saturate(1);
+    filter: none;
   }
   50% {
     transform: scale(1.03);
-    filter: brightness(1.08) saturate(1.1) drop-shadow(0 0 26px rgba(255, 95, 162, 0.75)) drop-shadow(0 0 42px rgba(63, 143, 138, 0.6));
+    filter: drop-shadow(0 0 26px rgba(255, 95, 162, 0.75)) drop-shadow(0 0 42px rgba(63, 143, 138, 0.6));
   }
   100% {
     transform: scale(1);
-    filter: brightness(1) saturate(1);
+    filter: none;
   }
+}
+/* yükleme çizgisi: logonun 28 px altında, logo genişliğinin %38'i, 2 px; dolgu pembe→teal (scaleX ile) */
+.preBar {
+  width: 38%;
+  height: 2px;
+  margin-top: 28px;
+  background: rgba(242, 236, 227, 0.14);
+  overflow: hidden;
+}
+.preBar i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+  background: linear-gradient(90deg, #ff5fa2, #3f8f8a);
 }
 .preNum {
+  margin-top: 10px;
   font-family: var(--font-mono);
   font-size: 0.62rem;
-  letter-spacing: 0.4em;
+  letter-spacing: 0.24em;
   color: var(--dim);
-  transition: opacity 0.3s ease;
 }
-/* reduced-motion: süpürge yok, logo 300 ms fade-in */
+/* reduced-motion: blur/wipe/kenar çizgisi yok; logo fade-in JS'te (WAAPI, 300 ms); çizgi ilerler */
 @media (prefers-reduced-motion: reduce) {
-  .preSweep {
+  /* `.preLogo img` (0,1,1) seçicisini geçmek için aynı özgüllük */
+  .preLogo .preBase,
+  .preLogo .preEdge {
     display: none;
   }
-  .preLogo {
-    filter: none;
-    animation: preFade 0.3s ease both;
+  .preSharp {
+    clip-path: none !important;
   }
   .pre.pop .preLogo {
     animation: none;
-  }
-  @keyframes preFade {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
   }
 }
 

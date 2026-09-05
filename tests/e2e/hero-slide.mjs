@@ -5,7 +5,9 @@ const b = await chromium.launch();
 const p = await b.newPage({ viewport: { width: 1440, height: 860 } });
 await p.addInitScript(() => localStorage.setItem("mag:sound", "0"));
 await p.goto(base + "/", { waitUntil: "load" });
-await p.waitForTimeout(3200);
+/* preloader en az 2.4 s + 1.07 s sürer: sabit bekleme yerine kalkışını bekle */
+await p.waitForFunction(() => !document.querySelector(".pre"), null, { timeout: 20000 }).catch(() => {});
+await p.waitForTimeout(600);
 let fail = 0;
 const check = (n, ok, x = "") => { console.log((ok ? "PASS" : "FAIL") + " " + n + (x ? " — " + x : "")); if (!ok) fail++; };
 

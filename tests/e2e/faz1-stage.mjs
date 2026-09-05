@@ -7,7 +7,8 @@ const errors = [];
 page.on("pageerror", (e) => errors.push("pageerror: " + e.message));
 page.on("console", (m) => m.type() === "error" && errors.push("console: " + m.text()));
 await page.goto(url, { waitUntil: "load" });
-await page.waitForTimeout(2600);
+await page.waitForFunction(() => !document.querySelector(".pre"), null, { timeout: 20000 }).catch(() => {});
+  await page.waitForTimeout(600);
 
 const title = async () => page.$eval("h1.big", (el) => el.textContent.trim());
 console.log("hero title:", await title());

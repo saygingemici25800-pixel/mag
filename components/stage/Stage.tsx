@@ -397,7 +397,15 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
     // eslint-disable-next-line react-hooks/exhaustive-deps -- go ref'ler üzerinden çalışır; yalnızca reduced değişince
   }, [reduced]);
 
-  if (reduced) return <StaticFallback t={t} />;
+  /* reduced-motion: statik sahne, ama preloader yine var — blur/wipe yok, logo 300 ms fade-in,
+     çizgi ilerler, aynı 2.4 s minimum (zaman tabanlı: gerçek adımlar bu dalda işaretlenmiyor) */
+  if (reduced)
+    return (
+      <>
+        <Preloader progress={1} label={t.pre.loading} onDone={() => setPreDone(true)} />
+        <StaticFallback t={t} />
+      </>
+    );
 
   const it = HERO_ITEMS[shown];
   const [l1, l2] = splitTitle(it.name);
@@ -517,7 +525,7 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
         </Link>
       </div>
 
-      <Preloader progress={load.progress} slow={load.slow} onDone={() => setPreDone(true)} />
+      <Preloader progress={load.progress} label={t.pre.loading} onDone={() => setPreDone(true)} />
     </>
   );
 }

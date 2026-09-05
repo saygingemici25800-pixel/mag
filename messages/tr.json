@@ -340,5 +340,8 @@
       "amount": "Tutar",
       "order": "Sipariş"
     }
+  },
+  "pre": {
+    "loading": "YÜKLENİYOR · %{n}"
   }
 }
