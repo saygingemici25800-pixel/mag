@@ -384,5 +384,8 @@
       "amount": "Amount",
       "order": "Order"
     }
+  },
+  "pre": {
+    "loading": "LOADING · {n}%"
   }
 }
