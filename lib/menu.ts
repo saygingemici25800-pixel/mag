@@ -7,19 +7,6 @@ export type Category = "burger" | "taco" | "noodle" | "yan" | "sos" | "icecek";
 
 export type HeroId = "smooky" | "brisket" | "berry" | "jalapeno" | "caesar" | "orjinal" | "truffle" | "citir";
 
-/** Katman aşamaları — ana sayfadaki 4 iddiayla aynı sıra: et → ekmek → peynir → sos */
-export type StageKey = "et" | "ekmek" | "peynir" | "sos";
-export const STAGE_KEYS: StageKey[] = ["et", "ekmek", "peynir", "sos"];
-export interface StageImage {
-  key: StageKey;
-  /** public altındaki yol; dosya varsa build'de tespit edilir (lib/katman.ts) */
-  image: string;
-}
-/** /assets/katman/<id>-1-et.webp … <id>-4-sos.webp — görseller gelince klasöre atılır, kod değişmez */
-export function stagesFor(id: string): StageImage[] {
-  return STAGE_KEYS.map((key, i) => ({ key, image: `/assets/katman/${id}-${i + 1}-${key}.webp` }));
-}
-
 export interface MenuItem {
   id: string;
   name: string;
@@ -29,8 +16,6 @@ export interface MenuItem {
   hero?: boolean;
   /** Katman animasyonu için (sonraki faz) */
   layers?: string[];
-  /** Katman aşaması görselleri (iddia bölümündeki slot) */
-  stages?: StageImage[];
   /** "Şununla iyi gider" — ürün sheet'inde öneri çipleri (id) */
   pairs?: string[];
 }
@@ -46,7 +31,6 @@ export const MENU: Record<Category, MenuItem[]> = {
     {
       id: "smooky",
       pairs: ["mag-sos", "truflu-mayonez", "ayran"],
-      stages: stagesFor("smooky"),
       name: "Smooky",
       price: 620,
       hero: true,
@@ -56,7 +40,6 @@ export const MENU: Record<Category, MenuItem[]> = {
     {
       id: "brisket",
       pairs: ["jalapeno-sos", "mag-sos", "zencefilli-gazoz"],
-      stages: stagesFor("brisket"),
       name: "Brisket",
       price: 600,
       hero: true,
@@ -65,7 +48,6 @@ export const MENU: Record<Category, MenuItem[]> = {
     {
       id: "berry",
       pairs: ["truflu-mayonez", "ayran"],
-      stages: stagesFor("berry"),
       name: "Mag Berry",
       price: 550,
       hero: true,
@@ -74,7 +56,6 @@ export const MENU: Record<Category, MenuItem[]> = {
     {
       id: "jalapeno",
       pairs: ["mag-sos", "zencefilli-gazoz"],
-      stages: stagesFor("jalapeno"),
       name: "Jalapeno",
       price: 520,
       hero: true,
@@ -83,7 +64,6 @@ export const MENU: Record<Category, MenuItem[]> = {
     {
       id: "caesar",
       pairs: ["truflu-mayonez", "ayran"],
-      stages: stagesFor("caesar"),
       name: "Mag Caesar",
       price: 490,
       hero: true,
@@ -93,7 +73,6 @@ export const MENU: Record<Category, MenuItem[]> = {
     {
       id: "orjinal",
       pairs: ["jalapeno-sos", "mag-sos", "ayran"],
-      stages: stagesFor("orjinal"),
       name: "Mag Orjinal",
       price: 520,
       hero: true,
@@ -102,7 +81,6 @@ export const MENU: Record<Category, MenuItem[]> = {
     {
       id: "truffle",
       pairs: ["truflu-mayonez", "zencefilli-gazoz"],
-      stages: stagesFor("truffle"),
       name: "Truffle & Mush",
       price: 550,
       hero: true,
@@ -111,7 +89,6 @@ export const MENU: Record<Category, MenuItem[]> = {
     {
       id: "citir",
       pairs: ["sweet-chili", "ayran"],
-      stages: stagesFor("citir"),
       name: "Mag Çıtır",
       price: 490,
       hero: true,

@@ -5,9 +5,9 @@ import { preload } from "react-dom";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useLocale, useT } from "@/components/LocaleProvider";
 import { itemDesc, localePath } from "@/lib/i18n";
-import type { StageMap } from "@/lib/katman";
+import type { SliceMap } from "@/lib/dilim";
 import type { ExtraCutouts } from "./cutouts";
-import { HERO_ITEMS, STAGE_KEYS, splitTitle } from "@/lib/menu";
+import { HERO_ITEMS, splitTitle } from "@/lib/menu";
 import { playStage, playSwitch, warmAudio } from "@/lib/sound";
 import Arc from "./Arc";
 import BigTitle from "./BigTitle";
@@ -17,11 +17,10 @@ import Outro from "./Outro";
 import CUT_CENTERS from "@/lib/cutCenters.json";
 import { LOGO } from "./logo";
 import Preloader from "./Preloader";
-import Explode, { stackGeometry } from "./Explode";
 import { useLoadProgress } from "./useLoadProgress";
 import StaticFallback from "./StaticFallback";
 import CrossFade from "./CrossFade";
-import { CENTER, LAYER_ORDER, N, SLIDE_MS, computeFrame, slideEase, type StackGeo } from "./stageMath";
+import { CENTER, N, SLICE_MS, SLIDE_MS, computeFrame, slideEase } from "./stageMath";
 import { useScrollProgress } from "./useScrollProgress";
 import "./stage.css";
 
@@ -34,7 +33,7 @@ type El = HTMLElement | null;
  * Ana sayfa sinematik sahnesi. `.scroller` 1200vh, `.stage` fixed.
  * Her karede `computeFrame(p)` → DOM'a doğrudan yazılır (React state yalnızca `active` ve `ci` için).
  */
-export default function Stage({ stages, extra }: { stages?: StageMap; extra?: ExtraCutouts }) {
+export default function Stage({ slices, extra }: { slices?: SliceMap; extra?: ExtraCutouts }) {
   const t = useT();
   const locale = useLocale();
   const [active, setActive] = useState(0); // slot dizilimi (geçiş bitince kayar)
@@ -52,14 +51,8 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
 
   const activeRef = useRef(0);
   const ciRef = useRef(-1);
-  /* Odaktaki ürünün dört katmanı da var mı? (yoksa iddia bölümünde fotoğraf kalır) */
-  const layered = useRef(false);
-  /* yığın yerleşimi — ürün ve cutout ölçüsü değişince yeniden hesaplanır */
-  const stackGeo = useRef<{ key: string; geo: StackGeo | null }>({ key: "", geo: null });
-  /* takas: yığın bir önceki karede çiziliyor muydu (fotoğraf geri gelince cutout yeniden ölçülür) */
-  const stackWasShown = useRef(false);
-  /* katman başına .lit sınıfı durumu (DOM yazımını yalnızca değişince yap) */
-  const litState = useRef(new Map<string, boolean>());
+  /* dilimler: açık/kapalı durumu, kapanış geçişinin başlangıcı, gösterilen kare sayısı, yazılmış sınıflar */
+  const sliceState = useRef({ open: false, closeAt: 0, frames: 0, cls: "", itemCls: "", moveTimer: 0 });
   const size = useRef({ vw: 1440, vh: 860 });
   const swipe = useRef({ down: false, sx: 0 });
 
@@ -86,8 +79,11 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
   useEffect(() => {
     // yeni DOM düğümü bağlandığında o isme ait stil önbelleğini düşür
     dom.onRebind((name) => {
-      /* Explode ürün değişince yeniden kurulur: .lit sınıfı yeni düğümde yok, önbelleği sıfırla */
-      if (name.startsWith("ex_")) litState.current.delete(name.slice(3));
+      /* Arc odak slotunu yeniden kurunca (.slices / item3 yeni düğüm) sınıf önbelleğini sıfırla */
+      if (name === "slices" || name === `item${CENTER}`) {
+        sliceState.current.cls = "";
+        sliceState.current.itemCls = "";
+      }
       const prefix = name + "|";
       for (const k of styleCache.current.keys()) if (k.startsWith(prefix)) styleCache.current.delete(k);
     });
@@ -158,9 +154,8 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
     (p: number) => {
       const { vw, vh } = size.current;
       const it = HERO_ITEMS[shownRef.current];
-      /* dört katmanı da olan ürünlerde fotoğraf yerine patlamış burger çizilir */
-      const stageSet = stages?.[it.id];
-      layered.current = Boolean(stageSet) && STAGE_KEYS.every((k) => Boolean(stageSet?.[k]));
+      /* dilimleri olan üründe iddia bölümünde fotoğraf yerine fotoğrafın dilimleri */
+      const sliced = Boolean(slices?.[it.id]);
       const root = document.documentElement;
 
       /* ok geçişi: offset 0→±1, 480 ms; bitince ±1'de bekler, slotlar kayınca (useLayoutEffect) 0 olur */
@@ -175,10 +170,6 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
         }
       }
 
-      const geoKey = `${it.id}|${cut.current.cw}|${cut.current.ch}`;
-      if (layered.current && stackGeo.current.key !== geoKey) {
-        stackGeo.current = { key: geoKey, geo: stackGeometry(it.id, stages ?? {}, cut.current.cw, cut.current.ch) };
-      }
       const f = computeFrame(
         p,
         {
@@ -187,8 +178,7 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
           ch: cut.current.ch,
           cw: cut.current.cw,
           slots: slotBoxes.current,
-          layered: layered.current,
-          stack: layered.current ? stackGeo.current.geo : null,
+          sliced,
           photoBody: (CUT_CENTERS as Record<string, { body?: { y0: number; y1: number } }>)[it.id]?.body ?? null,
         },
         offsetRef.current,
@@ -216,9 +206,6 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
         st(n, "opacity", f.items[i].opacity);
         st(n, "filter", f.items[i].filter);
         st(n, "z-index", f.items[i].z);
-        /* TAKAS: yığın çizilirken fotoğraf display:none — aynı karede ikisi asla görünmez.
-           Opaklık/ölçek geçişi yok; sönme takastan önce photoDim ile bitmiştir. */
-        if (i === CENTER) st(n, "display", f.explode.shown ? "none" : "");
       }
 
       /* oklar: odaktaki burgerin iki yanında, dikeyde tam ortasında */
@@ -244,31 +231,34 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
       st("cta", "opacity", f.cta);
       st("cta", "pointer-events", f.cta > 0.5 ? "auto" : "none");
 
-      /* patlamış burger: fotoğrafın kutusu + transform'u, tek düzlemde yalnızca translateY */
+      /* dilimler: takas (item.sliced) tek karede, fotoğraf visibility:hidden — aynı karede iki burger yok.
+         Açılış: ilk karede kapalı gösterilir (= fotoğraf), sonraki karede .open → CSS geçişi (800 ms).
+         Kapanış: .open düşer, dilimler geçiş bitene kadar (800 ms) kalır, sonra fotoğraf geri gelir. */
       {
-        const e = f.explode;
-        if (cut.current.cw > 0) {
-          st("explode", "--cutW", `${cut.current.cw}px`);
-          st("explode", "--cutH", `${cut.current.ch}px`);
-        }
-        st("explode", "display", e.shown ? "block" : "none");
-        st("explode", "transform", e.transform);
-        for (const k of LAYER_ORDER) {
-          const L = e.layers[k];
-          st(`ex_${k}`, "transform", `translateY(${L.ty}px)`);
-          st(`ex_${k}`, "opacity", L.opacity.toFixed(2));
-          /* .lit: CSS'te açılma gecikmeli (210 ms), sönme hemen — eski katman sönmeden yenisi yanmaz */
-          const litNow = L.opacity === 1;
-          if (litState.current.get(k) !== litNow) {
-            dom.get(`ex_${k}`)?.classList.toggle("lit", litNow);
-            litState.current.set(k, litNow);
+        const s = f.slices;
+        const ss = sliceState.current;
+        const now = performance.now();
+        if (s.open) ss.closeAt = 0;
+        else if (ss.open) ss.closeAt = now;
+        const shown = s.open || (ss.closeAt > 0 && now - ss.closeAt < SLICE_MS && s.near);
+        if (!shown) ss.closeAt = 0;
+        ss.open = s.open;
+        ss.frames = shown ? ss.frames + 1 : 0;
+        const open = s.open && ss.frames > 1;
+        const cls = shown ? (open ? `slices open a${s.active}` : "slices") : "slices";
+        const itemCls = shown ? "sliced" : "";
+        if (cls !== ss.cls || itemCls !== ss.itemCls) {
+          const el = dom.get("slices");
+          if (el) {
+            el.className = cls + " moving";
+            /* will-change yalnızca geçiş sırasında (.moving), 900 ms sonra düşer */
+            window.clearTimeout(ss.moveTimer);
+            ss.moveTimer = window.setTimeout(() => el.classList.remove("moving"), SLICE_MS + 100);
           }
+          dom.get(`item${CENTER}`)?.classList.toggle("sliced", shown);
+          ss.cls = cls;
+          ss.itemCls = itemCls;
         }
-        st("exLight", "transform", `translateY(${e.light.ty}px) scale(${e.light.sx},${e.light.sy})`);
-        st("exLight", "opacity", e.light.opacity.toFixed(2));
-        /* fotoğraf geri geldi: takas boyunca ölçülemeyen cutout'u bir sonraki karede ölç */
-        if (stackWasShown.current && !e.shown) window.setTimeout(measureCutout, 0);
-        stackWasShown.current = e.shown;
       }
 
       st("scHero", "opacity", f.hero);
@@ -290,13 +280,13 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
       st("hint", "opacity", f.hint);
 
       if (f.ci !== ciRef.current) {
-        /* katman değişiminde kısa "stage" sesi (yalnızca patlamış burgerde, iddialar arasında) */
-        if (layered.current && f.ci >= 0 && ciRef.current >= 0) playStage();
+        /* dilim değişiminde kısa "stage" sesi (yalnızca dilimli üründe, iddialar arasında) */
+        if (sliced && f.ci >= 0 && ciRef.current >= 0) playStage();
         ciRef.current = f.ci;
         setCi(f.ci);
       }
     },
-    [dom, measureCutout, stages],
+    [dom, slices],
   );
 
   // Preloader kalkana kadar sahne rAF'ı çalışmaz (CPU); ilk kare yine de bir kez çizilir (aşağıda)
@@ -388,7 +378,7 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
     return (
       <>
         <Preloader progress={1} label={t.pre.loading} onDone={() => setPreDone(true)} />
-        <StaticFallback t={t} />
+        <StaticFallback t={t} slices={slices} />
       </>
     );
 
@@ -425,7 +415,7 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
 
         <LightRays bind={bind("rays")} onReady={() => load.mark("rays")} />
 
-        <Arc active={active} bind={bind} extra={extra} />
+        <Arc active={active} bind={bind} extra={extra} slices={slices} />
 
         <div className="streak" aria-hidden="true">
           <b ref={bind("streak")} />
@@ -443,8 +433,6 @@ export default function Stage({ stages, extra }: { stages?: StageMap; extra?: Ex
             <span key={i}>{c}</span>
           ))}
         </div>
-
-        <Explode id={it.id} stages={stages ?? {}} bind={bind} />
 
         <section className="scene" ref={bind("scHero")}>
           <div className="heroCopy">

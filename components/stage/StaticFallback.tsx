@@ -2,10 +2,17 @@ import Image from "next/image";
 import type { Messages } from "@/lib/i18n";
 import { HERO_ITEMS } from "@/lib/menu";
 import { SITE } from "@/lib/site";
+import type { SliceMap } from "@/lib/dilim";
+import { CLAIM_SLICE } from "./stageMath";
+import Slices from "./Slices";
 import { CUTOUTS } from "./cutouts";
 
-/** prefers-reduced-motion: scroll-driven sahne yerine statik kartlar (basit fallback). */
-export default function StaticFallback({ t }: { t: Messages }) {
+/** prefers-reduced-motion: scroll-driven sahne yerine statik kartlar (basit fallback).
+    İddia kartlarında dilimler sabit açık (hareket/dönme yok, vurgu yalnızca opaklıkla) — ilk dilimli ürün. */
+export default function StaticFallback({ t, slices }: { t: Messages; slices?: SliceMap }) {
+  const sliced = HERO_ITEMS.find((m) => slices?.[m.id] && CUTOUTS[m.id]);
+  const meta = sliced ? slices?.[sliced.id] : undefined;
+  const noop = () => () => {};
   return (
     <main className="mx-auto max-w-5xl px-5 pt-28 pb-24 text-cream">
       <section className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
@@ -24,8 +31,15 @@ export default function StaticFallback({ t }: { t: Messages }) {
       </section>
 
       <section className="mt-24 grid gap-8 sm:grid-cols-2">
-        {t.claims.map((c) => (
+        {t.claims.map((c, ci) => (
           <article key={c.l1} className="flex flex-col gap-2">
+            {sliced && meta ? (
+              <div className={`sliceFig mb-3`} style={{ aspectRatio: `${meta.size[0]} / ${meta.size[1]}` }}>
+                <div className={`slices open a${CLAIM_SLICE[ci]}`} style={Object.fromEntries(meta.bandCenterPct.map((v, i) => [`--c${i}`, String(v)])) as React.CSSProperties} aria-hidden="true">
+                  <Slices id={sliced.id} meta={meta} bind={noop} inner />
+                </div>
+              </div>
+            ) : null}
             <span className="font-body text-[.6rem] uppercase tracking-[.1em] line-through text-dim">{c.no}</span>
             <h2 className="font-display text-3xl uppercase leading-[.85] tracking-tight">
               {c.l1} {c.l2}

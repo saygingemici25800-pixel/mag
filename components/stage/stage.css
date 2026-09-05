@@ -556,76 +556,129 @@ html.lm .arrow {
   }
 }
 
-/* ---- patlamış burger (iddia bölümü) ----
-   İKİ KURAL: (1) ekranda asla iki burger yok — takas display ile tek karede, çapraz geçiş yok;
-   (2) tek düzlem — katmanlar yalnızca translateY ile ayrılır (perspektif/translateZ/döndürme/ölçek yok).
-   Işık: her şey karanlık (opaklık .35), yalnızca aktif katman aydınlık (1) ve arkasında accent
-   renginde eliptik ışık. Filtre yok, blur yok, mix-blend-mode yok. */
-.explode {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  z-index: 23;
-  /* fotoğrafın kutusuyla birebir aynı ölçü (JS yazar) ve aynı transform */
-  width: var(--cutW, 260px);
-  height: var(--cutH, 260px);
-  transform-origin: 50% 50%;
-  pointer-events: none;
-  display: none;
-  /* paint containment YOK: açılan katmanlar kutunun dışına taşar, kırpılmamalı */
-  contain: layout;
-}
-/* yığın karesi: fotoğraf gövdesinin merkezine oturur; kenarı = gövdeYüksekliği / ekmekYüksekliği
-   (--exK, --exCx, --exCy ürün başına Explode.tsx'ten; cutout ölçümünden hesaplanır) */
-.exStack {
-  position: absolute;
-  left: calc(var(--cutW, 260px) * var(--exCx, 0.5));
-  top: calc(var(--cutH, 260px) * var(--exCy, 0.5));
-  width: calc(var(--cutH, 260px) * var(--exK, 1));
-  height: calc(var(--cutH, 260px) * var(--exK, 1));
-  translate: -50% -50%;
-}
-.exLayer {
+/* ---- dilimler (iddia bölümü) ----
+   Hero fotoğrafının dört yatay dilimi, odaktaki .item'ın içinde, fotoğrafla aynı kutuda (inset:0, %100).
+   Aralık 0 iken üst üste = birebir fotoğraf; takas görünmez. Yalnızca translateY, yana kayma yok.
+   Işık: aktif dilim 1, diğerleri .12; tek eliptik ışık aktif dilimin bandCenterPct'sine (meta.json) kayar.
+   Filtre yok; karartma opaklıkla; will-change yalnızca geçiş sırasında (.moving). */
+.slices {
+  --gap: 4.6%;
+  --ease: cubic-bezier(0.22, 1, 0.28, 1);
   position: absolute;
   inset: 0;
-  /* konum (translateY) her karede JS'ten, geçişsiz. Aydınlanma toplam 420 ms ama iki parça:
-     sönen katman hemen 210 ms'de söner, yanan katman 210 ms bekleyip 210 ms'de yanar (.lit) —
-     arada iki katmanın birden aydınlık olduğu kare olmaz. */
-  transition: opacity 210ms cubic-bezier(0.22, 1, 0.28, 1);
-  opacity: 0.35;
-  contain: paint;
+  display: none;
+  transform-origin: 50% 50%;
+  transition: transform 800ms var(--ease);
+  pointer-events: none;
 }
-.exLayer.lit {
-  transition-delay: 210ms;
+.item.sliced .slices {
+  display: block;
 }
-.exLayer img {
+/* takas: fotoğraf ve yansıması görünmez ama kutuları kalır (ölçüm bozulmaz) */
+.item.sliced > picture > img,
+.item.sliced > .ph {
+  visibility: hidden;
+}
+.slices img.s {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  max-width: none;
+  object-fit: fill;
+  display: block;
+  opacity: 1;
+  transition:
+    opacity 400ms var(--ease),
+    transform 800ms var(--ease);
+}
+.slices.moving,
+.slices.moving img {
+  will-change: transform, opacity;
+}
+/* açık: sahne hafif döner + sola kayar; dilimler dikeyde [-1.6, -.55, .55, 1.6] × --gap */
+.slices.open {
+  transform: rotate(-1.4deg) translateX(-2%);
+}
+.slices.open .s0 {
+  transform: translateY(calc(-1.6 * var(--gap)));
+}
+.slices.open .s1 {
+  transform: translateY(calc(-0.55 * var(--gap)));
+}
+.slices.open .s2 {
+  transform: translateY(calc(0.55 * var(--gap)));
+}
+.slices.open .s3 {
+  transform: translateY(calc(1.6 * var(--gap)));
+}
+/* ışık mantığı: açıkken herkes .12; aktif dilim 1 — sönen hemen (400 ms), yanan 400 ms bekler: aynı anda iki dilim aydınlık olmaz */
+.slices.open img {
+  opacity: 0.12;
+}
+.slices.open.a0 .s0,
+.slices.open.a1 .s1,
+.slices.open.a2 .s2,
+.slices.open.a3 .s3 {
+  opacity: 1;
+  transition-delay: 400ms, 0ms;
+}
+/* tek ışık, dilimlerin arkasında: %70 × %22 elips, merkezi meta.json bandCenterPct (+ dilimin kayması) */
+.slices .sLight {
+  position: absolute;
+  left: 15%;
+  width: 70%;
+  height: 22%;
+  top: calc((var(--lc, 50) - 11) * 1% + var(--ls, 0%));
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--mag-lime) 55%, transparent) 0%, color-mix(in srgb, var(--mag-lime) 18%, transparent) 45%, transparent 72%);
+  transition:
+    top 800ms var(--ease),
+    opacity 800ms var(--ease);
+}
+.slices.open .sLight {
+  opacity: 1;
+}
+.slices.a0 .sLight {
+  --lc: var(--c0);
+  --ls: calc(-1.6 * var(--gap));
+}
+.slices.a1 .sLight {
+  --lc: var(--c1);
+  --ls: calc(-0.55 * var(--gap));
+}
+.slices.a2 .sLight {
+  --lc: var(--c2);
+  --ls: calc(0.55 * var(--gap));
+}
+.slices.a3 .sLight {
+  --lc: var(--c3);
+  --ls: calc(1.6 * var(--gap));
+}
+@media (max-width: 900px) {
+  .slices {
+    --gap: 3.2%;
+  }
+}
+/* statik kullanım (reduced-motion fallback): kutu görselin oranında, dilimler her zaman açık */
+.sliceFig {
+  position: relative;
+  width: 100%;
+}
+.sliceFig .slices {
   display: block;
 }
-/* tek ışık, katmanların ARKASINDA: aktif katmanı saran elips (1.3× genişlik, .85× yükseklik),
-   merkezden kenara sönen radyal gradyan, accent rengi, en fazla .5. Aktif katman değişince
-   yeni katmana KAYAR (transform geçişi), ayrı ayrı yanıp sönmez. */
-.exLight {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, var(--accent) 0%, color-mix(in srgb, var(--mag-ink) 0%, transparent) 72%);
-  opacity: 0;
-  transform-origin: 50% 50%;
-  transition:
-    transform 420ms cubic-bezier(0.22, 1, 0.28, 1),
-    opacity 420ms cubic-bezier(0.22, 1, 0.28, 1);
-  pointer-events: none;
-}
+/* reduced-motion: aralık sabit açık, hareket/dönme yok, vurgu yalnızca opaklıkla */
 @media (prefers-reduced-motion: reduce) {
-  .exLayer,
-  .exLight {
+  .slices,
+  .slices img.s,
+  .slices .sLight {
     transition: none;
+  }
+  .slices.open {
+    transform: none;
   }
 }
 

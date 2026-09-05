@@ -3,7 +3,9 @@
 import { getImageProps } from "next/image";
 import { preload } from "react-dom";
 import { HERO_ITEMS, type HeroId } from "@/lib/menu";
+import type { SliceMeta } from "@/lib/dilim-paths";
 import { CUTOUTS, CUTOUTS_M, DESKTOP_MQ, MOBILE_MQ, WIDE, type ExtraCutouts } from "./cutouts";
+import Slices from "./Slices";
 import { CENTER, N, slotIndex } from "./stageMath";
 
 export type Bind = (name: string) => (el: HTMLElement | null) => void;
@@ -13,6 +15,8 @@ interface Props {
   bind: Bind;
   /** build'de dosya sisteminde bulunan ek cutout'lar (statik import'u olmayan ürünler) */
   extra?: ExtraCutouts;
+  /** ürün başına dilim meta'sı (public/assets/dilim/meta.json); yoksa iddia bölümü fotoğrafla çalışır */
+  slices?: Partial<Record<HeroId, SliceMeta>>;
 }
 
 interface CutoutProps {
@@ -62,8 +66,9 @@ function Cutout({ id, name, alt, focus, className, imgRef, extra }: CutoutProps)
 /**
  * 8 slot: slot i → HERO_ITEMS[(active + i − CENTER) mod N]. Konumlar JS'te (Stage.render).
  * Görünür slotlar t=−2..+2; dıştakiler x=t·spacing'de opacity 0 ile hazır bekler.
+ * Odaktaki slotta fotoğrafın dilimleri de durur (iddia bölümünde fotoğrafla takas edilir).
  */
-export default function Arc({ active, bind, extra }: Props) {
+export default function Arc({ active, bind, extra, slices }: Props) {
   const focusId = HERO_ITEMS[slotIndex(active, CENTER, HERO_ITEMS.length)].id;
   const fc = CUTOUTS[focusId],
     fm = CUTOUTS_M[focusId];
@@ -77,11 +82,13 @@ export default function Arc({ active, bind, extra }: Props) {
           const m = HERO_ITEMS[slotIndex(active, i, HERO_ITEMS.length)];
           const focus = i === CENTER;
           const hasImg = Boolean(CUTOUTS[m.id] || extra?.[m.id]);
+          const meta = focus ? slices?.[m.id] : undefined;
           return (
             <div key={i} className={"item" + (WIDE[m.id] ? " wide" : "") + (focus ? " focus" : "") + (hasImg ? "" : " noimg")} ref={bind(`item${i}`)} data-k={m.id} style={{ zIndex: focus ? 22 : 22 - Math.min(Math.abs(i - CENTER), 4) * 2 }}>
               <Cutout id={m.id} name={m.name} alt={focus ? `${m.name} burger` : ""} focus={focus} imgRef={focus ? bind("centerImg") : undefined} extra={extra} />
               <span className="shad" aria-hidden="true" />
               <Cutout id={m.id} name={m.name} alt="" focus={focus} className="refl" extra={extra} />
+              {meta && hasImg ? <Slices id={m.id} meta={meta} bind={bind} /> : null}
             </div>
           );
         })}
