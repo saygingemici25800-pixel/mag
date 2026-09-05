@@ -64,8 +64,6 @@ export const LOOP_AT = 0.9985; // atEnd && cur > LOOP_AT → scrollTo(0)
 export const HOLD_MS = 420; // hero pozunda bir an dursun
 export const LOOP_COOLDOWN_MS = 500;
 
-export const BASE = "#0C0A08";
-
 export function clamp(x: number): number {
   return x < 0 ? 0 : x > 1 ? 1 : x;
 }
@@ -100,9 +98,6 @@ export function mix(a: string, b: string, t: number): string {
     Math.round(lerp(A[2], B[2], t)) +
     ")"
   );
-}
-export function tintc(c: string, t: number): string {
-  return mix(c, "rgb(255,255,255)", t);
 }
 
 export interface ItemStyle {
@@ -191,7 +186,8 @@ export function slideEase(x: number): number {
 }
 
 export interface Frame {
-  bg: string;
+  /** aydınlık bölüm perdesi (limon) gücü: manifestoda 0→1, çıkışta 1→0 */
+  bright: number;
   lm: boolean;
   items: ItemStyle[];
   arrows: { ax: number; ay: number; opacity: number; shift: number };
@@ -219,8 +215,6 @@ export interface Frame {
   rays: number;
   /** sağ alt "Sipariş ver" pill'i: dive'dan itibaren, kapanışta kaybolur */
   cta: number;
-  /** ürün arka plan gradyanının gücü: hero 1 · yelpaze .7 · dalış/iddialar .35 · manifesto ve sonrası 0 · kapanış → 1 */
-  grad: number;
   /** ışık konisinin çıkış noktası (vh oranı): hero'daki burger gövdesinin üst kenarının %25 üstü */
   raysOriginY: number;
   /** iddia bölümündeki "patlamış burger" (yalnızca dört katmanı tam olan üründe kullanılır) */
@@ -230,8 +224,6 @@ export interface Frame {
 export interface Env {
   vw: number;
   vh: number;
-  /** odaktaki ürünün aksan rengi */
-  accent: string;
   /** odaktaki cutout img clientHeight (0 → varsayılan) */
   ch: number;
   /** odaktaki cutout img clientWidth (0 → varsayılan) */
@@ -273,7 +265,7 @@ export function claimIndex(p: number, mobile = false): number {
  * @param offset ok geçişi: 0→±1 (t_eff = t − offset); bitince 0'a döner ve slotlar bir kaydırılır
  */
 export function computeFrame(p: number, env: Env, offset = 0): Frame {
-  const { vw, vh, accent } = env;
+  const { vw, vh } = env;
   const mobile = vw < 900;
   /* segment haritası viewport'a göre (mobilde üç bölüm kısa); bantlar px cinsinden korunsun diye
      mobilde p-bantları segment uzunluk oranıyla ölçeklenir */
@@ -317,10 +309,9 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   if (tOut > 0) upT = upT * (1 - ease(Math.min(tOut1 * 1.6, 1)));
 
   /* background */
-  const bright = tintc(accent, 0.62);
-  let bg = mix(BASE, accent, diveE * 0.05);
-  if (tPay > 0) bg = mix(mix(BASE, accent, 0.05), bright, ease(Math.min(tPay / 0.42, 1)));
-  if (tRange > 0) bg = mix(bright, BASE, ease(Math.min(tRange / 0.32, 1)));
+  /* limon perde: manifestoya girerken 0→1, çıkarken 1→0 (renk CSS'te, burada yalnızca güç) */
+  let bright = tPay > 0 ? ease(Math.min(tPay / 0.42, 1)) : 0;
+  if (tRange > 0) bright = 1 - ease(Math.min(tRange / 0.32, 1));
   const lm = tPay > 0.32 && tRange < 0.3;
 
   /* the arc */
@@ -511,10 +502,6 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   const aura = tOut > 0 ? lightIn : Math.max(0, (1 - fanE * 0.72) * (1 - Math.max(payE, upT)));
   const rays = tOut > 0 ? lightIn * 0.9 : Math.max(0, (1 - fanE * 0.55) * (1 - Math.max(diveE * 0.85, payE, upT)));
   const cta = seg(p, S.dive[0] + 0.01, S.dive[0] + 0.05) * (1 - seg(p, S.foot[0], S.foot[0] + 0.03));
-  let grad = lerp(1, 0.7, fanE);
-  if (tDive > 0) grad = lerp(0.7, 0.35, diveE);
-  if (tPay > 0) grad = lerp(0.35, 0, ease(Math.min(tPay / 0.42, 1)));
-  if (tOut > 0) grad = ease(tOut); // p=1 ≡ p=0
 
   /* copy */
   const heroOut = 1 - seg(p, 0.015, 0.075);
@@ -644,7 +631,7 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   };
 
   return {
-    bg,
+    bright,
     lm,
     items,
     arrows: { ax, ay, opacity: arrowsO, shift: axShift },
@@ -664,7 +651,6 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
     hint,
     rays,
     cta,
-    grad,
     explode,
     raysOriginY,
   };

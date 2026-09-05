@@ -20,7 +20,7 @@
   padding: 0;
   cursor: pointer;
   transition: opacity 0.3s ease;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.62rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -70,11 +70,11 @@
   }
 }
 .mark {
+  font-family: var(--font-display);
   position: absolute;
   left: 50%;
   translate: -50% 0;
   font-weight: 900;
-  font-style: italic;
   font-size: 1.42rem;
   letter-spacing: -0.055em;
   line-height: 1;
@@ -82,7 +82,6 @@
   text-decoration: none;
 }
 .mark i {
-  font-style: italic;
   color: var(--accent);
 }
 .navL,
@@ -98,7 +97,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.66rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -118,6 +117,7 @@
   text-decoration: none;
 }
 .cta {
+  font-family: var(--font-display);
   background: var(--cream);
   color: var(--char);
   border: 0;
@@ -127,9 +127,8 @@
   font-size: 0.72rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  box-shadow: 0 0 30px rgba(242, 236, 227, 0.28);
+  box-shadow: 0 0 30px color-mix(in srgb, var(--cream) 28%, transparent);
   cursor: pointer;
-  font-family: inherit;
   text-decoration: none;
   line-height: normal;
 }
@@ -157,7 +156,7 @@
   position: fixed;
   width: 20px;
   height: 20px;
-  border: 1px solid rgba(242, 236, 227, 0.4);
+  border: 1px solid color-mix(in srgb, var(--cream) 40%, transparent);
   z-index: 30;
   pointer-events: none;
 }
@@ -190,23 +189,23 @@
 html.lm .onbox,
 html.lm .menu,
 html.lm .mark {
-  color: #0c0a08;
+  color: var(--char);
 }
 html.lm .mark i {
-  color: #0c0a08;
+  color: var(--char);
   opacity: 0.4;
 }
 html.lm .eq b,
 html.lm .grid2 s {
-  background: #0c0a08;
+  background: var(--char);
 }
 html.lm .cta {
-  background: #0c0a08;
-  color: #f2ece3;
-  box-shadow: 0 0 30px rgba(12, 10, 8, 0.25);
+  background: var(--char);
+  color: var(--cream);
+  box-shadow: 0 0 30px color-mix(in srgb, var(--char) 25%, transparent);
 }
 html.lm .bracket {
-  border-color: rgba(12, 10, 8, 0.4);
+  border-color: color-mix(in srgb, var(--char) 40%, transparent);
 }
 
 /* ---- TR | EN ---- */
@@ -214,7 +213,7 @@ html.lm .bracket {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.62rem;
   letter-spacing: 0.16em;
 }
@@ -232,26 +231,26 @@ html.lm .bracket {
   color: var(--cream);
 }
 .lang i {
-  color: rgba(242, 236, 227, 0.25);
+  color: color-mix(in srgb, var(--cream) 25%, transparent);
   font-style: normal;
   margin: 0 4px;
 }
 html.lm .lang a {
-  color: rgba(12, 10, 8, 0.5);
+  color: color-mix(in srgb, var(--char) 50%, transparent);
 }
 html.lm .lang a[aria-current="page"] {
-  color: #0c0a08;
+  color: var(--char);
 }
 
 /* ---- İletişim overlay ---- */
 /* ---- İLETİŞİM katmanı (aynı sayfada, rota yok) ----
    Animasyon Web Animations API'den (ContactOverlay.tsx); burada yalnızca başlangıç durumları ve düzen.
-   Siyah zemin, krem tipografi, bol boşluk. */
+   Mor-derin zemin, limon tipografi, bol boşluk. */
 .contact {
   position: fixed;
   inset: 0;
   z-index: 85;
-  background: #0b0908;
+  background: var(--page-bg);
   color: var(--cream);
   overflow: hidden;
 }
@@ -275,7 +274,7 @@ html.lm .lang a[aria-current="page"] {
   display: block;
   width: 100%;
   height: 100%;
-  background: linear-gradient(180deg, #1a120c 0%, #0d0a08 100%);
+  background: linear-gradient(180deg, var(--surface) 0%, var(--char) 100%);
 }
 .cPanel.top {
   top: 0;
@@ -284,7 +283,7 @@ html.lm .lang a[aria-current="page"] {
 .cPanel.bot {
   top: 0;
   left: 0;
-  background: linear-gradient(0deg, #1a120c 0%, #0d0a08 100%);
+  background: linear-gradient(0deg, var(--surface) 0%, var(--char) 100%);
 }
 /* içerik: sol hizalı, dar sütun, dikey ortalı; küçük ekranda kaydırılabilir */
 .cIn {
@@ -318,8 +317,7 @@ html.lm .lang a[aria-current="page"] {
   letter-spacing: -0.045em;
   text-transform: uppercase;
   font-weight: 900;
-  font-style: italic;
-  padding: 0.06em 0 0.1em;
+  padding:  0.18em 0 0.12em; /* Comico: İ noktası ve üst uzantılar maskeden taşmasın */
 }
 .cRows {
   display: flex;
@@ -336,7 +334,7 @@ html.lm .lang a[aria-current="page"] {
   padding: 2px 0;
 }
 .cRow b {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-weight: 400;
   font-size: 0.62rem;
   letter-spacing: 0.2em;
@@ -346,11 +344,11 @@ html.lm .lang a[aria-current="page"] {
 .cRow a {
   color: var(--cream);
   text-decoration: none;
-  border-bottom: 1px solid rgba(242, 236, 227, 0.28);
+  border-bottom: 1px solid color-mix(in srgb, var(--cream) 28%, transparent);
 }
 .cRow a:hover,
 .cRow a:focus-visible {
-  border-bottom-color: var(--accent, #e2591f);
+  border-bottom-color: var(--accent);
   outline: none;
 }
 .cRow em {
@@ -371,7 +369,7 @@ html.lm .lang a[aria-current="page"] {
 }
 /* yürüme mesafesi */
 .cWalk h3 > span {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-weight: 400;
   font-size: 0.62rem;
   letter-spacing: 0.24em;
@@ -391,18 +389,18 @@ html.lm .lang a[aria-current="page"] {
   align-items: baseline;
   gap: 16px;
   padding: 11px 0;
-  border-top: 1px solid rgba(242, 236, 227, 0.14);
+  border-top: 1px solid color-mix(in srgb, var(--cream) 14%, transparent);
   font-size: clamp(0.98rem, 1.5vw, 1.08rem);
 }
 .cWalk li:last-child > span {
-  border-bottom: 1px solid rgba(242, 236, 227, 0.14);
+  border-bottom: 1px solid color-mix(in srgb, var(--cream) 14%, transparent);
 }
 .cWalk li b {
   font-weight: 500;
 }
 .cWalk li em {
   font-style: normal;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.8rem;
   letter-spacing: 0.08em;
   color: var(--cream);
@@ -413,6 +411,7 @@ html.lm .lang a[aria-current="page"] {
   padding: 6px 0;
 }
 .cMaps {
+  font-family: var(--font-display);
   display: inline-flex;
   align-items: center;
   gap: 12px;
@@ -425,10 +424,10 @@ html.lm .lang a[aria-current="page"] {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   text-decoration: none;
-  box-shadow: 0 0 30px rgba(242, 236, 227, 0.22);
+  box-shadow: 0 0 30px color-mix(in srgb, var(--cream) 22%, transparent);
 }
 .cMaps:focus-visible {
-  outline: 2px solid var(--accent, #e2591f);
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 /* kapatma: daire çizilir, sonra çarpı (stroke-dashoffset) */
@@ -463,7 +462,7 @@ html.lm .lang a[aria-current="page"] {
   stroke-dashoffset: 17;
 }
 .cClose:focus-visible {
-  outline: 2px solid var(--accent, #e2591f);
+  outline: 2px solid var(--accent);
   outline-offset: 4px;
   border-radius: 50%;
 }

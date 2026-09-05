@@ -35,7 +35,7 @@ export default function LegalPage({ locale, slug }: { locale: Locale; slug: Lega
                 <p key={j} className="m-0 text-cream/90">
                   {p.split(/(\[[A-Z_]+ — AÇIK\])/).map((part, k) =>
                     /^\[[A-Z_]+ — AÇIK\]$/.test(part) ? (
-                      <mark key={k} className="rounded bg-kraft/25 px-1 text-kraft">
+                      <mark key={k} className="rounded bg-accent/25 px-1 text-cream">
                         {part}
                       </mark>
                     ) : (

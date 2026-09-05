@@ -1,46 +1,97 @@
-@import "tailwindcss";
+@import "tailwindcss"; /* @import CSS'te her kuraldan önce gelmek zorunda; font tanımları hemen ardından */
 
-/* ---- tasarım tokenları (spec §3) ---- */
+/* ---- yazı tipleri: yalnızca yerel woff2 (public/fonts), harici bağlantı yok ----
+   Comico (400, tek ağırlık, büyük harf) → başlıklar, vurgular, buton yazıları, fiyatlar.
+   Bonny (100/300/400/500/700) → geri kalan her şey. */
+@font-face {
+  font-family: "Comico";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/ComicoRegular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Bonny";
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/BonnyThin.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Bonny";
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/BonnyLight.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Bonny";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/BonnyRegular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Bonny";
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/BonnyMedium.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Bonny";
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/BonnyBold.woff2") format("woff2");
+}
+
+/* ---- renk sistemi: TEK KAYNAK. Bileşenlerde hex yok; her şey bu değişkenlerden türer.
+   (lib/palette.ts yalnızca JS/OG için aynı değerlerin aynası — tests/e2e/palette.mjs eşitliği denetler.) ---- */
 :root {
-  --char: #0c0a08;
-  --cream: #f2ece3;
-  --dim: #988d80;
-  --kraft: #c89a63;
-  --ember: #e2591f;
-  --denim: #6f87a6;
-  --gold: #d8b15e;
+  /* iki ana renk */
+  --mag-purple: #422057;
+  --mag-lime: #ffd662;
+  /* türevler */
+  --mag-purple-deep: #1a0c22; /* sahne zemini — mor ailesinden, saf siyah yerine */
+  --mag-purple-soft: #5a2e74; /* kart yüzeyi, ayırıcı */
+  --mag-ink: #1a0c22; /* limon zemin üzerindeki yazı */
+  /* burgerin arkasındaki "sıcak ada": mor zeminden hafif sıcak bir geçiş (fotoğrafların amber tonu mordan kopmasın) */
+  --mag-warm: color-mix(in srgb, var(--mag-purple-deep) 50%, #ff9636);
 
-  /* ürün aksanları */
-  --smooky: #e2591f;
-  --brisket: #c89a63;
-  --berry: #8e3b52;
-  --jalapeno: #7e9b57;
-  --caesar: #d8b15e;
-
-  /* sahnede odaktaki ürünün aksanı — JS her karede günceller */
-  --accent: #e2591f;
+  /* anlamsal katman — eski adlar korunur ki bileşen CSS'i değişmesin */
+  --char: var(--mag-purple-deep); /* zemin */
+  --cream: var(--mag-lime); /* başlık ve ana yazı */
+  --ink: var(--mag-ink); /* limon üstünde yazı */
+  --dim: color-mix(in srgb, var(--mag-lime) 60%, transparent); /* ikincil metin */
+  --line: color-mix(in srgb, var(--mag-lime) 20%, transparent); /* ayırıcı */
+  --surface: color-mix(in srgb, var(--mag-purple-soft) 55%, var(--mag-purple-deep)); /* kart/sheet yüzeyi */
+  --accent: var(--mag-lime); /* aktif/vurgu: sepet çubuğu, rozet, ilerleme, üstü çizili */
+  --page-bg: linear-gradient(180deg, var(--mag-purple-deep) 0%, var(--mag-purple) 100%);
   --edge: 20px;
 
-  --font-display: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
-  --font-mono: var(--font-dm-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: "Comico", "Arial Black", Impact, sans-serif;
+  --font-body: "Bonny", "Helvetica Neue", Arial, system-ui, sans-serif;
 }
 
 @theme inline {
+  --color-*: initial;
+  --color-purple: var(--mag-purple);
+  --color-lime: var(--mag-lime);
+  --color-purple-deep: var(--mag-purple-deep);
+  --color-purple-soft: var(--mag-purple-soft);
+  --color-ink: var(--mag-ink);
   --color-char: var(--char);
   --color-cream: var(--cream);
   --color-dim: var(--dim);
-  --color-kraft: var(--kraft);
-  --color-ember: var(--ember);
-  --color-denim: var(--denim);
-  --color-gold: var(--gold);
-  --color-smooky: var(--smooky);
-  --color-brisket: var(--brisket);
-  --color-berry: var(--berry);
-  --color-jalapeno: var(--jalapeno);
-  --color-caesar: var(--caesar);
+  --color-line: var(--line);
+  --color-surface: var(--surface);
   --color-accent: var(--accent);
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --font-*: initial;
   --font-display: var(--font-display);
-  --font-mono: var(--font-mono);
+  --font-body: var(--font-body);
 }
 
 *,
@@ -53,6 +104,8 @@ html {
   scrollbar-width: none;
   background: var(--char);
   color-scheme: dark;
+  /* Comico tek ağırlık/tek stil: sahte kalın/italik üretilmesin */
+  font-synthesis: none;
 }
 html::-webkit-scrollbar {
   display: none;
@@ -60,15 +113,32 @@ html::-webkit-scrollbar {
 
 body {
   margin: 0;
-  background: var(--char);
+  min-height: 100dvh;
+  background: var(--page-bg);
   color: var(--cream);
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   line-height: normal; /* preflight 1.5 verir; prototip tarayıcı varsayılanını kullanır */
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
 
-/* HUD tipografisi — mono etiketler */
+/* başlık ve vurgu ailesi: bileşenlerde doğrudan font adı yazılmaz, bu iki sınıf/tokendan gelir */
+.font-display,
+h1,
+h2,
+h3,
+.big,
+.price {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-style: normal;
+}
+.font-body {
+  font-family: var(--font-body);
+}
+
+/* HUD etiketleri (eski mono): gövde ailesinde, orta ağırlık */
 .mono {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
+  font-weight: 500;
 }

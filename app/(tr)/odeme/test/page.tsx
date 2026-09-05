@@ -40,7 +40,7 @@ export default async function MockPaymentPage({ searchParams }: { searchParams: 
           </span>
         </h1>
         <p className="mt-5 text-dim">{m.lead}</p>
-        <div className="mt-6 flex justify-between border-y border-cream/15 py-4 font-mono">
+        <div className="mt-6 flex justify-between border-y border-cream/15 py-4 font-display">
           <span>{m.amount}</span>
           <b>{formatPrice(order.total)}</b>
         </div>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Messages } from "@/lib/i18n";
-import { HERO_ITEMS, formatPrice } from "@/lib/menu";
+import { formatPrice } from "@/lib/menu";
 import { nextStatus, shortId, type Order, type OrderStatus } from "@/lib/orders";
 import { getZone } from "@/lib/zones";
 
@@ -16,13 +16,6 @@ interface Props {
   onStatus: (status: OrderStatus, reason?: string) => void;
 }
 
-function accentOf(o: Order): string {
-  for (const it of o.items) {
-    const h = HERO_ITEMS.find((m) => m.id === it.id);
-    if (h) return h.accent;
-  }
-  return "var(--kraft)";
-}
 function timeOf(iso: string): string {
   return new Date(iso).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" });
 }
@@ -38,7 +31,6 @@ export default function OrderCard({ t, order: o, unseen, fresh, busy, onSeen, on
   return (
     <article
       className={"ocard" + (unseen ? " unseen" : "") + (fresh ? " fresh" : "") + (done ? " done" : "")}
-      style={{ "--acc": accentOf(o) } as React.CSSProperties}
       data-id={o.id}
     >
       <div className="ohead">
@@ -63,14 +55,14 @@ export default function OrderCard({ t, order: o, unseen, fresh, busy, onSeen, on
           <div key={i}>
             <b>{it.qty}×</b>
             <span>{it.name}</span>
-            <span className="font-mono text-sm text-dim">{formatPrice(it.price * it.qty)}</span>
+            <span className="font-display text-sm text-dim">{formatPrice(it.price * it.qty)}</span>
             {it.note ? <small>↳ {it.note}</small> : null}
           </div>
         ))}
         {o.note ? (
           <div>
             <b>!</b>
-            <span className="text-kraft">
+            <span className="text-cream">
               {t.note}: {o.note}
             </span>
           </div>
@@ -92,7 +84,7 @@ export default function OrderCard({ t, order: o, unseen, fresh, busy, onSeen, on
       </div>
       {o.type === "delivery" && o.address ? <p className="m-0 text-sm text-dim">{o.address}</p> : null}
       {o.status === "cancelled" && o.cancel_reason ? (
-        <p className="m-0 text-sm text-ember">
+        <p className="m-0 text-sm text-cream">
           {t.cancelReason}: {o.cancel_reason}
         </p>
       ) : null}

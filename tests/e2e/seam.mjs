@@ -9,9 +9,18 @@ await p.waitForFunction(() => !document.querySelector(".pre"), null, { timeout: 
 await p.waitForTimeout(600);
 const frameAt = async (pr) => {
   await p.evaluate((v) => { const max = document.documentElement.scrollHeight - window.innerHeight; window.scrollTo(0, v >= 1 ? max - 5 : Math.round(v * max)); }, pr);
-  await p.waitForTimeout(1800);
-  return p.$$eval(".item", (els) => els.map((e) => e.style.transform + "|" + e.style.opacity + "|" + e.style.filter));
+  /* yerleşmeyi bekle: iki ardışık örnek aynıysa kare sabit (döngü + rAF yumuşatma sabit süreye bağlanmaz) */
+  let prev = "", cur = "";
+  for (let i = 0; i < 20; i++) {
+    await p.waitForTimeout(300);
+    cur = JSON.stringify(await sample());
+    if (cur === prev && i >= 4) break;
+    prev = cur;
+  }
+  return JSON.parse(cur);
 };
+const sample = () =>
+  p.$$eval(".item", (els) => els.map((e) => e.style.transform + "|" + e.style.opacity + "|" + e.style.filter));
 const f0 = await frameAt(0);
 const f1 = await frameAt(1);
 let same = 0, diff = [];
