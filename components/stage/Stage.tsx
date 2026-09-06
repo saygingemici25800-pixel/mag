@@ -202,7 +202,7 @@ export default function Stage({ extra }: { extra?: ExtraCutouts }) {
       st("beam", "opacity", f.aura);
       st("lamp", "opacity", f.aura);
       /* havuz ışığı burgerle birlikte kayar */
-      st("pool", "transform", `translateX(${f.poolX.toFixed(1)}px)`);
+      st("pool", "transform", `translate(${f.poolX.toFixed(1)}px, ${f.poolY.toFixed(1)}px)`);
       st("cta", "opacity", f.cta);
       st("cta", "pointer-events", f.cta > 0.5 ? "auto" : "none");
 
