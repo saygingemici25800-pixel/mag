@@ -819,3 +819,93 @@ select.ctl {
     display: none;
   }
 }
+
+/* ---- "YANINDA İYİ GİDER" (sepet özeti altında) ----
+   Mobil: tek satır yatay kaydırma. ≥1024px: 4'lü ızgara. Mor yüzey, limon vurgular. */
+/* Kaydırılabilir liste kapsayıcıyı genişletmesin: grid/flex çocukları varsayılan min-width:auto ile
+   içeriğe göre büyür ve taşma en üste kadar yayılır. Zincirdeki her halkayı 0'a sabitliyoruz. */
+.ord form,
+.ord form > div,
+.cartpane2 {
+  min-width: 0;
+}
+.upsell {
+  min-width: 0;
+  max-width: 100%;
+  margin-top: 18px;
+  padding: 16px 14px 18px;
+  border: 1px solid color-mix(in srgb, var(--cream) 14%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+}
+.upsell-h {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  color: var(--cream);
+  margin: 0 0 12px;
+}
+.upsell-list {
+  min-width: 0;
+  max-width: 100%;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.upsell-list::-webkit-scrollbar {
+  display: none;
+}
+.upsell-card {
+  flex: 0 0 132px;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--cream) 12%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--cream) 4%, transparent), transparent);
+}
+.upsell-card .pimg {
+  width: 100%;
+  height: 72px;
+  border-radius: 8px;
+}
+.upsell-name {
+  font-size: 0.82rem;
+  line-height: 1.3;
+  color: var(--cream);
+}
+.upsell-price {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  color: var(--accent);
+}
+.upsell-add {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 0.62rem;
+}
+.upsell-card .qty {
+  align-self: stretch;
+  justify-content: space-between;
+}
+@media (min-width: 1024px) {
+  /* masaüstü: 4'lü ızgara (kaydırma yok) */
+  .upsell-list {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    overflow: visible;
+  }
+  .upsell-card {
+    flex: initial;
+  }
+}

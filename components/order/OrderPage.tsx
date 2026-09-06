@@ -9,6 +9,7 @@ import { itemDesc, itemName } from "@/lib/i18n";
 import { MENU, formatPrice, type Category, type MenuItem } from "@/lib/menu";
 import { useClockMinute } from "@/lib/useClock";
 import CartBar from "./CartBar";
+import Upsell from "./Upsell";
 import Ingredients from "./Ingredients";
 import ProductImage from "./ProductImage";
 import ProductSheet from "./ProductSheet";
@@ -134,6 +135,8 @@ export default function OrderPage() {
           ))}
         </div>
       </div>
+      {/* "YANINDA İYİ GİDER" — listenin sonunda, sepet çubuğunun üstünde; boş sepette görünmez */}
+      <Upsell />
       {sheet ? <ProductSheet item={sheet} onClose={closeSheet} onAdded={noop} /> : null}
       <CartBar />
     </main>
