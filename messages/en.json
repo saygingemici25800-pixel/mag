@@ -251,7 +251,10 @@
     "backToMenu": "Back to menu",
     "emptyGo": "Go to menu",
     "ingredients": "Ingredients",
-    "sheetClose": "Close"
+    "sheetClose": "Close",
+    "upsellTitle": "GOES WELL WITH",
+    "less": "decrease",
+    "more": "increase"
   },
   "track": {
     "metaTitle": "Order tracking",

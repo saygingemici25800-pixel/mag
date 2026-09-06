@@ -12,6 +12,7 @@ import { computeTotals, findMenuItem, formatPrice, normalizePhone, type OrderTyp
 import { useClockMinute } from "@/lib/useClock";
 import { ZONES, getZone } from "@/lib/zones";
 import MinCartInfo from "./MinCartInfo";
+import Upsell from "./Upsell";
 import "./order.css";
 
 const fmt = (s: string, vars: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ""));
@@ -152,6 +153,9 @@ export default function CheckoutPage() {
     </section>
   );
 
+  /* "YANINDA İYİ GİDER" — özet kartının altında; boş sepette görünmez */
+  const upsell = items.length > 0 ? <Upsell /> : null;
+
   return (
     <main className="ord">
       <div className="mx-auto max-w-5xl">
@@ -175,7 +179,10 @@ export default function CheckoutPage() {
               submit();
             }}
           >
-            <div className="lg:hidden">{summary}</div>
+            <div className="lg:hidden">
+              {summary}
+              {upsell}
+            </div>
 
             <section className="flex flex-col gap-4">
               <h2 className="ord-h" style={{ fontSize: "1.3rem" }}>
@@ -256,7 +263,10 @@ export default function CheckoutPage() {
             </button>
           </form>
           <aside className="hidden lg:block">
-            <div className="sticky top-24">{summary}</div>
+            <div className="sticky top-24">
+              {summary}
+              {upsell}
+            </div>
           </aside>
         </div>
       </div>

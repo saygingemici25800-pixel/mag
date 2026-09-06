@@ -175,7 +175,10 @@
     "backToMenu": "Menüye dön",
     "emptyGo": "Menüye git",
     "ingredients": "İçindekiler",
-    "sheetClose": "Kapat"
+    "sheetClose": "Kapat",
+    "upsellTitle": "YANINDA İYİ GİDER",
+    "less": "azalt",
+    "more": "artır"
   },
   "track": {
     "title": [

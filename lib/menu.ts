@@ -18,6 +18,8 @@ export interface MenuItem {
   layers?: string[];
   /** "Şununla iyi gider" — ürün sheet'inde öneri çipleri (id) */
   pairs?: string[];
+  /** Sepet/ödeme sayfasındaki "YANINDA İYİ GİDER" bölümünde öne çıkar */
+  upsell?: boolean;
 }
 
 export interface HeroItem extends MenuItem {
@@ -138,6 +140,7 @@ export const MENU: Record<Category, MenuItem[]> = {
   yan: [
     { id: "patates", pairs: ["truflu-mayonez", "sweet-chili"], name: "Patates kızartması (el yapımı)", price: 300 },
     { id: "patates-parmesan", pairs: ["mag-sos", "jalapeno-sos"], name: "Patates kızartması (parmesanlı)", price: 350 },
+    { id: "sogan-halkasi", name: "Soğan halkası", price: 220, upsell: true }, // AÇIK: fiyat ve porsiyon işletmeden teyit edilecek
   ],
   sos: [
     // 50 ₺
@@ -145,6 +148,8 @@ export const MENU: Record<Category, MenuItem[]> = {
     { id: "jalapeno-sos", name: "Jalapeno", price: 50 },
     { id: "sweet-chili", name: "Sweet & chili", price: 50 },
     { id: "mag-sos", name: "Mag sos", price: 50 },
+    { id: "ekstra-cheddar-sos", name: "Ekstra cheddar sos", price: 50, upsell: true }, // AÇIK: fiyat işletmeden teyit edilecek
+    { id: "tutsu-biberli-aioli", name: "Tütsü biberli aioli", price: 50, upsell: true }, // AÇIK: fiyat işletmeden teyit edilecek
   ],
   icecek: [
     { id: "ayran", name: "Arslan ayran", price: 90 },
@@ -153,8 +158,21 @@ export const MENU: Record<Category, MenuItem[]> = {
     { id: "soda", name: "Soda", price: 70 },
     { id: "zencefilli-gazoz", name: "Zencefilli gazoz", price: 190 },
     { id: "alkolsuz-bira", name: "Alkolsüz bira", price: 190 },
+    { id: "salgam", name: "Şalgam", price: 90, upsell: true }, // AÇIK: fiyat ve acılı/acısız seçeneği işletmeden teyit edilecek
+    { id: "kola", name: "Kola", price: 110, upsell: true }, // AÇIK: fiyat ve marka işletmeden teyit edilecek
+    { id: "limonata", name: "Limonata", price: 130, upsell: true }, // AÇIK: fiyat ve ev yapımı olup olmadığı işletmeden teyit edilecek
   ],
 };
+
+/** "YANINDA İYİ GİDER" — sepette önerilen içecek / sos / yan ürünler (sıra: içecek → yan → sos).
+    Fiyat ve içerik AÇIK: işletmeden teyit edilecek (lib/menu.ts içindeki satır yorumları). */
+export const UPSELL_IDS = ["ayran", "salgam", "kola", "limonata", "patates", "sogan-halkasi", "ekstra-cheddar-sos", "tutsu-biberli-aioli"] as const;
+
+/** Öneri listesi — menü sırasına değil UPSELL_IDS sırasına uyar */
+export function upsellItems(): MenuItem[] {
+  const all = [...MENU.icecek, ...MENU.yan, ...MENU.sos];
+  return UPSELL_IDS.map((id) => all.find((m) => m.id === id)).filter((m): m is MenuItem => Boolean(m));
+}
 
 export const CATEGORY_LABELS: Record<Category, string> = {
   burger: "Burger",
