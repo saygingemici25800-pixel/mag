@@ -501,7 +501,9 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
       opacity: Math.max(0, outro ? op : op * (1 - upT)).toFixed(3),
       /* karartma filtreyle değil: siyah silüet üstünde görsel opaklığı */
       bright: Math.round(Math.min(1, brc) * 1000) / 1000,
-      refl: a < 2.5,
+      /* Yansıma yalnızca hero/yelpazede: iddia akışında kart DÖNÜYOR ve blur(7px) yansıma her karede
+         yeniden rasterleniyordu (ölçüm: masaüstü p95 33 → 50 ms). Akışta zemin havuzu zaten var. */
+      refl: a < 2.5 && claimsT === 0 && tPay === 0,
       /* filtre yalnızca yelpazede yan slotlar için (doygunluk/bulanıklık); parlaklık artık opaklıkta */
       filter: satq < 0.99 || bl >= 0.4 ? (satq < 0.99 ? "saturate(" + satq.toFixed(2) + ")" : "") + (bl >= 0.4 ? " blur(" + blq.toFixed(1) + "px)" : "") : "none",
       z: Math.round(10 - Math.min(a, 4)), // referans: z = 10 − |p|
