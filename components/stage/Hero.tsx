@@ -2,9 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { HeroId } from "@/lib/menu";
-import type { SliceMeta } from "@/lib/dilim-paths";
 import { CUTOUTS, CUTOUTS_M, type ExtraCutouts } from "./cutouts";
-import Slices from "./Slices";
 import type { Bind } from "./Arc";
 
 /**
@@ -88,7 +86,7 @@ export function Lamp({ bind }: { bind: Bind }) {
 export function HeroLights({ bind }: { bind: Bind }) {
   return (
     <div className="beam" ref={bind("beam")} aria-hidden="true">
-      <div className="pool" />
+      <div className="pool" ref={bind("pool")} />
     </div>
   );
 }
@@ -177,7 +175,7 @@ export function HeroBar({ index, count, bind }: { index: number; count: number; 
 /* ---- Kart: siyah silüet (maske) + görsel (opaklık = parlaklık) + bulanık yansıma; referans yapı ----
    Karartma FİLTRE İLE DEĞİL: .sil siyah div görselle maskelenir, üstündeki .img'in opaklığı parlaklıktır.
    Konum (transform) ve parlaklık Stage.render'dan; --srcD/--srcM maske ve yansıma için (mobilde küçük kopya). */
-export function Card({ id, name, focus, slot, ar, extra, meta, bind, hasImg, alt }: { id: HeroId; name: string; focus: boolean; slot: number; ar: number; extra?: ExtraCutouts; meta?: SliceMeta; bind: Bind; hasImg: boolean; alt: string }) {
+export function Card({ id, name, focus, slot, ar, extra, bind, hasImg, alt }: { id: HeroId; name: string; focus: boolean; slot: number; ar: number; extra?: ExtraCutouts; bind: Bind; hasImg: boolean; alt: string }) {
   const st = CUTOUTS[id];
   const m = CUTOUTS_M[id];
   const ex = extra?.[id];
@@ -200,7 +198,6 @@ export function Card({ id, name, focus, slot, ar, extra, meta, bind, hasImg, alt
               <div className="rimg" ref={bind(`rimg${slot}`)} />
             </div>
           </div>
-          {meta ? <Slices id={id} meta={meta} bind={bind} /> : null}
         </>
       ) : (
         <div className="ph" role={alt ? "img" : undefined} aria-label={alt || undefined}>

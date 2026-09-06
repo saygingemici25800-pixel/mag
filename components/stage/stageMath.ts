@@ -111,21 +111,21 @@ export interface ItemStyle {
   z: number;
 }
 
-/** İddia → dilim eşlemesi (dilimler üstten alta 0..3: üst ekmek, malzeme, köfte-peynir, alt ekmek).
-    Metin sırası CLAIMS içeriğinden: KIYMA → köfte, BRIOCHE → üst ekmek, PEYNİR → köfte-peynir, SOS → malzeme. */
-export const CLAIM_SLICE = [2, 0, 2, 1] as const;
-/** Dilimlerin dikey kayması, görsel yüksekliğinin oranı × SLICE_GAP (CSS --gap ile aynı: 4.6%, mobil 3.2%) */
-export const SLICE_SHIFT = [-1.6, -0.55, 0.55, 1.6] as const;
-/** Dilim geçişi süresi (CSS ile aynı) */
-export const SLICE_MS = 800;
+/* ---- İddia bölümü: tek planda yatay akış (burger BÜTÜN, katman/parçalanma yok) ---- */
+/** Aşama başına yatay merkez konumu, viewport genişliğinin oranı (+ sağ). Mobilde yarısı. */
+export const CLAIM_X = [0.26, 0.14, -0.14, -0.26] as const;
+/** Aşama başına dönüş (derece), c0 → c3 doğrusal */
+export const CLAIM_ROT = [-2, -0.667, 0.667, 2] as const;
+/** Ölçek: kenarlarda 1.0, ortada 1.03 */
+export const CLAIM_SCALE = [1, 1.03, 1.03, 1] as const;
+/** Metin geçişi (CSS ile aynı) */
+export const CLAIM_TEXT_MS = 420;
 
-export interface SlicesFrame {
-  /** aralık açık: dilimler bu karede fotoğrafın yerinde ve açık (Stage kapanış geçişi için 800 ms daha gösterir) */
-  open: boolean;
-  /** iddia bölgesi civarı — kapanış geçişi sırasında dilimlerin kalabileceği aralık */
-  near: boolean;
-  /** aktif dilim 0..3 */
-  active: number;
+export interface ClaimFlow {
+  /** akış etkin: iddia bölümündeyiz (c0..c3) */
+  on: boolean;
+  /** metin tarafı: c0/c1 sol, c2/c3 sağ */
+  side: "left" | "right";
 }
 
 /** Ok geçişi: 480 ms, cubic-bezier(.22,1,.28,1) */
@@ -176,10 +176,12 @@ export interface Frame {
   panelVeil: number;
   /** ilerleme çubuğu + sayaç opaklığı */
   track: number;
+  /** havuz ışığının yatay kayması (px) — burger nereye giderse ışık da oraya */
+  poolX: number;
   /** sağ alt "Sipariş ver" pill'i: dive'dan itibaren, kapanışta kaybolur */
   cta: number;
-  /** iddia bölümü: fotoğrafın dilimleri (yalnızca meta.json'da olan üründe) */
-  slices: SlicesFrame;
+  /** iddia bölümü: yatay akış (metin tarafı) */
+  flow: ClaimFlow;
 }
 
 export interface Env {
@@ -187,8 +189,6 @@ export interface Env {
   vh: number;
   /** slot başına en/boy oranı (kart içindeki contain kutusu) ve görsel ağırlık merkezi cx (lib/cutCenters.json) */
   slots?: { ar: number; cx: number }[];
-  /** odaktaki ürünün dört dilimi var → iddia bölümünde fotoğraf yerine dilimler */
-  sliced?: boolean;
 }
 
 export function heroSpacing(vw: number): number {
@@ -285,16 +285,23 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   const tOut = seg(p, S.out1[0], S.out2[1]); // tüm kapanış
   const outro = p >= S.foot[0]; // BİZE KATIL'dan itibaren burger barın altından görünür
 
-  /* ---- dilimler: takas noktaları ----
-     Fotoğraf → dilim takası c0 başladıktan biraz sonra (P_IN), dilim → fotoğraf c3 bitmeden biraz
-     önce (P_OUT). Dilimler fotoğrafın kendisi olduğu için takas görünmez; [c0[0], P_IN] bandında
-     yalnızca döndürme 0'a iner ki ışık elipsi düz dursun. Aralık/ışık geçişleri CSS'te (800 ms). */
-  const sliced = Boolean(env.sliced) && !outro;
-  const P_IN = S.c0[0] + 0.02 * cK;
-  const P_OUT = S.c3[1] - 0.02 * cK;
-  const tIn = seg(p, S.c0[0], P_IN);
-  const slicesOpen = sliced && p >= P_IN && p < P_OUT;
-  const slicesNear = sliced && p >= S.c0[0] - 0.01 * cK && p < S.c3[1] + 0.01 * cK;
+  /* ---- iddia bölümü: yatay akış ----
+     Burger sağdan girer, aşama aşama sola akar (CLAIM_X), hafifçe döner (CLAIM_ROT), ölçek 1→1.03→1.
+     Aralar scroll'a bağlı sürekli: aşama merkezleri arasında smooth() ile geçilir, kademe yok. */
+  const claimsOn = claimsT > 0 && claimsT < 1 && !outro;
+  /* aşama ekseni: c0 merkezi 0, c3 merkezi 3 — segment sınırlarına göre sürekli konum */
+  const cSpan = (S.c3[1] - S.c0[0]) / 4;
+  const flowT = clamp((p - (S.c0[0] + cSpan / 2)) / (cSpan * 3)) * 3; // 0..3 arası sürekli
+  const fi = Math.min(2, Math.floor(flowT));
+  const ft = smooth(clamp(flowT - fi));
+  const xk = mobile ? 0.5 : 1; // mobilde yatay mesafe yarıya
+  const flowX = lerp(CLAIM_X[fi], CLAIM_X[fi + 1], ft) * vw * xk;
+  const flowRot = lerp(CLAIM_ROT[fi], CLAIM_ROT[fi + 1], ft);
+  const flowSc = lerp(CLAIM_SCALE[fi], CLAIM_SCALE[fi + 1], ft);
+  /* Akış boyunca ölçek TABANI sabit: en uçtaki aşama (|x| en büyük, dönüş en büyük) viewport'a sığmalı.
+     Taban aşamalara göre değişseydi ölçek 1→1.03 yerine sığma kısıtıyla dalgalanırdı. */
+  const flowExtreme = Math.max(...CLAIM_X.map((v) => Math.abs(v))) * vw * xk;
+  const flowRotMax = (Math.max(...CLAIM_ROT.map((v) => Math.abs(v))) * Math.PI) / 180;
   if (tOut > 0) upT = upT * (1 - ease(Math.min(tOut1 * 1.6, 1)));
 
   /* background */
@@ -352,10 +359,12 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
 
     if (tDive > 0) {
       // odak pozu (w=1) ile kenara kaçış (w=0) arasında harmanla — geçiş ortasında iki poz karışır
-      const fx = lerp(x, mobile ? 0 : vw * 0.2, diveE);
+      /* dalışın hedefi = akışın ilk aşama konumu (c0): iddia bölümüne sıçramasız girsin */
+      const fx = lerp(x, CLAIM_X[0] * vw * xk, diveE);
       const fy = lerp(y, claimY, diveE);
       const fsc = lerp(sc, mobile ? 1.95 : 2.25, diveE);
-      const frot = lerp(rot, -4, diveE);
+      /* dalışın hedef dönüşü = akışın ilk aşaması (−2°): iddiaya girerken dönüş sıçraması olmaz */
+      const frot = lerp(rot, CLAIM_ROT[0], diveE);
       const fbr = lerp(br, 1, diveE);
       const sx = lerp(x, x + (t < 0 ? -vw * 0.75 : vw * 0.75), diveE);
       const sop = lerp(op, 0, Math.min(diveE * 1.7, 1));
@@ -368,27 +377,21 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
       op = lerp(sop, 1, focusW);
     }
     if (focusW > 0 && claimsT > 0) {
-      if (sliced) {
-        /* Dilim pozu: dalışın bitiş pozu DONDURULUR (y, ölçek, parlaklık sabit) — dilimler fotoğrafın
-           kutusunda durur, iddialar boyunca kutu kımıldamaz. Yalnızca döndürme takasa kadar 0'a iner. */
-        y = lerp(y, claimY, focusW);
-        sc = lerp(sc, mobile ? 1.95 : 2.25, focusW);
-        br = lerp(br, 1, focusW);
-        rot = lerp(rot, lerp(-4, 0, tIn), focusW);
-      } else {
-        y = lerp(y, lerp(claimY, claimY - vh * 0.02, claimsT), focusW);
-        sc = lerp(sc, lerp(mobile ? 1.95 : 2.25, mobile ? 2.1 : 2.45, claimsT), focusW);
-        br = lerp(br, lerp(1, 0.34, Math.min(claimsT * 1.4, 1)), focusW);
-        rot = lerp(rot, lerp(-4, -7, claimsT), focusW);
-      }
+      /* Tek plan: yatay akış. Dikey sabit (claimY), ölçek ~1, hafif dönüş; parlaklık tam (karartma yok).
+         Yatay konum aşağıda, ağırlık merkezi düzeltmesinden SONRA kilitlenir (hedef = görselin merkezi). */
+      x = lerp(x, flowX, focusW);
+      y = lerp(y, claimY, focusW);
+      sc = lerp(sc, (mobile ? 1.95 : 2.25) * flowSc, focusW);
+      br = lerp(br, 1, focusW);
+      rot = lerp(rot, flowRot, focusW);
     }
     if (focusW > 0 && tPay > 0) {
-      /* manifestoya giriş, iddiaların bitiş pozundan başlar: dilimli üründe dondurulmuş poz */
-      const fy = sliced ? claimY : claimY - vh * 0.02;
-      const fsc = sliced ? (mobile ? 1.95 : 2.25) : mobile ? 2.1 : 2.45;
-      const frot = sliced ? 0 : -7;
-      const fbr = sliced ? 1 : 0.34;
-      x = lerp(x, lerp(mobile ? 0 : vw * 0.2, 0, payE), focusW);
+      /* manifestoya giriş, akışın bitiş pozundan (c3) başlar */
+      const fy = claimY;
+      const fsc = (mobile ? 1.95 : 2.25) * CLAIM_SCALE[3];
+      const frot = CLAIM_ROT[3];
+      const fbr = 1;
+      x = lerp(x, lerp(CLAIM_X[3] * vw * xk, 0, payE), focusW);
       y = lerp(y, lerp(fy, vh * 0.44, payE), focusW);
       sc = lerp(sc, lerp(fsc, 1.3, payE), focusW);
       rot = lerp(rot, lerp(frot, 0, payE), focusW);
@@ -442,23 +445,40 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
       bl = lerp(sBl, cBl, focusW);
       op = lerp(sOp, 1, focusW);
     }
-    /* Dilimli üründe fotoğraf (= dilimler) dalıştan manifestoya kadar viewport'a SIĞMALI: hiçbir dilim
-       taşmaz. Kutu merkezi ağırlık düzeltmesiyle kayar (aşağıdaki satır), açıkken translateX(-2%) +
-       rotate(-1.4°) ~%4 pay ister; ölçek min(poz, sığan) — sürekli, sıçrama yok. */
-    if (i === CENTER && sliced && (tDive > 0 || claimsT > 0) && tRange === 0) {
-      const slotC = env.slots?.[i];
+    /* Burger dalıştan manifestoya kadar viewport'a SIĞMALI: hiçbir karede kırpılmaz. Kutu merkezi
+       ağırlık düzeltmesiyle kayar (aşağıdaki satır), dönüş ~%2 pay ister; ölçek min(poz, sığan) — sürekli. */
+    if (i === CENTER && (tDive > 0 || claimsT > 0) && tRange === 0) {
+      /* Hedef konum: akıştayken görselin merkezi flowX (ağırlık düzeltmesinden bağımsız), dışında mevcut x.
+         Dönüş de yatayda yer ister (görsel köşeleri): yarı genişlik |cos| + yarı yükseklik |sin| ile büyür. */
+      /* dalış + akış: aynı sabit taban (geçişte ölçek sıçraması ve kenar taşması olmasın) */
+      const inFlow = (claimsT > 0 || tDive > 0) && claimsT < 1 && tPay === 0;
       const w = hOld * slotAr(i);
-      const cxk = slotC ? 0.5 - slotC.cx : 0;
       const M = mobile ? 10 : 16;
-      const half = 0.52;
-      const right = (vw / 2 - M - x) / (w * (cxk + half));
-      const left = (vw / 2 + x - M) / (w * (half - cxk));
-      sc = Math.min(sc, right, left);
+      /* akışta: en uç aşamaya göre sabit taban (dolayısıyla aşamalar arası ölçek yalnızca CLAIM_SCALE'den gelir);
+         dışında: mevcut konuma göre. Yarı genişlik = yarı genişlik·|cos θ| + yarı yükseklik·|sin θ|. */
+      /* Dalıştan akışa geçişte (claimsT küçük) dönüş henüz −4°'den sönüyor: gerçek dönüşle akış
+         ucundan büyük olanı al ki o karelerde de kırpılma olmasın. */
+      const cxTarget = inFlow ? Math.max(flowExtreme, Math.abs(x)) : Math.abs(x);
+      const th2 = inFlow ? Math.max(flowRotMax, Math.abs((rot * Math.PI) / 180)) : Math.abs((rot * Math.PI) / 180);
+      const halfW = (w / 2) * Math.cos(th2) + (hOld / 2) * Math.sin(th2);
+      const room = vw / 2 - M - cxTarget;
+      /* sığma tabanı akışta CLAIM_SCALE'i içermez: taban × flowSc ≤ sığan olacak şekilde */
+      sc = Math.min(sc, (room / halfW) * (inFlow ? flowSc : 1));
     }
     /* görsel ağırlık merkezi düzeltmesi: (0.5 − cx) × görselGenişliği × ölçek.
-       Smooky gibi tek yana taşan cutout'lar kutu merkezine göre değil, göze göre ortalanır. */
+       Tek yana taşan cutout'lar kutu merkezine göre değil, göze göre ortalanır.
+       İddia akışında hedef konum GÖRSELİN merkezidir: düzeltme uygulanır, sonra hedefe kilitlenir. */
     const slot = env.slots?.[i];
     if (slot) x += (0.5 - slot.cx) * hOld * slot.ar * sc * (1 - heroW);
+    if (i === CENTER && focusW > 0 && (claimsT > 0 || diveE > 0) && claimsT < 1 && tPay === 0) {
+      /* dönüş görselin merkezini yatayda kaydırır (kart origin'i alt-orta): telafi et.
+         Kaydırma = d·sin(θ), d = görsel yüksekliğinin yarısı. */
+      const dRot = ((sc * hOld) / 2) * Math.sin((rot * Math.PI) / 180);
+      /* dalışta hedef akışın ilk aşaması; kilit dalış ilerledikçe (diveE) devreye girer, sıçrama yok */
+      const target = claimsT > 0 ? flowX : CLAIM_X[0] * vw * xk;
+      const lock = claimsT > 0 ? 1 : diveE;
+      x = lerp(x, target + dRot, focusW * lock);
+    }
 
     const brc = Math.max(0, Math.min(1.2, br)); /* alt sınır yok: hero yanları .07 (referans) */
     /* yan slotlar soluk: saturate(1 − a·0.3); dive/claims/pay odaktaki için a=0 → 1 */
@@ -493,6 +513,8 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   const riseE = smooth(tOut1);
   const lightIn = Math.pow(riseE, 1.8);
   const aura = tOut > 0 ? lightIn : Math.max(0, (1 - fanE * 0.72) * (1 - Math.max(payE, upT)));
+  /* havuz ışığı burgerle birlikte yatay kayar: iddia bölümünde akış konumu, dışında 0 (px) */
+  const poolX = claimsT > 0 && claimsT < 1 && !outro ? flowX : tPay > 0 ? lerp(CLAIM_X[3] * vw * xk, 0, payE) : 0;
   const cta = seg(p, S.dive[0] + 0.01, S.dive[0] + 0.05) * (1 - seg(p, S.foot[0], S.foot[0] + 0.03));
 
   /* copy */
@@ -533,10 +555,10 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   const track = tOut > 0 ? clamp((tOut2 - 0.3) / 0.5) : 1 - upT;
   const arrowsO = Math.max(heroOut, clamp((tOut2 - 0.55) / 0.4));
 
-  const slices: SlicesFrame = {
-    open: slicesOpen,
-    near: slicesNear,
-    active: ci >= 0 && ci < CLAIM_SLICE.length ? CLAIM_SLICE[ci] : CLAIM_SLICE[0],
+  const flow: ClaimFlow = {
+    on: claimsOn,
+    /* metin burgerin BOŞ tarafında: burger sağdayken (c0/c1) metin solda, sola geçince (c2/c3) sağda */
+    side: flowT < 1.5 ? "left" : "right",
   };
 
   return {
@@ -553,8 +575,9 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
     foot,
     panelVeil,
     track,
+    poolX,
     cta,
-    slices,
+    flow,
   };
 }
 
