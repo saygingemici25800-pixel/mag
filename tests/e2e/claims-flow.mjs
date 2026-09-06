@@ -1,8 +1,8 @@
 // İddia bölümü — tek planda yatay akış (burger BÜTÜN, katman/dilim yok):
 //  - burger her karede bütün, kırpılmamış, viewport içinde
-//  - aşamalara göre yatay merkez: c0 +26%, c1 +14%, c2 −14%, c3 −26% (mobilde yarısı)
+//  - dört durak: c0 (+26%,−14%) · c1 (−26%,−6%) · c2 (+22%,+4%) · c3 (−26%,+14%) — mobilde yarısı
 //  - dönüş c0 −2° → c3 +2° doğrusal; ölçek 1 → 1.03 → 1; filtre yok
-//  - metin burgerin boş tarafında (c0/c1 sol, c2/c3 sağ), hiçbir aşamada çakışma yok
+//  - metin burgerin karşı tarafında (c0 sol, c1 sağ, c2 sol, c3 sağ), hiçbir durakta çakışma yok
 //  - havuz ışığı burgerle birlikte kayar; burger ışığın dışında kalmaz
 //  - reduced-motion: burger sabit, metinler hareketsiz görünür
 //  - eski dilim/katman sistemi kaynakta yok
@@ -15,7 +15,9 @@ const base = process.argv[2] ?? "http://localhost:3112";
 const out = process.argv[3] ?? "docs/screens/akis";
 const root = process.argv[4] ?? process.env.ROOT ?? "/Users/saygin/Downloads/mag-starter";
 mkdirSync(out, { recursive: true });
-const CLAIM_X = [0.26, 0.14, -0.14, -0.26];
+const CLAIM_X = [0.26, -0.26, 0.22, -0.26];
+const CLAIM_Y = [-0.14, -0.06, 0.04, 0.14];
+const CLAIM_SIDE = ["left", "right", "left", "right"];
 const CLAIM_ROT = [-2, -0.667, 0.667, 2];
 let fail = 0;
 const check = (n, ok, x = "") => { console.log((ok ? "PASS" : "FAIL") + " " + n + (x ? " — " + x : "")); if (!ok) fail++; };
@@ -48,6 +50,7 @@ const probe = (p) => p.evaluate(() => {
   return {
     burger: vis,
     center: (vis.x0 + vis.x1) / 2 - innerWidth / 2,
+    centerY: (vis.y0 + vis.y1) / 2,
     rot: +((Math.atan2(m.b, m.a) * 180) / Math.PI).toFixed(2),
     scale: +Math.hypot(m.a, m.b).toFixed(3),
     filter: cs(item).filter,
@@ -55,6 +58,7 @@ const probe = (p) => p.evaluate(() => {
     text: t ? { x0: t.x, x1: t.right, y0: t.y, y1: t.bottom } : null,
     side: txt?.dataset.side ?? "", ci: txt?.dataset.ci ?? "", textOp: txt ? +cs(txt).opacity : 0,
     poolTf: pool ? cs(pool).transform : "none",
+    claimY: innerHeight * (innerWidth < 900 ? 0.3 : 0.46),
     rail: rail ? (() => { const q = rail.getBoundingClientRect(); return { x0: q.x, x1: q.right, y0: q.y, y1: q.bottom }; })() : null,
     vw: innerWidth, vh: innerHeight,
   };
@@ -82,21 +86,34 @@ let p = await fresh(b);
 const S = segmentsFor(false);
 const mid = [S.c0, S.c1, S.c2, S.c3].map(([a, z]) => (a + z) / 2);
 
+const ys = [];
 for (let i = 0; i < 4; i++) {
   const s = await at(p, mid[i], 1700);
   const expX = CLAIM_X[i] * s.vw;
   check(`c${i}: yatay merkez ${(CLAIM_X[i] * 100).toFixed(0)}% (±3% vw)`, Math.abs(s.center - expX) < s.vw * 0.03, `ölçülen ${s.center.toFixed(0)} px · beklenen ${expX.toFixed(0)} px`);
+  ys.push(s.centerY);
   check(`c${i}: dönüş ${CLAIM_ROT[i]}° (±0.4°)`, Math.abs(s.rot - CLAIM_ROT[i]) < 0.4, `${s.rot}°`);
   check(`c${i}: burger bütün ve kırpılmamış (viewport içinde)`, inView(s) && s.imgOpacity >= 0.99, `${s.burger.x0.toFixed(0)},${s.burger.y0.toFixed(0)}→${s.burger.x1.toFixed(0)},${s.burger.y1.toFixed(0)} vp ${s.vw}×${s.vh}`);
   check(`c${i}: filtre yok (karartma/parlaklık oyunu yok)`, s.filter === "none", s.filter);
-  const side = i < 2 ? "left" : "right";
+  const side = CLAIM_SIDE[i];
   check(`c${i}: metin ${side === "left" ? "solda" : "sağda"} (burgerin boş tarafı)`, s.side === side && s.textOp > 0.9, `taraf=${s.side} opaklık=${s.textOp}`);
   check(`c${i}: metin ikon rayıyla çakışmıyor`, !overlap(s.text, s.rail), s.text && s.rail ? `metin ${s.text.x0.toFixed(0)}–${s.text.x1.toFixed(0)} · ray ${s.rail.x0.toFixed(0)}–${s.rail.x1.toFixed(0)}` : "");
   check(`c${i}: metin burgerle çakışmıyor`, !overlap(s.text, s.burger), s.text ? `metin ${s.text.x0.toFixed(0)}–${s.text.x1.toFixed(0)} · burger ${s.burger.x0.toFixed(0)}–${s.burger.x1.toFixed(0)}` : "metin yok");
   /* havuz ışığı burgerle kayar: translateX ≈ burger merkezi */
-  const px = parseFloat(s.poolTf.match(/matrix\([^,]+,[^,]+,[^,]+,[^,]+,\s*([-\d.]+)/)?.[1] ?? "0");
-  check(`c${i}: havuz ışığı burgerle kaydı`, Math.abs(px - expX) < s.vw * 0.05, `ışık ${px.toFixed(0)} px · burger ${expX.toFixed(0)} px`);
+  const mm = s.poolTf.match(/matrix\([^,]+,[^,]+,[^,]+,[^,]+,\s*([-\d.]+),\s*([-\d.]+)\)/);
+  const px = parseFloat(mm?.[1] ?? "0"), py = parseFloat(mm?.[2] ?? "0");
+  check(`c${i}: havuz ışığı yatayda burgerle kaydı`, Math.abs(px - expX) < s.vw * 0.05, `ışık ${px.toFixed(0)} px · burger ${expX.toFixed(0)} px`);
+  check(`c${i}: havuz ışığı dikeyde burgerle kaydı`, Math.abs(py - CLAIM_Y[i] * s.vh) < s.vh * 0.05, `ışık ${py.toFixed(0)} px · beklenen ${(CLAIM_Y[i] * s.vh).toFixed(0)} px`);
 }
+/* dikey duraklar: c0 −14% → c3 +14% vh. Mutlak taban (claimY) ölçek kısıtından etkilendiği için
+   DURAKLAR ARASI FARK ölçülür: aradaki mesafe CLAIM_Y farkı × vh olmalı (±2% vh). */
+const vhPx = (await at(p, mid[0], 800)).vh;
+for (let i = 1; i < 4; i++) {
+  const expDelta = (CLAIM_Y[i] - CLAIM_Y[i - 1]) * vhPx;
+  check(`c${i - 1}→c${i}: dikey kayma ${((CLAIM_Y[i] - CLAIM_Y[i - 1]) * 100).toFixed(0)}% vh (±2%)`, Math.abs(ys[i] - ys[i - 1] - expDelta) < vhPx * 0.02, `ölçülen ${(ys[i] - ys[i - 1]).toFixed(0)} px · beklenen ${expDelta.toFixed(0)} px`);
+}
+check("burger yukarıdan aşağı indi (c0 en üstte, c3 en altta)", ys[0] < ys[3] - vhPx * 0.2, `${ys[0].toFixed(0)} → ${ys[3].toFixed(0)}`);
+
 /* ölçek: aşama başına ölçek 1 → 1.03 → 1.03 → 1 (kart ölçeği viewport'a sığma kısıtıyla da sınırlanır,
    bu yüzden mutlak değil ORAN bakılır: uçlar birbirine eşit, ortalar ~%3 büyük) */
 const sc = [];
@@ -112,8 +129,12 @@ for (let i = 0; i <= 24; i++) {
 }
 let maxStep = 0;
 for (let i = 1; i < xs.length; i++) maxStep = Math.max(maxStep, Math.abs(xs[i] - xs[i - 1]));
-check("akış sürekli (ardışık örnekler arası sıçrama < %8 vw)", maxStep < 1440 * 0.08, `en büyük adım ${maxStep.toFixed(0)} px`);
-check("burger sağdan sola aktı", xs[0] > 0 && xs[xs.length - 1] < 0, `${xs[0].toFixed(0)} → ${xs[xs.length - 1].toFixed(0)}`);
+/* Süreklilik: 24 örnekle taranan yolda tek adım, en uzun durak-arası mesafenin yarısını geçmemeli
+   (kademeli zıplama olsaydı tek örnekte tam mesafe kadar sıçrardı). */
+const legs = CLAIM_X.slice(1).map((v, i) => Math.abs(v - CLAIM_X[i]) * 1440);
+const maxLeg = Math.max(...legs);
+check("akış sürekli (tek adım < en uzun durak arasının yarısı)", maxStep < maxLeg * 0.5, `en büyük adım ${maxStep.toFixed(0)} px · en uzun ara ${maxLeg.toFixed(0)} px`);
+check("burger sağdan başlar, solda biter", xs[0] > 0 && xs[xs.length - 1] < 0, `${xs[0].toFixed(0)} → ${xs[xs.length - 1].toFixed(0)}`);
 await p.close();
 
 /* reduced-motion */
