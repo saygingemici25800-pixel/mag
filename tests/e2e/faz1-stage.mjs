@@ -10,7 +10,7 @@ await page.goto(url, { waitUntil: "load" });
 await page.waitForFunction(() => !document.querySelector(".pre"), null, { timeout: 20000 }).catch(() => {});
   await page.waitForTimeout(600);
 
-const title = async () => page.$eval("h1.big", (el) => el.textContent.trim());
+const title = async () => page.$eval("h1.hname", (el) => el.textContent.trim());
 console.log("hero title:", await title());
 
 // ok → sonraki ürün
@@ -31,7 +31,7 @@ const arrows = await page.$$eval("button.arrow", (els) =>
 console.log("arrows:", JSON.stringify(arrows));
 
 // p=0 ve p≈1 karesi: odaktaki item transform'u aynı mı?
-const tf = async () => page.$eval(".item:nth-child(3)", (e) => e.style.transform + " | " + e.style.filter + " | " + e.style.opacity);
+const tf = async () => page.$eval(".item.focus", (e) => e.style.transform + " | " + e.style.filter + " | " + e.style.opacity);
 const t0 = await tf();
 await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight - window.innerHeight - 5));
 await page.waitForTimeout(1800);

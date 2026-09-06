@@ -21,7 +21,8 @@ const at = async (pr, settle = 1500) => {
     const tf = f?.style.transform ?? "";
     return {
       focusOp: parseFloat(f?.style.opacity ?? "0"),
-      y: parseFloat(tf.match(/translate\([-\d.]+px,\s*([-\d.]+)px\)/)?.[1] ?? "0"),
+      /* kart transform'u: translate(calc(-50% + Xpx),Ypx) — Y kartın hero dinlenme konumuna göre (hero'da −lift ≈ 0) */
+      y: parseFloat(tf.match(/translate\(calc\(-50% \+ [-\d.]+px\),\s*([-\d.]+)px\)/)?.[1] ?? "0"),
       scale: parseFloat(tf.match(/scale\(([\d.]+)\)/)?.[1] ?? "0"),
       faqOp: parseFloat(document.querySelector(".scFaq")?.style.opacity ?? "0"),
       footOp: parseFloat(document.querySelector(".scFoot")?.style.opacity ?? "0"),
@@ -35,7 +36,7 @@ const at = async (pr, settle = 1500) => {
 /* İlk örnek uzak bir sıçrama sonrası geliyor; sahne yumuşatması (cur += (target-cur)*0.12)
    geç oturuyor, bu yüzden daha uzun bekle. */
 const foot = await at(0.895, 3000);
-check("BİZE KATIL'da burger aşağıda", foot.y > 400, `y=${foot.y}`);
+check("BİZE KATIL'da burger aşağıda (hero konumunun ≥120 px altında)", foot.y > 120, `y=${foot.y}`);
 
 // out1 ortası → burger yükseliyor, SSS paneli çekilmiş olmalı
 const mid = await at(0.94);
@@ -47,7 +48,7 @@ check("kapanışta katmanlar değil FOTOĞRAF", !mid.explodeShown, `yığın çi
 
 // out1 sonu → hero pozuna oturmuş
 const top = await at(0.957);
-check("burger hero pozuna oturdu", Math.abs(top.scale - 1.14) < 0.06, `scale=${top.scale}`);
+check("burger hero pozuna oturdu (odak ölçeği 1, referans)", Math.abs(top.scale - 1) < 0.06 && Math.abs(top.y) < 6, `scale=${top.scale} y=${top.y}`);
 
 // out2 → yanlarda diğerleri belirir
 const sides = await at(0.98);

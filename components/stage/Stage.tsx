@@ -6,21 +6,19 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { useLocale, useT } from "@/components/LocaleProvider";
 import { itemDesc, localePath } from "@/lib/i18n";
 import type { SliceMap } from "@/lib/dilim";
-import type { ExtraCutouts } from "./cutouts";
-import { HERO_ITEMS, splitTitle } from "@/lib/menu";
+import { heroProducts, type ExtraCutouts } from "./cutouts";
+import { splitTitle } from "@/lib/menu";
 import { playStage, playSwitch, warmAudio } from "@/lib/sound";
 import Arc from "./Arc";
-import BigTitle from "./BigTitle";
 import Claims from "./Claims";
-import LightRays from "./LightRays";
+import Hero from "./Hero";
 import Outro from "./Outro";
 import CUT_CENTERS from "@/lib/cutCenters.json";
 import { LOGO } from "./logo";
 import Preloader from "./Preloader";
 import { useLoadProgress } from "./useLoadProgress";
 import StaticFallback from "./StaticFallback";
-import CrossFade from "./CrossFade";
-import { CENTER, N, SLICE_MS, SLIDE_MS, computeFrame, slideEase } from "./stageMath";
+import { CENTER, DEFAULT_ASPECT_MATH, N, SLICE_MS, SLIDE_MS, computeFrame, slideEase } from "./stageMath";
 import { useScrollProgress } from "./useScrollProgress";
 import "./stage.css";
 
@@ -36,6 +34,9 @@ type El = HTMLElement | null;
 export default function Stage({ slices, extra }: { slices?: SliceMap; extra?: ExtraCutouts }) {
   const t = useT();
   const locale = useLocale();
+  /* sahnede dönen ürünler: menu.ts'ten fotoğrafı olanlar (şu an 5; fotoğraf gelince kendiliğinden büyür) */
+  const list = heroProducts(extra);
+  const count = list.length;
   const [active, setActive] = useState(0); // slot dizilimi (geçiş bitince kayar)
   const [shown, setShown] = useState(0); // başlık / harfler / aksan: geçiş başlar başlamaz hedef ürün
   const [ci, setCi] = useState(-1);
@@ -105,21 +106,14 @@ export default function Stage({ slices, extra }: { slices?: SliceMap; extra?: Ex
     return () => mq.removeEventListener("change", on);
   }, []);
 
-  /* Kare içinde layout okuması yok: odaktaki cutout ölçüsü resize'da, ürün değişiminde ve görsel yüklenince cache'lenir */
-  const cut = useRef({ ch: 0, cw: 0 });
-  /** slot başına görsel genişliği + ağırlık merkezi (cutCenters.json); resize/görsel yüklenince ölçülür */
-  const slotBoxes = useRef<{ w: number; cx: number }[]>([]);
+  /** slot başına en/boy oranı (kart içindeki contain kutusu; data-ar) + görsel ağırlık merkezi (cutCenters.json) — layout okuması yok */
+  const slotBoxes = useRef<{ ar: number; cx: number }[]>([]);
   const styleCache = useRef(new Map<string, string>());
   const measureCutout = useCallback(() => {
-    const img = dom.get("centerImg") as HTMLImageElement | null;
-    /* takas sırasında fotoğraf display:none → 0 okunur; eski ölçüyü koru */
-    if (!img || !img.clientHeight) return;
-    cut.current = { ch: img.clientHeight, cw: img.clientWidth };
     slotBoxes.current = Array.from({ length: N }, (_, i) => {
       const el = dom.get(`item${i}`);
-      const media = el?.querySelector("img, .ph") as HTMLElement | null;
       const id = el?.dataset.k ?? "";
-      return { w: media?.clientWidth ?? 0, cx: (CUT_CENTERS as Record<string, { cx: number }>)[id]?.cx ?? 0.5 };
+      return { ar: parseFloat(el?.dataset.ar ?? "") || DEFAULT_ASPECT_MATH, cx: (CUT_CENTERS as Record<string, { cx: number }>)[id]?.cx ?? 0.5 };
     });
   }, [dom]);
   useEffect(() => {
@@ -132,20 +126,15 @@ export default function Stage({ slices, extra }: { slices?: SliceMap; extra?: Ex
     return () => window.removeEventListener("resize", on);
   }, [measureCutout]);
   useEffect(() => {
-    // paint(): odaktaki slotun kaynağı değişti → yeni görsel yüklenince ölç (wide/normal yükseklik farkı)
-    const img = dom.get("centerImg") as HTMLImageElement | null;
-    if (!img) return;
-    if (img.complete) measureCutout();
-    else {
-      img.addEventListener("load", measureCutout, { once: true });
-      return () => img.removeEventListener("load", measureCutout);
-    }
-  }, [active, dom, measureCutout]);
+    // slotlar kaydı: yeni ürünlerin en/boy oranını al
+    measureCutout();
+  }, [active, measureCutout]);
 
   // unmount: html üzerindeki sahne izlerini temizle
   useEffect(
     () => () => {
       document.documentElement.classList.remove("lm");
+      document.documentElement.classList.remove("heroOn");
     },
     [],
   );
@@ -153,7 +142,7 @@ export default function Stage({ slices, extra }: { slices?: SliceMap; extra?: Ex
   const render = useCallback(
     (p: number) => {
       const { vw, vh } = size.current;
-      const it = HERO_ITEMS[shownRef.current];
+      const it = list[shownRef.current];
       /* dilimleri olan üründe iddia bölümünde fotoğraf yerine fotoğrafın dilimleri */
       const sliced = Boolean(slices?.[it.id]);
       const root = document.documentElement;
@@ -166,7 +155,7 @@ export default function Stage({ slices, extra }: { slices?: SliceMap; extra?: Ex
         if (k >= 1) {
           offsetRef.current = sl.dir;
           sl.done = true;
-          setActive((a) => (a + sl.dir + N) % N);
+          setActive((a) => (a + sl.dir + count) % count);
         }
       }
 
@@ -175,11 +164,8 @@ export default function Stage({ slices, extra }: { slices?: SliceMap; extra?: Ex
         {
           vw,
           vh,
-          ch: cut.current.ch,
-          cw: cut.current.cw,
           slots: slotBoxes.current,
           sliced,
-          photoBody: (CUT_CENTERS as Record<string, { body?: { y0: number; y1: number } }>)[it.id]?.body ?? null,
         },
         offsetRef.current,
       );
@@ -199,6 +185,8 @@ export default function Stage({ slices, extra }: { slices?: SliceMap; extra?: Ex
       /* aydınlık bölüm (manifesto): tek palet — zemin gradyanının üstüne limon perde, gücü f.bright (0→1→0) */
       st("bgBright", "opacity", f.bright.toFixed(3));
       root.classList.toggle("lm", f.lm);
+      /* hero'da üst çubuk logosu armatürün kubbesiyle çakışır; armatürde MAG zaten var → gizle */
+      root.classList.toggle("heroOn", f.hero > 0.5);
 
       for (let i = 0; i < N; i++) {
         const n = `item${i}`;
@@ -206,28 +194,22 @@ export default function Stage({ slices, extra }: { slices?: SliceMap; extra?: Ex
         st(n, "opacity", f.items[i].opacity);
         st(n, "filter", f.items[i].filter);
         st(n, "z-index", f.items[i].z);
+        /* karartma filtreyle değil: siyah silüet üstünde görselin (ve yansımasının) opaklığı */
+        st(`img${i}`, "opacity", f.items[i].bright);
+        st(`rimg${i}`, "opacity", f.items[i].bright);
+        /* |p|≥3 kartlarda yansıma hiç çizilmez (perf: maske + blur) */
+        st(n, "--refl", f.items[i].refl ? "block" : "none");
       }
 
-      /* oklar: odaktaki burgerin iki yanında, dikeyde tam ortasında */
-      const ax = f.arrows.ax.toFixed(0);
-      const ay = f.arrows.ay.toFixed(0) + "px";
+      /* oklar kenarlarda sabit (CSS); yalnızca görünürlük */
       const pe = f.arrows.opacity > 0.5 ? "auto" : "none";
-      const shift = f.arrows.shift.toFixed(0);
-      st("arrowL", "left", `calc(50% - ${ax}px + ${shift}px)`);
-      st("arrowR", "left", `calc(50% + ${ax}px + ${shift}px)`);
       for (const a of ["arrowL", "arrowR"]) {
-        st(a, "top", ay);
         st(a, "opacity", f.arrows.opacity);
         st(a, "pointer-events", pe);
       }
-
-      st("dotsL", "opacity", f.dots);
-      st("dotsR", "opacity", f.dots);
-      st("floor", "opacity", f.floor);
-      st("aura", "opacity", f.aura);
-      st("rays", "opacity", f.rays);
-      /* koni kaynağı (vh oranı) — LightRays her karede okur, değişince uniform'u günceller */
-      st("rays", "--rayY", f.raysOriginY.toFixed(3));
+      /* ışık: hüzme+havuz ve armatür birlikte */
+      st("beam", "opacity", f.aura);
+      st("lamp", "opacity", f.aura);
       st("cta", "opacity", f.cta);
       st("cta", "pointer-events", f.cta > 0.5 ? "auto" : "none");
 
@@ -274,10 +256,8 @@ export default function Stage({ slices, extra }: { slices?: SliceMap; extra?: Ex
       st("scFoot", "--footBg", f.foot.bg.toFixed(3));
       st("footInner", "transform", `translateY(${f.foot.innerTy.toFixed(2)}%)`);
       st("panelVeil", "opacity", f.panelVeil);
-      st("knob", "left", f.knob + "%");
       st("track", "opacity", f.track);
-      st("streak", "left", f.streak + "%");
-      st("hint", "opacity", f.hint);
+      st("counter", "opacity", f.track);
 
       if (f.ci !== ciRef.current) {
         /* dilim değişiminde kısa "stage" sesi (yalnızca dilimli üründe, iddialar arasında) */
@@ -286,7 +266,7 @@ export default function Stage({ slices, extra }: { slices?: SliceMap; extra?: Ex
         setCi(f.ci);
       }
     },
-    [dom, slices],
+    [dom, slices, list, count],
   );
 
   // Preloader kalkana kadar sahne rAF'ı çalışmaz (CPU); ilk kare yine de bir kez çizilir (aşağıda)
@@ -328,7 +308,7 @@ export default function Stage({ slices, extra }: { slices?: SliceMap; extra?: Ex
   /* hero: ok/klavye/sürükleme → kayarak geçiş; sürerken istekler kuyruğa */
   const startSlide = (d: number) => {
     slide.current = { dir: d, start: performance.now(), done: false };
-    setShown((a) => (a + d + N) % N);
+    setShown((a) => (a + d + count) % count);
     playSwitch();
   };
   const go = (d: number) => {
@@ -382,10 +362,8 @@ export default function Stage({ slices, extra }: { slices?: SliceMap; extra?: Ex
       </>
     );
 
-  const it = HERO_ITEMS[shown];
+  const it = list[shown];
   const [l1, l2] = splitTitle(it.name);
-  const claim = ci >= 0 ? t.claims[ci] : null;
-  const sideWord = (claim ? claim.l2 : l2 || l1).replace(/\s/g, "").slice(0, 6);
 
   return (
     <>
@@ -406,41 +384,9 @@ export default function Stage({ slices, extra }: { slices?: SliceMap; extra?: Ex
       >
         <div className="bgBright" ref={bind("bgBright")} aria-hidden="true" />
         <div className="panelVeil" ref={bind("panelVeil")} aria-hidden="true" />
-        <div className="room" aria-hidden="true">
-          <div className="toplight" />
-          <div className="aura" ref={bind("aura")} />
-          <div className="floor" ref={bind("floor")} />
-          <div className="vign" />
-        </div>
-
-        <LightRays bind={bind("rays")} onReady={() => load.mark("rays")} />
-
         <Arc active={active} bind={bind} extra={extra} slices={slices} />
 
-        <div className="streak" aria-hidden="true">
-          <b ref={bind("streak")} />
-        </div>
-
-        <div className="sideL" aria-hidden="true">
-          <CrossFade k={sideWord}>
-            {sideWord.split("").map((c, i) => (
-              <span key={i}>{c}</span>
-            ))}
-          </CrossFade>
-        </div>
-        <div className="sideR" aria-hidden="true">
-          {t.chrome.city.split("").map((c, i) => (
-            <span key={i}>{c}</span>
-          ))}
-        </div>
-
-        <section className="scene" ref={bind("scHero")}>
-          <div className="heroCopy">
-            <CrossFade k={it.id}>
-              <BigTitle as="h1" l1={l1} l2={l2} />
-            </CrossFade>
-          </div>
-        </section>
+        <Hero bind={bind} l1={l1} l2={l2} k={it.id} index={shown} count={count} onPrev={() => go(-1)} onNext={() => go(1)} prevAria={t.hero.prevAria} nextAria={t.hero.nextAria} />
 
         <Claims
           item={it}
@@ -451,45 +397,6 @@ export default function Stage({ slices, extra }: { slices?: SliceMap; extra?: Ex
           bind={bind}
         />
         <Outro t={t} bind={bind} />
-
-        <div className="track" ref={bind("track")} aria-hidden="true">
-          <span className="knob" ref={bind("knob")} />
-        </div>
-
-        <button
-          type="button"
-          className="arrow l"
-          ref={bind("arrowL")}
-          aria-label={t.hero.prevAria}
-          onClick={(e) => {
-            e.stopPropagation();
-            go(-1);
-          }}
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M15 5l-7 7 7 7" />
-          </svg>
-          <span className="k">{t.hero.prev}</span>
-        </button>
-        <button
-          type="button"
-          className="arrow r"
-          ref={bind("arrowR")}
-          aria-label={t.hero.nextAria}
-          onClick={(e) => {
-            e.stopPropagation();
-            go(1);
-          }}
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M9 5l7 7-7 7" />
-          </svg>
-          <span className="k">{t.hero.next}</span>
-        </button>
-
-        <div className="hint" ref={bind("hint")}>
-          {t.hero.hint}
-        </div>
 
         <Link href={localePath(locale, "/siparis")} className="ctaPill" ref={bind("cta")} prefetch={false} tabIndex={-1}>
           {t.cta.order}

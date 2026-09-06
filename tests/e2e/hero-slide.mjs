@@ -1,4 +1,5 @@
 // Ok geçişi tek hareket mi? Ürünü kimliğiyle izle: x ve scale sürekli olmalı, slot kaydırmada kare farkı sıfır.
+// Kart transform'u (hero referansı): translate(calc(-50% + Xpx),Ypx) rotate(θ) scale(s); hero'da odak s=1, x=0.
 import { chromium } from "playwright";
 const base = process.argv[2] ?? "http://localhost:3112";
 const b = await chromium.launch();
@@ -20,7 +21,7 @@ const frames = await p.evaluate(() => new Promise((done) => {
   /* Kare zamanını da kaydet: yüklü makinede rAF aralığı 50 ms'ye çıkabiliyor ve tek karede
      alınan yol büyüyor. Süreklilik ölçüsü piksel/kare değil, piksel/ms olmalı. */
   const grab = () => Object.fromEntries([["__t", performance.now()], ...[...document.querySelectorAll(".item")].map((e) => {
-    const m = e.style.transform.match(/translate\((-?[\d.]+)px,\s*(-?[\d.]+)px\)\s*scale\(([\d.]+)\)/);
+    const m = e.style.transform.match(/translate\(calc\(-50% \+ (-?[\d.]+)px\),\s*(-?[\d.]+)px\) rotate\([-\d.]+deg\) scale\(([\d.]+)\)/);
     return [e.dataset.k, m ? { x: +m[1], s: +m[3] } : null];
   })]);
   document.querySelector("button.arrow.r").click();
@@ -51,7 +52,7 @@ const back = bs.filter((v, i) => i > 0 && v < bs[i - 1] - 0.002).length;
 check("yeni odak ölçeği tek yönlü büyür", back === 0, `${bs[0].toFixed(3)} → ${bs[bs.length - 1].toFixed(3)}, geri dönüş ${back}`);
 // bitişte doğru poz
 const last = frames[frames.length - 1];
-// x tam 0 değil: görsel ağırlık merkezi düzeltmesi (lib/cutCenters.json) birkaç px kaydırır
-check("bitişte odak ortada, scale=1.14", Math.abs(last.brisket.x) < 12 && Math.abs(last.brisket.s - 1.14) < 0.005, JSON.stringify(last.brisket));
+// hero'da ağırlık merkezi düzeltmesi yok (referans carousel birebir): x = 0, odak ölçeği 1
+check("bitişte odak ortada (x=0), scale=1 (referans)", Math.abs(last.brisket.x) < 1 && Math.abs(last.brisket.s - 1) < 0.005, JSON.stringify(last.brisket));
 await b.close();
 process.exit(fail ? 1 : 0);

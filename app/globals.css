@@ -55,6 +55,7 @@
   /* türevler */
   --mag-purple-deep: #1a0c22; /* sahne zemini — mor ailesinden, saf siyah yerine */
   --mag-purple-soft: #5a2e74; /* kart yüzeyi, ayırıcı */
+  --mag-purple-mid: #2a1438; /* zemin gradyanının orta durağı (hero referansı: %55) */
   --mag-ink: #1a0c22; /* limon zemin üzerindeki yazı */
   /* burgerin arkasındaki "sıcak ada": mor zeminden hafif sıcak bir geçiş (fotoğrafların amber tonu mordan kopmasın) */
   --mag-warm: color-mix(in srgb, var(--mag-purple-deep) 50%, #ff9636);
@@ -67,7 +68,14 @@
   --line: color-mix(in srgb, var(--mag-lime) 20%, transparent); /* ayırıcı */
   --surface: color-mix(in srgb, var(--mag-purple-soft) 55%, var(--mag-purple-deep)); /* kart/sheet yüzeyi */
   --accent: var(--mag-lime); /* aktif/vurgu: sepet çubuğu, rozet, ilerleme, üstü çizili */
-  --page-bg: linear-gradient(180deg, var(--mag-purple-deep) 0%, var(--mag-purple) 100%);
+  --page-bg: linear-gradient(180deg, var(--mag-purple-deep) 0%, var(--mag-purple-mid) 55%, var(--mag-purple) 100%);
+  /* hero referansı (docs/ref/hero/hero.html) — sayılar birebir: hüzme/havuz ışık renkleri, beyaz/siyah */
+  --hero-beam-rgb: 255, 232, 170;
+  --hero-pool-rgb: 255, 236, 190;
+  --hero-white: #fff;
+  --hero-white-rgb: 255, 255, 255;
+  --hero-black: #000;
+  --hero-black-rgb: 0, 0, 0;
   --edge: 20px;
 
   --font-display: "Comico", "Arial Black", Impact, sans-serif;

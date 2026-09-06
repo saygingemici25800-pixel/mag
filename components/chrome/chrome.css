@@ -489,3 +489,12 @@ html.lm .lang a[aria-current="page"] {
     stroke-dashoffset: 0;
   }
 }
+
+/* hero'da (armatürde MAG logosu varken) üst çubuk logosu görünmez; sahne ilerleyince gelir (html.heroOn Stage.render'dan) */
+.mark {
+  transition: opacity 0.3s ease;
+}
+html.heroOn .mark {
+  opacity: 0;
+  pointer-events: none;
+}

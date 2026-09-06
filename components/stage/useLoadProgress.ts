@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 
 /** Yükleme adımları — hepsi eşit ağırlıklı, ilerleme = tamamlanan / toplam */
-export type LoadStep = "fonts" | "cutouts" | "rays" | "firstRender";
-export const LOAD_STEPS: LoadStep[] = ["fonts", "cutouts", "rays", "firstRender"];
+export type LoadStep = "fonts" | "cutouts" | "firstRender";
+export const LOAD_STEPS: LoadStep[] = ["fonts", "cutouts", "firstRender"];
 
 /** Yüzde göstergesi bu süreyi aşan yüklemelerde açılır (yavaş bağlantı) */
 export const SLOW_MS = 4000;
@@ -20,8 +20,8 @@ export interface LoadProgress {
 }
 
 /**
- * Gerçek yükleme ilerlemesi: fontlar hazır · 5 cutout decode · rays shader derlendi · ilk render.
- * `mark` çağrıları Stage/LightRays içinden gelir; fontları burada bekleriz.
+ * Gerçek yükleme ilerlemesi: fontlar hazır · cutout decode · ilk render.
+ * `mark` çağrıları Stage içinden gelir; fontları burada bekleriz.
  */
 export function useLoadProgress(): LoadProgress {
   const [doneSteps, setDoneSteps] = useState<Set<LoadStep>>(() => new Set());
@@ -62,11 +62,6 @@ export function useLoadProgress(): LoadProgress {
     return () => window.clearTimeout(id);
   }, []);
 
-  // WebGL desteklenmiyorsa rays adımı hiç gelmez → 2 sn sonra kendiliğinden tamam say
-  useEffect(() => {
-    const id = window.setTimeout(() => mark("rays"), 2000);
-    return () => window.clearTimeout(id);
-  }, [mark]);
 
   const progress = doneSteps.size / LOAD_STEPS.length;
   return { progress, done: progress >= 1, slow, mark };
