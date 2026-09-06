@@ -2,7 +2,6 @@ import JsonLd from "@/components/seo/JsonLd";
 import Stage from "@/components/stage/Stage";
 import { getMessages } from "@/lib/i18n";
 import { restaurantJsonLd } from "@/lib/jsonld";
-import { availableSlices } from "@/lib/dilim";
 import { extraCutouts } from "@/lib/cutouts-available";
 import { pageMetadata } from "@/lib/seo";
 
@@ -14,7 +13,7 @@ export default function HomePage() {
   return (
     <>
       <JsonLd data={restaurantJsonLd("tr")} />
-      <Stage slices={availableSlices()} extra={extraCutouts()} />
+      <Stage extra={extraCutouts()} />
     </>
   );
 }

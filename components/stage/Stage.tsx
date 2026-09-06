@@ -5,7 +5,6 @@ import { preload } from "react-dom";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useLocale, useT } from "@/components/LocaleProvider";
 import { itemDesc, localePath } from "@/lib/i18n";
-import type { SliceMap } from "@/lib/dilim";
 import { heroProducts, type ExtraCutouts } from "./cutouts";
 import { splitTitle } from "@/lib/menu";
 import { playStage, playSwitch, warmAudio } from "@/lib/sound";
@@ -18,7 +17,7 @@ import { LOGO } from "./logo";
 import Preloader from "./Preloader";
 import { useLoadProgress } from "./useLoadProgress";
 import StaticFallback from "./StaticFallback";
-import { CENTER, DEFAULT_ASPECT_MATH, N, SLICE_MS, SLIDE_MS, computeFrame, slideEase } from "./stageMath";
+import { CENTER, DEFAULT_ASPECT_MATH, N, SLIDE_MS, computeFrame, slideEase } from "./stageMath";
 import { useScrollProgress } from "./useScrollProgress";
 import "./stage.css";
 
@@ -31,7 +30,7 @@ type El = HTMLElement | null;
  * Ana sayfa sinematik sahnesi. `.scroller` 1200vh, `.stage` fixed.
  * Her karede `computeFrame(p)` → DOM'a doğrudan yazılır (React state yalnızca `active` ve `ci` için).
  */
-export default function Stage({ slices, extra }: { slices?: SliceMap; extra?: ExtraCutouts }) {
+export default function Stage({ extra }: { extra?: ExtraCutouts }) {
   const t = useT();
   const locale = useLocale();
   /* sahnede dönen ürünler: menu.ts'ten fotoğrafı olanlar (şu an 5; fotoğraf gelince kendiliğinden büyür) */
@@ -40,6 +39,8 @@ export default function Stage({ slices, extra }: { slices?: SliceMap; extra?: Ex
   const [active, setActive] = useState(0); // slot dizilimi (geçiş bitince kayar)
   const [shown, setShown] = useState(0); // başlık / harfler / aksan: geçiş başlar başlamaz hedef ürün
   const [ci, setCi] = useState(-1);
+  const [flowSide, setFlowSide] = useState<"left" | "right">("left");
+  const sideRef = useRef<"left" | "right">("left");
   const shownRef = useRef(0);
   const slide = useRef<{ dir: number; start: number; done: boolean } | null>(null);
   const offsetRef = useRef(0);
@@ -52,8 +53,6 @@ export default function Stage({ slices, extra }: { slices?: SliceMap; extra?: Ex
 
   const activeRef = useRef(0);
   const ciRef = useRef(-1);
-  /* dilimler: açık/kapalı durumu, kapanış geçişinin başlangıcı, gösterilen kare sayısı, yazılmış sınıflar */
-  const sliceState = useRef({ open: false, closeAt: 0, frames: 0, cls: "", itemCls: "", moveTimer: 0 });
   const size = useRef({ vw: 1440, vh: 860 });
   const swipe = useRef({ down: false, sx: 0 });
 
@@ -80,11 +79,6 @@ export default function Stage({ slices, extra }: { slices?: SliceMap; extra?: Ex
   useEffect(() => {
     // yeni DOM düğümü bağlandığında o isme ait stil önbelleğini düşür
     dom.onRebind((name) => {
-      /* Arc odak slotunu yeniden kurunca (.slices / item3 yeni düğüm) sınıf önbelleğini sıfırla */
-      if (name === "slices" || name === `item${CENTER}`) {
-        sliceState.current.cls = "";
-        sliceState.current.itemCls = "";
-      }
       const prefix = name + "|";
       for (const k of styleCache.current.keys()) if (k.startsWith(prefix)) styleCache.current.delete(k);
     });
@@ -143,8 +137,6 @@ export default function Stage({ slices, extra }: { slices?: SliceMap; extra?: Ex
     (p: number) => {
       const { vw, vh } = size.current;
       const it = list[shownRef.current];
-      /* dilimleri olan üründe iddia bölümünde fotoğraf yerine fotoğrafın dilimleri */
-      const sliced = Boolean(slices?.[it.id]);
       const root = document.documentElement;
 
       /* ok geçişi: offset 0→±1, 480 ms; bitince ±1'de bekler, slotlar kayınca (useLayoutEffect) 0 olur */
@@ -165,7 +157,6 @@ export default function Stage({ slices, extra }: { slices?: SliceMap; extra?: Ex
           vw,
           vh,
           slots: slotBoxes.current,
-          sliced,
         },
         offsetRef.current,
       );
@@ -210,38 +201,10 @@ export default function Stage({ slices, extra }: { slices?: SliceMap; extra?: Ex
       /* ışık: hüzme+havuz ve armatür birlikte */
       st("beam", "opacity", f.aura);
       st("lamp", "opacity", f.aura);
+      /* havuz ışığı burgerle birlikte kayar */
+      st("pool", "transform", `translateX(${f.poolX.toFixed(1)}px)`);
       st("cta", "opacity", f.cta);
       st("cta", "pointer-events", f.cta > 0.5 ? "auto" : "none");
-
-      /* dilimler: takas (item.sliced) tek karede, fotoğraf visibility:hidden — aynı karede iki burger yok.
-         Açılış: ilk karede kapalı gösterilir (= fotoğraf), sonraki karede .open → CSS geçişi (800 ms).
-         Kapanış: .open düşer, dilimler geçiş bitene kadar (800 ms) kalır, sonra fotoğraf geri gelir. */
-      {
-        const s = f.slices;
-        const ss = sliceState.current;
-        const now = performance.now();
-        if (s.open) ss.closeAt = 0;
-        else if (ss.open) ss.closeAt = now;
-        const shown = s.open || (ss.closeAt > 0 && now - ss.closeAt < SLICE_MS && s.near);
-        if (!shown) ss.closeAt = 0;
-        ss.open = s.open;
-        ss.frames = shown ? ss.frames + 1 : 0;
-        const open = s.open && ss.frames > 1;
-        const cls = shown ? (open ? `slices open a${s.active}` : "slices") : "slices";
-        const itemCls = shown ? "sliced" : "";
-        if (cls !== ss.cls || itemCls !== ss.itemCls) {
-          const el = dom.get("slices");
-          if (el) {
-            el.className = cls + " moving";
-            /* will-change yalnızca geçiş sırasında (.moving), 900 ms sonra düşer */
-            window.clearTimeout(ss.moveTimer);
-            ss.moveTimer = window.setTimeout(() => el.classList.remove("moving"), SLICE_MS + 100);
-          }
-          dom.get(`item${CENTER}`)?.classList.toggle("sliced", shown);
-          ss.cls = cls;
-          ss.itemCls = itemCls;
-        }
-      }
 
       st("scHero", "opacity", f.hero);
       st("scDive", "opacity", f.dive);
@@ -259,14 +222,18 @@ export default function Stage({ slices, extra }: { slices?: SliceMap; extra?: Ex
       st("track", "opacity", f.track);
       st("counter", "opacity", f.track);
 
+      if (f.flow.side !== sideRef.current) {
+        sideRef.current = f.flow.side;
+        setFlowSide(f.flow.side);
+      }
       if (f.ci !== ciRef.current) {
-        /* dilim değişiminde kısa "stage" sesi (yalnızca dilimli üründe, iddialar arasında) */
-        if (sliced && f.ci >= 0 && ciRef.current >= 0) playStage();
+        /* aşama değişiminde kısa "stage" sesi */
+        if (f.ci >= 0 && ciRef.current >= 0) playStage();
         ciRef.current = f.ci;
         setCi(f.ci);
       }
     },
-    [dom, slices, list, count],
+    [dom, list, count],
   );
 
   // Preloader kalkana kadar sahne rAF'ı çalışmaz (CPU); ilk kare yine de bir kez çizilir (aşağıda)
@@ -358,7 +325,7 @@ export default function Stage({ slices, extra }: { slices?: SliceMap; extra?: Ex
     return (
       <>
         <Preloader progress={1} label={t.pre.loading} onDone={() => setPreDone(true)} />
-        <StaticFallback t={t} slices={slices} />
+        <StaticFallback t={t} />
       </>
     );
 
@@ -384,7 +351,7 @@ export default function Stage({ slices, extra }: { slices?: SliceMap; extra?: Ex
       >
         <div className="bgBright" ref={bind("bgBright")} aria-hidden="true" />
         <div className="panelVeil" ref={bind("panelVeil")} aria-hidden="true" />
-        <Arc active={active} bind={bind} extra={extra} slices={slices} />
+        <Arc active={active} bind={bind} extra={extra} />
 
         <Hero bind={bind} l1={l1} l2={l2} k={it.id} index={shown} count={count} onPrev={() => go(-1)} onNext={() => go(1)} prevAria={t.hero.prevAria} nextAria={t.hero.nextAria} />
 
@@ -395,6 +362,7 @@ export default function Stage({ slices, extra }: { slices?: SliceMap; extra?: Ex
           claims={t.claims}
           rail={t.rail}
           bind={bind}
+          side={flowSide}
         />
         <Outro t={t} bind={bind} />
 
