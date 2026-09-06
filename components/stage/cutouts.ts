@@ -1,5 +1,5 @@
 import type { StaticImageData } from "next/image";
-import type { HeroId } from "@/lib/menu";
+import { HERO_ITEMS, type HeroId, type HeroItem } from "@/lib/menu";
 import smooky from "@/public/assets/cut/smooky.webp";
 import brisket from "@/public/assets/cut/brisket.webp";
 import berry from "@/public/assets/cut/berry.webp";
@@ -30,3 +30,16 @@ export const DESKTOP_MQ = "(min-width: 900px)";
 
 /** Geniş cutout'lar sahnede daha kısa gösterilir (proto `WIDE`). */
 export const WIDE: Partial<Record<HeroId, true>> = { smooky: true, caesar: true };
+
+/** Sahnede dönen ürünler: menu.ts'teki hero ürünlerinden fotoğrafı olanlar (statik import ya da build'de bulunan dosya).
+    Eksik ürünün fotoğrafı gelince dizi kendiliğinden büyür; 8 slot sarmalı olduğu için N'e bağımlı kod yok. */
+export function heroProducts(extra?: ExtraCutouts): HeroItem[] {
+  return HERO_ITEMS.filter((m) => CUTOUTS[m.id] || extra?.[m.id]);
+}
+
+/** Cutout en/boy oranı (kartın içindeki görsel kutusu: contain) — statik import'ta bilinir, ek dosyada varsayılan */
+export const DEFAULT_ASPECT = 1.5;
+export function aspectOf(id: HeroId): number {
+  const st = CUTOUTS[id];
+  return st ? st.width / st.height : DEFAULT_ASPECT;
+}

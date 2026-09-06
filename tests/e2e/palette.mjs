@@ -31,7 +31,8 @@ function walk(dir, exts) {
   return out;
 }
 const files = [...walk(path.join(root, "components"), [".css", ".tsx", ".ts"]), ...walk(path.join(root, "app"), [".css", ".tsx", ".ts"])].filter(
-  (f) => !f.endsWith("app/globals.css") && !f.endsWith("app/api/og/route.tsx"),
+  /* Hero.tsx: referans armatür SVG'si (docs/ref/hero) birebir kopya — gradyan durakları varlığın kendisi */
+  (f) => !f.endsWith("app/globals.css") && !f.endsWith("app/api/og/route.tsx") && !f.endsWith("components/stage/Hero.tsx"),
 );
 const hard = [];
 for (const f of files) {
@@ -115,28 +116,29 @@ const rt = await page.evaluate(async () => {
   const cs = getComputedStyle(document.documentElement);
   return {
     loaded: [...document.fonts].filter((f) => f.status === "loaded").map((f) => `${f.family}/${f.weight}`),
-    h1: fam("h1"), body: fam("body"), cta: fam(".cta"), p: fam(".left p"), badge: fam(".badge b"), mark: fam(".mark"), hint: fam(".hint"),
+    h1: fam("h1"), body: fam("body"), cta: fam(".cta"), p: fam(".left p"), badge: fam(".badge b"), mark: fam(".mark"), hint: fam(".counter"),
     synth: getComputedStyle(document.documentElement).fontSynthesis,
     accent: cs.getPropertyValue("--accent").trim(), lime: cs.getPropertyValue("--mag-lime").trim(),
     stageBg: getComputedStyle(document.querySelector(".stage")).backgroundImage,
     bodyBg: getComputedStyle(document.body).backgroundImage,
-    h1Color: getComputedStyle(document.querySelector("h1")).color,
+    /* h1 artık hero ismi (referans: beyaz); palet kontrolü iddia başlığında */
+    h1Color: getComputedStyle(document.querySelector(".left .big")).color,
     ctaBg: getComputedStyle(document.querySelector(".cta")).backgroundColor,
     ctaColor: getComputedStyle(document.querySelector(".cta")).color,
-    aura: getComputedStyle(document.querySelector(".aura")).backgroundImage,
+    aura: getComputedStyle(document.querySelector(".beam")).backgroundImage,
   };
 });
 check("harici istek yok (font dahil)", ext.length === 0, ext.slice(0, 3).join(" "));
 check("Comico + Bonny yüklendi", rt.loaded.some((f) => f.startsWith("Comico")) && rt.loaded.some((f) => f.startsWith("Bonny")), rt.loaded.join(" "));
 check("h1 / .cta / .mark / .badge b → Comico", [rt.h1, rt.cta, rt.mark, rt.badge].every((f) => f === "Comico"), JSON.stringify([rt.h1, rt.cta, rt.mark, rt.badge]));
-check("body / .left p / .hint → Bonny", [rt.body, rt.p, rt.hint].every((f) => f === "Bonny"), JSON.stringify([rt.body, rt.p, rt.hint]));
+check("body / .left p / .counter → Bonny", [rt.body, rt.p, rt.hint].every((f) => f === "Bonny"), JSON.stringify([rt.body, rt.p, rt.hint]));
 check("font-synthesis: none (sahte kalın/italik yok)", rt.synth === "none", rt.synth);
 check("--accent = limon", rt.accent.toLowerCase() === rt.lime.toLowerCase(), rt.accent);
 check("sahne zemini: mor-derin → mor dikey gradyan", /linear-gradient/.test(rt.stageBg) && /rgb\(26, 12, 34\)/.test(rt.stageBg) && /rgb\(66, 32, 87\)/.test(rt.stageBg), rt.stageBg.slice(0, 80));
 check("sayfa gövdesi de aynı gradyan", /linear-gradient/.test(rt.bodyBg));
-check("h1 rengi limon", rt.h1Color === "rgb(255, 214, 98)", rt.h1Color);
+check("iddia başlığı (.left .big) rengi limon", rt.h1Color === "rgb(255, 214, 98)", rt.h1Color);
 check("buton: limon dolgu + ink yazı", rt.ctaBg === "rgb(255, 214, 98)" && rt.ctaColor === "rgb(26, 12, 34)", `${rt.ctaBg} / ${rt.ctaColor}`);
-check("sıcak ada: aura amber karışımı (mor değil, saf turuncu değil)", /radial-gradient/.test(rt.aura) && !/255, 150, 54/.test(rt.aura), rt.aura.slice(0, 70));
+check("hero hüzmesi: referans radial-gradient (rgba(255,232,170,.2) …)", /radial-gradient/.test(rt.aura) && /255, 232, 170, 0\.2\)/.test(rt.aura), rt.aura.slice(0, 90));
 
 /* aydınlık bölüm (manifesto): limon perde tam, chrome yazısı ink */
 const pd = 0.68;

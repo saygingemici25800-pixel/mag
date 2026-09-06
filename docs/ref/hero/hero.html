@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="tr"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MAG — Hero</title>
+<style>
+  html,body{margin:0;padding:0;background:#1A0C22;overflow:hidden}
+  body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+  #hero{position:relative;width:100%;height:100vh;overflow:hidden;
+    background:linear-gradient(180deg,#1A0C22 0%,#2A1438 55%,#422057 100%);
+    color:#fff;user-select:none}
+
+  /* HÜZME — armatürden inen çok geniş, çok yumuşak ışık */
+  .beam{position:absolute;inset:0;pointer-events:none;transition:opacity .3s;
+    background:radial-gradient(ellipse 62vw 95vh at 50% 2%,
+      rgba(255,232,170,.20) 0%, rgba(255,232,170,.11) 30%,
+      rgba(255,232,170,.05) 60%, rgba(255,232,170,0) 100%)}
+  /* HAVUZ — zemindeki eliptik ışık havuzu */
+  .pool{position:absolute;inset:0;pointer-events:none;transition:opacity .3s;left:-8px;top:2px;
+    background:radial-gradient(ellipse 45% 27.5% at 50% 78%,
+      rgba(255,236,190,.62) 0%, rgba(255,236,190,.46) 20%, rgba(255,236,190,.22) 40%,
+      rgba(255,236,190,.09) 58%, rgba(255,236,190,.03) 75%,
+      rgba(255,236,190,.008) 90%, rgba(255,236,190,0) 100%)}
+
+  /* ARMATÜR */
+  .lamp{position:absolute;left:50%;top:0;transform:translate(-50%,-6%);
+    width:min(380px,58vw);pointer-events:none;transition:opacity .3s}
+  .lamp svg{display:block;overflow:visible;width:100%;height:auto}
+  .lamp .mark{position:absolute;left:49.6%;top:60%;width:76.7%;height:16.5%;
+    transform:translateX(-50%);opacity:.92;display:block}
+
+  /* ÜRÜN KARTLARI */
+  .card{position:absolute;left:50%;transform-origin:50% 100%;pointer-events:none}
+  .sil,.img{position:absolute;inset:0}
+  .sil{background:#000}
+  .refl{position:absolute;left:0;right:0;top:100%;height:60%;
+    transform:scaleY(-1);transform-origin:50% 50%;transition:opacity .3s;pointer-events:none;
+    -webkit-mask:linear-gradient(to top,rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%);
+            mask:linear-gradient(to top,rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%)}
+  .refl .clip{position:absolute;inset:0;overflow:hidden}
+  .refl .clip>div{position:absolute;left:0;right:0;top:0;height:166%;filter:blur(7px)}
+
+  /* ADI */
+  .name{position:absolute;left:0;right:0;text-align:center;pointer-events:none;z-index:20}
+  .name .t{font-size:clamp(34px,5.4vw,84px);font-weight:900;font-style:italic;line-height:.92;
+    letter-spacing:-.01em;text-transform:uppercase;color:#fff;text-shadow:0 2px 24px rgba(0,0,0,.55)}
+  .name .t div{transition:opacity .28s}
+
+  /* OKLAR */
+  .nav{position:absolute;top:50%;transform:translateY(-50%);width:56px;height:56px;border-radius:50%;
+    border:1px solid rgba(255,255,255,.22);background:rgba(26,12,34,.45);color:#fff;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;z-index:30;
+    transition:border-color .25s,color .25s}
+  .nav:hover{border-color:#FFD662;color:#FFD662}
+  .nav.prev{left:clamp(12px,3vw,48px)} .nav.next{right:clamp(12px,3vw,48px)}
+
+  /* İLERLEME */
+  .bar{position:absolute;left:50%;bottom:clamp(20px,4vh,40px);transform:translateX(-50%);
+    width:min(420px,60vw);height:2px;background:rgba(255,255,255,.14);border-radius:2px;z-index:20}
+  .bar i{position:absolute;top:0;bottom:0;background:#FFD662;border-radius:2px;
+    transition:left .48s cubic-bezier(.22,1,.28,1)}
+  .counter{position:absolute;left:50%;bottom:clamp(6px,1.6vh,18px);transform:translateX(-50%);
+    font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.55);z-index:20}
+
+  @media (prefers-reduced-motion:reduce){.card,.name .t div,.bar i{transition:none!important}}
+</style></head>
+<body>
+<div id="hero">
+  <div class="beam" id="beam"><div class="pool" id="pool"></div></div>
+
+  <div class="lamp" id="lamp">
+    <svg viewBox="0 0 400 220" aria-hidden="true">
+      <defs>
+        <linearGradient id="domeFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a2233"/><stop offset=".55" stop-color="#110c17"/><stop offset="1" stop-color="#1c1524"/></linearGradient>
+        <linearGradient id="domeSheen" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".07"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+        <linearGradient id="skirtGlow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a2416"/><stop offset=".3" stop-color="#c98a44"/><stop offset=".65" stop-color="#f3c581"/><stop offset="1" stop-color="#8a5a2c"/></linearGradient>
+        <linearGradient id="skirtSide" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset=".2" stop-color="#000" stop-opacity="0"/><stop offset=".8" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".55"/></linearGradient>
+        <linearGradient id="knob" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b3242"/><stop offset="1" stop-color="#0c0810"/></linearGradient>
+        <radialGradient id="halo2" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFD662" stop-opacity=".22"/><stop offset="1" stop-color="#FFD662" stop-opacity="0"/></radialGradient>
+        <pattern id="ribsDark" width="7" height="10" patternUnits="userSpaceOnUse"><rect x="0" y="0" width="3.2" height="10" fill="#fff" opacity=".05"/><rect x="3.2" y="0" width="1" height="10" fill="#000" opacity=".5"/></pattern>
+        <pattern id="ribsGlow" width="7" height="10" patternUnits="userSpaceOnUse"><rect x="0" y="0" width="2.4" height="10" fill="#fff5dc" opacity=".55"/><rect x="2.4" y="0" width="2.2" height="10" fill="#4a2c14" opacity=".55"/><rect x="4.6" y="0" width="2.4" height="10" fill="#000" opacity=".12"/></pattern>
+        <clipPath id="domeClip"><path d="M52 132 C52 60 130 26 200 26 C270 26 348 60 348 132 Z"/></clipPath>
+      </defs>
+      <ellipse cx="200" cy="175" rx="230" ry="60" fill="url(#halo2)"/>
+      <rect x="196" y="20" width="8" height="12" fill="#1a1320"/>
+      <circle cx="200" cy="16" r="9" fill="url(#knob)"/>
+      <path d="M52 132 C52 60 130 26 200 26 C270 26 348 60 348 132 Z" fill="url(#domeFill)"/>
+      <path d="M52 132 C52 60 130 26 200 26 C270 26 348 60 348 132 Z" fill="url(#ribsDark)" clip-path="url(#domeClip)"/>
+      <path d="M52 132 C52 60 130 26 200 26 C270 26 348 60 348 132 Z" fill="url(#domeSheen)"/>
+      <ellipse cx="200" cy="32" rx="34" ry="7" fill="#0a0710"/>
+      <path d="M50 132 L350 132 L346 166 Q200 178 54 166 Z" fill="url(#skirtGlow)"/>
+      <path d="M50 132 L350 132 L346 166 Q200 178 54 166 Z" fill="url(#ribsGlow)"/>
+      <path d="M50 132 L350 132 L346 166 Q200 178 54 166 Z" fill="url(#skirtSide)"/>
+      <path d="M50 132 L350 132" stroke="#0a0710" stroke-width="3"/>
+      <path d="M54 166 Q200 178 346 166" fill="none" stroke="#f7d9a3" stroke-width="2" opacity=".85"/>
+      <path d="M54 168 Q200 181 346 168" fill="none" stroke="#3a2416" stroke-width="2.5"/>
+    </svg>
+    <img class="mark" src="lamp-logo.png" alt="MAG">
+  </div>
+
+  <div id="cards"></div>
+
+  <div class="name" id="name"><div class="t"><div id="l1"></div><div id="l2"></div></div></div>
+
+  <button class="nav prev" id="prev" aria-label="Önceki">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <button class="nav next" id="next" aria-label="Sonraki">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+
+  <div class="bar"><i id="fill"></i></div>
+  <div class="counter" id="counter"></div>
+</div>
+
+<script>
+const PRODUCTS = [
+  { id:'berry',    src:'berry.webp',    l1:'Berry',    l2:'Burger' },
+  { id:'brisket',  src:'brisket.webp',  l1:'Brisket',  l2:'Smash'  },
+  { id:'caesar',   src:'caesar.webp',   l1:'Caesar',   l2:'Chicken'},
+  { id:'jalapeno', src:'jalapeno.webp', l1:'Jalapeño', l2:'Cheese' },
+  { id:'smooky',   src:'smooky.webp',   l1:'Smoky',    l2:'Bacon'  },
+];
+const SLOTS = [-4,-3,-2,-1,0,1,2,3];
+const SIDE_BRIGHT = 0.07;
+const REFL_OPACITY = 0.18;
+const EASE = 'cubic-bezier(.22,1,.28,1)';
+const N = PRODUCTS.length;
+
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const isMobile = () => innerWidth <= 760;
+
+let center = 0, busy = false;
+let cards = SLOTS.map((p,i) => ({ id:i, p, prod:((p%N)+N)%N, wrap:false }));
+
+const host = document.getElementById('cards');
+const els = cards.map(() => {
+  const el = document.createElement('div'); el.className = 'card';
+  el.innerHTML = `<div class="sil"></div><div class="img"></div>
+    <div class="refl"><div class="clip"><div class="rsil"></div><div class="rimg"></div></div></div>`;
+  host.appendChild(el);
+  return { root:el, sil:el.querySelector('.sil'), img:el.querySelector('.img'),
+           refl:el.querySelector('.refl'), rsil:el.querySelector('.rsil'), rimg:el.querySelector('.rimg') };
+});
+
+function paint(){
+  const mob = isMobile();
+  const dur = reduced ? '0s' : '.48s';
+  const unit = mob ? 'vw' : 'vh';
+  const spacing = mob ? 38 : 33;
+  const focusW = mob ? 'min(58vh, 100vw)' : '66vh';
+  const focusH = mob ? 'min(46vh, 80vw)'  : '52vh';
+
+  cards.forEach((c,i) => {
+    const e = els[i];
+    const a = Math.abs(c.p);
+    const s = a === 0 ? 1 : Math.max(0.55, 0.72 - (a-1)*0.06);
+    const lift = a * 0.6;
+    const x = c.p * spacing;
+    const bright = a === 0 ? 1 : SIDE_BRIGHT;
+    const src = PRODUCTS[c.prod].src;
+    const bgBottom = `url(${src}) center bottom / contain no-repeat`;
+    const bgTop    = `url(${src}) center top / contain no-repeat`;
+
+    e.root.style.bottom = '26vh';
+    e.root.style.width = focusW;
+    e.root.style.height = focusH;
+    e.root.style.zIndex = 10 - a;
+    e.root.style.transition = c.wrap ? 'none' : `transform ${dur} ${EASE}`;
+    e.root.style.transform = `translate(calc(-50% + ${x}${unit}), -${lift}vh) scale(${s})`;
+
+    e.sil.style.webkitMask = bgBottom; e.sil.style.mask = bgBottom;
+    e.img.style.background = bgBottom;
+    e.img.style.opacity = bright;
+    e.img.style.transition = c.wrap ? 'none' : `opacity ${dur} ${EASE}`;
+
+    e.refl.style.opacity = REFL_OPACITY;
+    e.rsil.style.background = '#000';
+    e.rsil.style.webkitMask = bgTop; e.rsil.style.mask = bgTop;
+    e.rimg.style.background = bgTop;
+    e.rimg.style.opacity = bright;
+    e.rimg.style.transition = c.wrap ? 'none' : `opacity ${dur} ${EASE}`;
+  });
+
+  const cur = PRODUCTS[center];
+  document.getElementById('l1').textContent = cur.l1;
+  document.getElementById('l2').textContent = cur.l2;
+  document.getElementById('name').style.top = mob ? '70vh' : '73vh';
+  document.getElementById('counter').textContent = `${center+1} / ${N}`;
+  const fill = document.getElementById('fill');
+  fill.style.width = `${100/N}%`;
+  fill.style.left = `${(center/N)*100}%`;
+}
+
+function step(dir){
+  if (busy) return; busy = true;
+  center = ((center + dir) % N + N) % N;
+  cards = cards.map(c => {
+    let p = c.p - dir, wrap = false, prod = c.prod;
+    if (p < -4) { p = 3;  wrap = true; prod = (center + 3) % N; }
+    if (p >  3) { p = -4; wrap = true; prod = ((center - 4) % N + N) % N; }
+    return { ...c, p, wrap, prod };
+  });
+  const t = document.querySelectorAll('.name .t div');
+  t.forEach(d => d.style.opacity = 0);
+  paint();
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    cards = cards.map(c => ({ ...c, wrap:false })); paint();
+  }));
+  const d = reduced ? 0 : 480;
+  setTimeout(() => t.forEach(x => x.style.opacity = 1), d * 0.45);
+  setTimeout(() => { busy = false; }, d);
+}
+
+document.getElementById('prev').onclick = () => step(-1);
+document.getElementById('next').onclick = () => step(1);
+addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') step(1);
+  if (e.key === 'ArrowLeft')  step(-1);
+});
+addEventListener('resize', paint);
+paint();
+</script>
+</body></html>

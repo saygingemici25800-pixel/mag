@@ -53,7 +53,7 @@ export const S = S_DESKTOP;
 /** Odak büyütmesi: scale = base(t_eff) × (1 + FOCUS_ZOOM × max(0, 1 − |t_eff|)) — sürekli, slota bağlı değil */
 export const FOCUS_ZOOM = 0.14;
 export const N = 8; // menu.burger sırası — hepsi hero'da
-export const CENTER = 3; // odaklanan slot; görünür slotlar t=-2..+2, |t|≥3 hazır bekler (opacity 0)
+export const CENTER = 4; // odaklanan slot: p = i − CENTER ∈ [−4..3] (referans SLOTS); görünür |p|≤2, |p|≥3 hazır bekler (opacity 0)
 /** |t| 2→3 arasında görünürlük 1→0 */
 export function slotVisibility(a: number): number {
   return clamp(3 - a);
@@ -103,6 +103,10 @@ export function mix(a: string, b: string, t: number): string {
 export interface ItemStyle {
   transform: string;
   opacity: string;
+  /** görsel opaklığı = parlaklık (siyah silüet üstünde) — filtre değil */
+  bright: number;
+  /** yansıma çizilsin mi: |p| ≥ 3 kartlar ekran dışı — maske + blur maliyeti boşa gitmesin */
+  refl: boolean;
   filter: string;
   z: number;
 }
@@ -156,9 +160,8 @@ export interface Frame {
   bright: number;
   lm: boolean;
   items: ItemStyle[];
-  arrows: { ax: number; ay: number; opacity: number; shift: number };
-  dots: number;
-  floor: number;
+  arrows: { opacity: number };
+  /** hüzme + havuz + armatür opaklığı: hero'da 1, dalışa doğru söner, kapanışta burgerle geri gelir */
   aura: number;
   hero: number;
   dive: number;
@@ -171,18 +174,10 @@ export interface Frame {
   foot: { ty: number; opacity: number; innerTy: number; bg: number };
   /** panellerin arkasındaki sahneye koyu perde (0→.45) */
   panelVeil: number;
-  /** knob left % */
-  knob: number;
+  /** ilerleme çubuğu + sayaç opaklığı */
   track: number;
-  /** streak left % */
-  streak: number;
-  hint: number;
-  /** ışık konisi (LightRays) opaklığı */
-  rays: number;
   /** sağ alt "Sipariş ver" pill'i: dive'dan itibaren, kapanışta kaybolur */
   cta: number;
-  /** ışık konisinin çıkış noktası (vh oranı): hero'daki burger gövdesinin üst kenarının %25 üstü */
-  raysOriginY: number;
   /** iddia bölümü: fotoğrafın dilimleri (yalnızca meta.json'da olan üründe) */
   slices: SlicesFrame;
 }
@@ -190,16 +185,10 @@ export interface Frame {
 export interface Env {
   vw: number;
   vh: number;
-  /** odaktaki cutout img clientHeight (0 → varsayılan) */
-  ch: number;
-  /** odaktaki cutout img clientWidth (0 → varsayılan) */
-  cw: number;
-  /** slot başına [görselGenişliği, cx] — görsel ağırlık merkezi düzeltmesi (lib/cutCenters.json) */
-  slots?: { w: number; cx: number }[];
+  /** slot başına en/boy oranı (kart içindeki contain kutusu) ve görsel ağırlık merkezi cx (lib/cutCenters.json) */
+  slots?: { ar: number; cx: number }[];
   /** odaktaki ürünün dört dilimi var → iddia bölümünde fotoğraf yerine dilimler */
   sliced?: boolean;
-  /** odaktaki cutout'un gövde kutusu (dikey, 0..1) — ışık kaynağının konumu için */
-  photoBody?: { y0: number; y1: number } | null;
 }
 
 export function heroSpacing(vw: number): number {
@@ -207,6 +196,47 @@ export function heroSpacing(vw: number): number {
 }
 export function heroBaseY(vh: number): number {
   return vh * 0.4; // where the focus piece sits
+}
+
+/* ---- Hero referansı (docs/ref/hero/hero.html) — sayılar birebir ---- */
+export const HERO_MOBILE_MAX = 760; // referans: innerWidth <= 760
+export const HERO_SIDE_BRIGHT = 0.07;
+export const HERO_REFL_OPACITY = 0.18;
+export const DEFAULT_ASPECT_MATH = 1.5;
+export interface HeroCard {
+  mobile: boolean;
+  /** kart kutusu: masaüstü 66vh × 52vh, mobil min(58vh,100vw) × min(46vh,80vw) */
+  w: number;
+  h: number;
+  /** komşu aralığı: masaüstü 33vh, mobil 38vw */
+  spacing: number;
+  /** kart altı: 26vh */
+  bottom: number;
+  /** |p| başına yukarı kayma: 0.6vh */
+  liftPer: number;
+}
+export function heroCard(vw: number, vh: number): HeroCard {
+  const m = vw <= HERO_MOBILE_MAX;
+  return {
+    mobile: m,
+    w: m ? Math.min(0.58 * vh, vw) : 0.66 * vh,
+    h: m ? Math.min(0.46 * vh, 0.8 * vw) : 0.52 * vh,
+    spacing: m ? 0.38 * vw : 0.33 * vh,
+    bottom: 0.26 * vh,
+    liftPer: 0.006 * vh,
+  };
+}
+/** ölçek: odak 1, yanlar max(.55, .72 − (a−1)·.06); 0<a<1 arası tween için doğrusal (tam sayılarda referansla aynı) */
+export function heroScale(a: number): number {
+  return a < 1 ? lerp(1, 0.72, a) : Math.max(0.55, 0.72 - (a - 1) * 0.06);
+}
+/** parlaklık: odak 1, yanlar .07 */
+export function heroBright(a: number): number {
+  return a < 1 ? lerp(1, HERO_SIDE_BRIGHT, a) : HERO_SIDE_BRIGHT;
+}
+/** kartın içindeki görsel kutusu (contain, alta yaslı): yükseklik */
+export function contentHeight(card: HeroCard, ar: number): number {
+  return Math.min(card.h, card.w / ar);
 }
 export function defaultCutoutHeight(vh: number, vw: number = 1440): number {
   return vw < 900 ? Math.min(vh * 0.26, 190) : Math.min(vh * 0.33, 248);
@@ -274,27 +304,37 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   const lm = tPay > 0.32 && tRange < 0.3;
 
   /* the arc */
-  const spacing = heroSpacing(vw);
-  const baseY = heroBaseY(vh);
+  const card = heroCard(vw, vh);
+  /* eski poz birimi: dalış/iddia/manifesto pozları bu görsel yüksekliğine göre yazıldı (kutu üstü y, merkez etrafında ölçek) */
+  const hOld = defaultCutoutHeight(vh, vw);
+  const slotAr = (i: number) => env.slots?.[i]?.ar || DEFAULT_ASPECT_MATH;
+  /* hero'da olma ağırlığı: odak büyütmesi ve ağırlık merkezi düzeltmesi yalnızca hero DIŞINDA (referans carousel birebir) */
+  const heroW = tOut > 0 ? ease(tOut) : 1 - fanE;
   const items: ItemStyle[] = [];
   for (let i = 0; i < N; i++) {
     const t = i - CENTER - offset; // t_eff
     const a = Math.abs(t);
     // hero / fan pose
+    /* HERO — referans carousel: x = p·spacing, ölçek heroScale(a), lift a·0.6vh, parlaklık .07 (odak 1).
+       Eski koordinatta ifade edilir (kutu üstü y, merkez etrafında ölçek sc·hOld); itme anında karta çevrilir.
+       Kartın görsel kutusu alta yaslı contain (yükseklik hc): görsel yüksekliği s·hc = sc·hOld. */
+    const hc = contentHeight(card, slotAr(i));
+    const hs = heroScale(a);
     const closed = {
-      x: t * spacing,
-      y: baseY + a * a * 13,
-      sc: 1 - a * 0.185,
-      rot: t * 3.2,
-      br: 1 - a * 0.42, // ışık yalnızca ortadakine: a=1 → .58, a=2 → .16
-      bl: a > 1.6 ? (a - 1.6) * 1.4 : 0,
+      x: t * card.spacing,
+      y: vh - card.bottom - a * card.liftPer - (hc * hs) / 2 - hOld / 2,
+      sc: (hs * hc) / hOld,
+      rot: 0,
+      br: heroBright(a),
+      bl: 0,
       op: 1,
     };
+    /* yelpaze: hero pozundan türetilir (yanlar dışarı açılır, hafif döner ve aydınlanır) */
     const opened = {
-      x: t * spacing * 1.16,
-      y: baseY + a * a * 17,
-      sc: 1 - a * 0.155,
-      rot: t * 4.4,
+      x: closed.x * 1.16,
+      y: closed.y + a * a * 4,
+      sc: closed.sc,
+      rot: t * 1.2,
       br: 1 - a * 0.27,
       bl: a > 2.2 ? (a - 2.2) * 1.9 : 0,
       op: 1,
@@ -367,16 +407,16 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
 
     y -= upT * vh * 0.55;
     /* Odak büyütmesi t_eff'e bağlı sürekli: yana kayarken aynı anda büyür/küçülür, sonda zıplama olmaz */
-    sc *= 1 + FOCUS_ZOOM * focusW;
+    sc *= 1 + FOCUS_ZOOM * focusW * (1 - heroW);
 
     if (outro) {
       /* p=1'deki kare, p=0'daki hero karesinin aynısı olmalı ki geçiş görünmesin */
-      const hsc = (1 - a * 0.185) * (1 + FOCUS_ZOOM * focusW);
-      const hx = t * spacing,
-        hy = baseY + a * a * 13,
-        hrot = t * 3.2;
-      const hbr = 1 - a * 0.42,
-        hbl = a > 1.6 ? (a - 1.6) * 1.4 : 0;
+      const hsc = closed.sc;
+      const hx = closed.x,
+        hy = closed.y,
+        hrot = closed.rot;
+      const hbr = closed.br,
+        hbl = closed.bl;
       /* faz 1 — odak: BİZE KATIL yukarı süzülürken burger alttan, aynı eğriyle, büyüyerek ortaya */
       const eo = smooth(tOut1);
       const cSc = lerp(hsc * 0.3, hsc, eo),
@@ -407,7 +447,7 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
        rotate(-1.4°) ~%4 pay ister; ölçek min(poz, sığan) — sürekli, sıçrama yok. */
     if (i === CENTER && sliced && (tDive > 0 || claimsT > 0) && tRange === 0) {
       const slotC = env.slots?.[i];
-      const w = slotC && slotC.w > 0 ? slotC.w : defaultCutoutWidth(vh, vw);
+      const w = hOld * slotAr(i);
       const cxk = slotC ? 0.5 - slotC.cx : 0;
       const M = mobile ? 10 : 16;
       const half = 0.52;
@@ -418,54 +458,41 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
     /* görsel ağırlık merkezi düzeltmesi: (0.5 − cx) × görselGenişliği × ölçek.
        Smooky gibi tek yana taşan cutout'lar kutu merkezine göre değil, göze göre ortalanır. */
     const slot = env.slots?.[i];
-    if (slot && slot.w > 0) x += (0.5 - slot.cx) * slot.w * sc;
+    if (slot) x += (0.5 - slot.cx) * hOld * slot.ar * sc * (1 - heroW);
 
-    const brc = Math.max(0.1, Math.min(1.2, br));
+    const brc = Math.max(0, Math.min(1.2, br)); /* alt sınır yok: hero yanları .07 (referans) */
     /* yan slotlar soluk: saturate(1 − a·0.3); dive/claims/pay odaktaki için a=0 → 1 */
     const sat = Math.max(0.1, 1 - Math.min(a, 3) * 0.3);
     const satq = Math.round(sat * 20) / 20;
     /* blur: 0.5px adımlara yuvarla (her karede yeni filtre üretilmesin), 0.4 altını yazma */
     const blq = Math.round(Math.min(bl, 9) * 2) / 2;
+    /* eski koordinat → kart: görsel merkezi C = (vw/2 + x, y + hOld/2), görsel yüksekliği sc·hOld = s·hc.
+       Kartın döndürme/ölçek merkezi alt-orta (P, transform-origin 50% 100%); C = P + R(θ)·(0, −hc·s/2) →
+       P = C − (d·sinθ, −d·cosθ). Hero pozunda bu birebir referansı verir: translate(-50% + p·spacing, −lift) scale(s). */
+    const s = (sc * hOld) / hc;
+    const d = (hc * s) / 2;
+    const th = (rot * Math.PI) / 180;
+    const Cx = vw / 2 + x,
+      Cy = y + hOld / 2;
+    const X = Cx - d * Math.sin(th) - vw / 2;
+    const Y = Cy + d * Math.cos(th) - (vh - card.bottom);
     items.push({
-      transform:
-        "translate(-50%,0) translate(" +
-        x.toFixed(1) +
-        "px," +
-        y.toFixed(1) +
-        "px) scale(" +
-        sc.toFixed(3) +
-        ") rotate(" +
-        rot.toFixed(2) +
-        "deg)",
+      transform: "translate(calc(-50% + " + X.toFixed(1) + "px)," + Y.toFixed(1) + "px) rotate(" + rot.toFixed(2) + "deg) scale(" + s.toFixed(3) + ")",
       opacity: Math.max(0, outro ? op : op * (1 - upT)).toFixed(3),
-      /* filtre yalnızca gerekince: odaktaki (br=1, sat=1, blur=0) öğede "none" — filtre efekti katmanı açılmasın
-         (dilimler bu öğenin içinde; brightness(1) bile dört görseli her karede filtreden geçiriyordu) */
-      filter: brc >= 0.995 && brc <= 1.005 && satq >= 0.99 && bl < 0.4 ? "none" : "brightness(" + brc.toFixed(3) + ")" + (satq < 0.99 ? " saturate(" + satq.toFixed(2) + ")" : "") + (bl >= 0.4 ? " blur(" + blq.toFixed(1) + "px)" : ""),
-      z: Math.round(22 - Math.min(a, 4) * 2), // odak 22, yanlar 20/18/16…
+      /* karartma filtreyle değil: siyah silüet üstünde görsel opaklığı */
+      bright: Math.round(Math.min(1, brc) * 1000) / 1000,
+      refl: a < 2.5,
+      /* filtre yalnızca yelpazede yan slotlar için (doygunluk/bulanıklık); parlaklık artık opaklıkta */
+      filter: satq < 0.99 || bl >= 0.4 ? (satq < 0.99 ? "saturate(" + satq.toFixed(2) + ")" : "") + (bl >= 0.4 ? " blur(" + blq.toFixed(1) + "px)" : "") : "none",
+      z: Math.round(10 - Math.min(a, 4)), // referans: z = 10 − |p|
     });
   }
 
-  /* discs follow the focus piece, and leave once we dive */
-  /* hero yerleşimi görünürlüğü (noktalar) — diskler kaldırıldı, eğri korunuyor */
-  let heroChrome = 1 - Math.max(diveE, upT);
-  if (tOut > 0) heroChrome = clamp((tOut1 - 0.72) / 0.28);
-  const fanD = tOut > 0 ? 0 : fanE; // kapanışta yelpaze kapalı pozunda olmalı
-  /* Oklar sahnenin SABİT merkezine göre konumlanır; ürünün cutout genişliğine ya da
-     görsel ağırlık merkezine (cutCenters) bağlanmaz. Aksi hâlde her üründe farklı yerde
-     duruyordu (ölçüm: yatayda 37 px, dikeyde 25 px kayma). */
-  const refW = defaultCutoutWidth(vh, vw) * (1 + FOCUS_ZOOM);
-  const ax = mobile ? Math.min(refW / 2 + 22, vw / 2 - 30) : refW / 2 + 44;
-  const axShift = 0;
-  const ay = heroBaseY(vh) + defaultCutoutHeight(vh, vw) * 0.57;
-  const dots = tOut > 0 ? clamp((tOut2 - 0.5) / 0.5) * 0.75 : heroChrome * 0.75 * (1 - fanD);
-  const floor = tOut > 0 ? clamp(tOut1 * 1.5) : 1 - Math.max(payE * 0.9, upT);
-  /* Kapanışta ışık bir anda açılmasın: opaklık burgerin yükselme ilerlemesine (riseE = smooth(tOut1),
-     kutu math'iyle aynı) bağlı, riseE^1.8 eğrisiyle 0'dan tam değere. Burger oturduğunda (riseE=1)
-     ışık da tam — daha erken değil. */
+  /* ışık (hüzme, havuz, armatür): hero'da tam, yelpazede %28'e iner, dalış/manifesto/panelde söner; kapanışta
+     burgerin yükselmesiyle (riseE^1.8) geri gelir — burger oturunca ışık da tam, daha erken değil. */
   const riseE = smooth(tOut1);
   const lightIn = Math.pow(riseE, 1.8);
   const aura = tOut > 0 ? lightIn : Math.max(0, (1 - fanE * 0.72) * (1 - Math.max(payE, upT)));
-  const rays = tOut > 0 ? lightIn * 0.9 : Math.max(0, (1 - fanE * 0.55) * (1 - Math.max(diveE * 0.85, payE, upT)));
   const cta = seg(p, S.dive[0] + 0.01, S.dive[0] + 0.05) * (1 - seg(p, S.foot[0], S.foot[0] + 0.03));
 
   /* copy */
@@ -503,22 +530,8 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   /* arkadaki sahneye koyu perde: paneller bindikçe 0 → .45 */
   const panelVeil = Math.max(faqIn, footIn) * 0.45;
 
-  let knob = 8 + p * 84;
-  if (tOut > 0) knob = lerp(8 + S.out1[0] * 84, 8, ease(tOut));
   const track = tOut > 0 ? clamp((tOut2 - 0.3) / 0.5) : 1 - upT;
-  const streak = tOut > 0 ? lerp(S.out1[0] * 86, 0, ease(tOut)) : p * 86;
-  const hint = Math.max(heroOut, clamp((tOut2 - 0.65) / 0.35));
   const arrowsO = Math.max(heroOut, clamp((tOut2 - 0.55) / 0.4));
-
-  const ch = env.ch || defaultCutoutHeight(vh, vw);
-  /* Koni kaynağı: tavan değil, burgerin hemen üstü. Hero pozunda kutu üstü heroBaseY, ölçek 1+FOCUS_ZOOM
-     merkez etrafında; gövde üst kenarı + gövde yüksekliğinin %25'i kadar yukarı. Ürün başına sabit. */
-  const hz = 1 + FOCUS_ZOOM;
-  const heroTop = heroBaseY(vh) + ch / 2 - (ch * hz) / 2;
-  const pb = env.photoBody ?? { y0: 0, y1: 1 };
-  const bodyTop = heroTop + pb.y0 * ch * hz;
-  const bodyHpx = (pb.y1 - pb.y0) * ch * hz;
-  const raysOriginY = Math.round(((bodyTop - 0.25 * bodyHpx) / vh) * 1000) / 1000;
 
   const slices: SlicesFrame = {
     open: slicesOpen,
@@ -530,9 +543,7 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
     bright,
     lm,
     items,
-    arrows: { ax, ay, opacity: arrowsO, shift: axShift },
-    dots,
-    floor,
+    arrows: { opacity: arrowsO },
     aura,
     hero,
     dive,
@@ -541,14 +552,9 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
     faq,
     foot,
     panelVeil,
-    knob,
     track,
-    streak,
-    hint,
-    rays,
     cta,
     slices,
-    raysOriginY,
   };
 }
 

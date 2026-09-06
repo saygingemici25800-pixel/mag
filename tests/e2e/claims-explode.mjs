@@ -40,13 +40,14 @@ const probe = (p) => p.evaluate(() => {
     return { op: +cs(s).opacity.slice(0, 5), tx: +m.e.toFixed(1), ty: +m.f.toFixed(1), a: +m.a.toFixed(3), b: +m.b.toFixed(3), x0: r.x, x1: r.right, y0: r.y, y1: r.bottom, h: s.offsetHeight };
   }) : [];
   const light = sl?.querySelector(".sLight");
-  const box = item?.getBoundingClientRect(); // döndürülmemiş kutu: .item (rotate 0), dilimler aynı kutuda
+  /* dilimlerin döndürülmemiş kutusu: kart (rotate 0) içindeki yerleşim (offset*) × kartın ekran ölçeği */
+  const box = item && sl ? (() => { const r = item.getBoundingClientRect(); const k = r.height / item.offsetHeight; return { x: r.x + (sl.offsetLeft - sl.offsetWidth / 2) * k, y: r.y + sl.offsetTop * k, w: sl.offsetWidth * k, h: sl.offsetHeight * k }; })() : null;
   const M = sl ? new DOMMatrixReadOnly(cs(sl).transform) : null;
   const left = document.querySelector(".left")?.getBoundingClientRect();
   return {
     id: item?.dataset.k, imgVis, slVis, cls: sl?.className ?? "", itemCls: item?.className ?? "", slices,
     light: light ? { op: +cs(light).opacity, top: light.getBoundingClientRect().y + light.getBoundingClientRect().height / 2, h: light.getBoundingClientRect().height } : null,
-    box: box ? { x: box.x, y: box.y, w: box.width, h: box.height } : null,
+    box,
     rot: M ? +((Math.atan2(M.b, M.a) * 180) / Math.PI).toFixed(2) : 0, gap: sl ? cs(sl).getPropertyValue("--gap").trim() : "",
     left: left ? { x0: left.x, x1: left.right, y0: left.y, y1: left.bottom } : null, vw: innerWidth, vh: innerHeight,
     filters: sl ? [...sl.querySelectorAll("img")].map((s) => cs(s).filter).join("|") : "",
