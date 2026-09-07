@@ -114,7 +114,10 @@ export interface OrderStore {
   create(order: Order): Promise<Order>;
   get(id: string): Promise<Order | null>;
   /** en yeni önce; `limit` varsayılan 200; `paidOnly` panel için */
-  list(limit?: number, paidOnly?: boolean): Promise<Order[]>;
+  /** @param since ISO zaman damgası — verilirse yalnızca bundan SONRA GÜNCELLENEN kayıtlar
+   *  (created_at ya da aşama damgaları). Panel yoklaması bunu kullanır: her turda tüm listeyi değil
+   *  yalnızca değişenleri çeker, hiçbir sipariş atlanmaz. */
+  list(limit?: number, paidOnly?: boolean, since?: string): Promise<Order[]>;
   update(id: string, patch: Partial<Order>): Promise<Order | null>;
 }
 

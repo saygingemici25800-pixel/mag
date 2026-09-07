@@ -18,8 +18,12 @@ type Tab = "active" | "today" | "past" | "settings";
 type Mode = "supabase" | "key" | "open";
 const SEEN_KEY = "mag:panel-seen";
 const REPEAT_MS = 20_000;
-/** SSE de yoksa yoklama aralığı (spec: 5 sn) */
-const POLL_MS = 5_000;
+/* Yoklama aralıkları — Vercel Hobby kotasına göre seçildi (aşağıdaki hesap yorumda).
+   Sekme önde: hızlı tepki. Arka planda: panel açık unutulsa da kota yanmasın.
+   Dükkân kapalıyken sipariş gelmeyeceği için en seyrek. */
+const POLL_ACTIVE_MS = 4_000;
+const POLL_HIDDEN_MS = 30_000;
+const POLL_CLOSED_MS = 60_000;
 
 function loadSeen(): Set<string> {
   if (typeof window === "undefined") return new Set();
@@ -51,14 +55,14 @@ export default function PanelApp() {
   const [fresh, setFresh] = useState<Set<string>>(() => new Set());
   const [tab, setTab] = useState<Tab>("active");
   const [live, setLive] = useState(false);
-  /* hangi kanal aktif: realtime | sse | poll (panelde küçük göstergede yazar) */
-  const [feed, setFeed] = useState<"realtime" | "sse" | "poll">("sse");
   const [busy, setBusy] = useState<string | null>(null);
   const [sound, setSound] = useState<{ unlocked: boolean; on: boolean }>(() => ({
     unlocked: isUnlocked(),
     on: typeof window === "undefined" ? true : soundPref(),
   }));
   const unseenRef = useRef(0);
+  /* Dükkân açık mı — yoklama aralığını belirler (kapalıyken 60 sn). Ayarlar ucundan beslenir. */
+  const orderingOpenRef = useRef<boolean | null>(null);
   const ordersRef = useRef<Map<string, Order>>(new Map());
   useEffect(() => {
     ordersRef.current = orders;
@@ -135,63 +139,103 @@ export default function PanelApp() {
       const list = (await res.json()) as Order[];
       setOrders(new Map(list.map((o) => [o.id, o])));
 
-      /* CANLI AKIŞ SEÇİMİ
-         Supabase realtime, WAL'dan gelen satırı ABONENİN rolüyle RLS'ten geçirir. Panel tarayıcıda
-         anon anahtarıyla dinler; `orders` üzerinde anon SELECT politikası YOK (bilinçli: müşteri
-         verisi anon'a açılmamalı), bu yüzden INSERT/UPDATE olayları abonelere hiç düşmüyordu —
-         ölçüldü: panel açıkken paid güncellemesi 6 sn boyunca gelmedi.
+      /* CANLI AKIŞ — UYARLANABİLİR YOKLAMA
+         Neden SSE değil: Vercel (Hobby) akışı hemen sonlandırıyor. Canlıda ölçüldü — /api/orders/stream
+         `hello` olayını gönderip 0.7 sn içinde kapanıyor, panel hiç canlı olmuyordu (4 dk boyunca
+         104 örneğin hepsinde live=false). Ayrıca SSE bağlantısı boyunca fonksiyon ayakta sayıldığı
+         için bir gecelik açık panel Hobby'nin aylık kotasını tek başına aşıyordu.
 
-         Çözüm: panel akışı sunucu üzerinden (SSE). Panel API'si zaten PANEL_KEY ile korunuyor ve
-         SSE aynı kapıdan geçiyor; anon'a hiçbir okuma açmadan canlı kalıyoruz. Realtime'ı kullanmak
-         için `orders` üzerinde authenticated SELECT + panelde Supabase Auth oturumu gerekir ki
-         kullanıcı kararı panelin PANEL_KEY ile açılması yönünde. */
+         Yoklama aralığı duruma göre: sekme önde 4 sn · arka planda 30 sn · dükkân kapalıyken 60 sn.
+         Her tur ?since ile yalnızca DEĞİŞENLERİ çeker; sekme uykudan dönerse aradaki tüm kayıtlar
+         tek istekte telafi edilir (son görülen damgadan sonrası). */
       {
-        /* SSE; bağlantı kurulamazsa 5 sn poll'a düş (panel her hâlükârda güncel kalsın) */
-        const es = new EventSource("/api/orders/stream");
-        let pollTimer = 0;
-        const startPoll = () => {
-          if (pollTimer) return;
-          setFeed("poll");
-          pollTimer = window.setInterval(async () => {
-            try {
-              const r = await apiFetch("/api/orders?limit=300");
-              if (!r.ok) return;
-              const fresh = (await r.json()) as Order[];
-              setOrders((prev) => {
-                const next = new Map(prev);
-                for (const o of fresh) {
-                  const had = prev.get(o.id);
-                  next.set(o.id, o);
-                  if (!had && o.status === "received") playOrderSound();
-                }
-                return next;
-              });
-              setLive(true);
-            } catch {
-              setLive(false);
-            }
-          }, POLL_MS);
+        let timer = 0;
+        let stopped = false;
+        /* Son görülen değişiklik damgası — SUNUCUNUN saatinden türetilir, tarayıcınınkinden değil.
+           Neden: istemci saati sunucudan sapabilir (ve testte MAG_FAKE_NOW sabit bir tarih verir);
+           tarayıcı damgası kullanılınca yeni kayıtlar "since" filtresine takılıp hiç görünmüyordu.
+           Her turda gelen kayıtların en yeni damgası bir sonraki turun başlangıcı olur. */
+        let since = "";
+        let firstDone = false;
+        /** Bir siparişin en son değişim anı (oluşturma ya da aşama damgası) */
+        const stamp = (o: Order) =>
+          [o.created_at, o.accepted_at, o.closed_at, o.cancelled_at].filter((x): x is string => typeof x === "string").sort().pop() ?? o.created_at;
+
+        const intervalMs = () => {
+          if (document.visibilityState !== "visible") return POLL_HIDDEN_MS;
+          return orderingOpenRef.current === false ? POLL_CLOSED_MS : POLL_ACTIVE_MS;
         };
-        es.addEventListener("hello", () => {
-          setLive(true);
-          setFeed("sse");
-        });
-        es.addEventListener("order", (e) => {
-          const ev = JSON.parse((e as MessageEvent).data) as { type: "insert" | "update"; order: Order };
-          upsert(ev.order, ev.type === "insert");
-        });
-        es.onerror = () => {
-          setLive(false);
-          startPoll(); // SSE düştü → poll devralsın
+
+        /* Artımlı çekme her N turda bir TAM listeyle tazelenir. Neden: bir kaydın damgası
+           "since" sınırının gerisinde kalabiliyor (sunucu saati farkı, sahte saat, geç yazılan
+           aşama damgası) ve o kayıt artımlı turlarda hiç dönmüyor. Tam tur bunu telafi eder;
+           maliyeti aynı istek sayısı, yalnızca yanıt biraz büyük. */
+        let ticks = 0;
+        const FULL_EVERY = 5;
+
+        const tick = async () => {
+          if (stopped) return;
+          try {
+            /* İlk tur ve her 5 turda bir tam liste; aradakiler artımlı. */
+            const full = !firstDone || !since || ticks % FULL_EVERY === 0;
+            ticks++;
+            const url = full ? "/api/orders?limit=300" : `/api/orders?limit=300&since=${encodeURIComponent(since)}`;
+            const r = await apiFetch(url);
+            if (r.status === 401) return setGate("login");
+            if (!r.ok) { setLive(false); return; }
+            const fresh = (await r.json()) as Order[];
+            /* Yeni sınır: gelen kayıtların en yeni damgası (1 sn geri — aynı saniyedeki kayıt kaçmasın).
+               Hiç kayıt gelmediyse eski sınır korunur; böylece arada yazılan hiçbir sipariş atlanmaz. */
+            const newest = fresh.map(stamp).sort().pop();
+            if (newest) since = new Date(new Date(newest).getTime() - 1_000).toISOString();
+            firstDone = true;
+            setLive(true);
+            for (const o of fresh) upsert(o, false);
+          } catch {
+            setLive(false);
+          } finally {
+            if (!stopped) timer = window.setTimeout(tick, intervalMs());
+          }
         };
+
+        /* Sekme öne gelince: hemen bir tur ve aralığı sıfırla */
+        const onVisible = () => {
+          if (document.visibilityState !== "visible" || stopped) return;
+          window.clearTimeout(timer);
+          void tick();
+        };
+        document.addEventListener("visibilitychange", onVisible);
+        void tick();
+
         stop = () => {
-          es.close();
-          if (pollTimer) window.clearInterval(pollTimer);
+          stopped = true;
+          window.clearTimeout(timer);
+          document.removeEventListener("visibilitychange", onVisible);
         };
       }
     })().catch(() => setLive(false));
     return () => stop();
   }, [gate, store, upsert]);
+
+  /* Dükkân açık/kapalı durumunu yoklama aralığı için izle (ayarlar ucu herkese açık okuma) */
+  useEffect(() => {
+    if (gate !== "ok") return;
+    let alive = true;
+    const read = async () => {
+      try {
+        const r = await fetch("/api/panel/settings", { cache: "no-store" });
+        if (r.ok && alive) orderingOpenRef.current = ((await r.json()) as { ordering_open?: boolean }).ordering_open ?? null;
+      } catch {
+        /* okunamazsa varsayılan aralık kullanılır */
+      }
+    };
+    void read();
+    const id = window.setInterval(read, 60_000);
+    return () => {
+      alive = false;
+      window.clearInterval(id);
+    };
+  }, [gate]);
 
   /* --- görüldü / ses tekrarı --- */
   const unseenIds = useMemo(() => [...orders.values()].filter((o) => o.status === "received" && !seen.has(o.id)).map((o) => o.id), [orders, seen]);
@@ -262,8 +306,8 @@ export default function PanelApp() {
           </span>
         </div>
         <div className="pnl-hud">
-          <span className="pill" aria-live="polite" data-live={live} data-feed={feed} title={t.feedLabel[feed]}>
-            <i className={"dot" + (live ? "" : " off")} /> {live ? t.live : t.offline} · {t.feedLabel[feed]}
+          <span className="pill" aria-live="polite" data-live={live}>
+            <i className={"dot" + (live ? "" : " off")} /> {live ? t.live : t.offline}
           </span>
           <button type="button" className={"pill" + (sound.unlocked && sound.on ? " on" : "")} onClick={toggleSound} data-sound={sound.unlocked ? (sound.on ? "on" : "off") : "locked"}>
             {sound.unlocked ? (sound.on ? `🔊 ${t.soundIsOn}` : `🔇 ${t.soundIsOff}`) : `🔈 ${t.soundOn}`}
