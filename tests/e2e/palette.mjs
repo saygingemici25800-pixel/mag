@@ -125,7 +125,8 @@ const rt = await page.evaluate(async () => {
     h1Color: getComputedStyle(document.querySelector(".left .big")).color,
     ctaBg: getComputedStyle(document.querySelector(".cta")).backgroundColor,
     ctaColor: getComputedStyle(document.querySelector(".cta")).color,
-    aura: getComputedStyle(document.querySelector(".beam")).backgroundImage,
+    /* ışık konisi WebGL ile çizilir: renk shader içinde, burada varlığı + blend modu denetlenir */
+    rays: (() => { const r = document.querySelector(".rays"); return r ? { blend: getComputedStyle(r).mixBlendMode, canvas: !!r.querySelector("canvas") } : null; })(),
   };
 });
 check("harici istek yok (font dahil)", ext.length === 0, ext.slice(0, 3).join(" "));
@@ -138,7 +139,7 @@ check("sahne zemini: mor-derin → mor dikey gradyan", /linear-gradient/.test(rt
 check("sayfa gövdesi de aynı gradyan", /linear-gradient/.test(rt.bodyBg));
 check("iddia başlığı (.left .big) rengi limon", rt.h1Color === "rgb(255, 214, 98)", rt.h1Color);
 check("buton: limon dolgu + ink yazı", rt.ctaBg === "rgb(255, 214, 98)" && rt.ctaColor === "rgb(26, 12, 34)", `${rt.ctaBg} / ${rt.ctaColor}`);
-check("hero hüzmesi: referans radial-gradient (rgba(255,232,170,.2) …)", /radial-gradient/.test(rt.aura) && /255, 232, 170, 0\.2\)/.test(rt.aura), rt.aura.slice(0, 90));
+check("hero ışık konisi: WebGL katmanı (screen blend)", rt.rays?.canvas === true && rt.rays?.blend === "screen", JSON.stringify(rt.rays));
 
 /* aydınlık bölüm (manifesto): limon perde tam, chrome yazısı ink */
 const pd = 0.68;

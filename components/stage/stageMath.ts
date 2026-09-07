@@ -180,10 +180,10 @@ export interface Frame {
   panelVeil: number;
   /** ilerleme çubuğu + sayaç opaklığı */
   track: number;
-  /** havuz ışığının yatay kayması (px) — burger nereye giderse ışık da oraya */
-  poolX: number;
-  /** havuz ışığının dikey kayması (px) */
-  poolY: number;
+  /** ışık konisi (LightRays) opaklığı */
+  rays: number;
+  /** koninin çıkış noktası (vh oranı): odaktaki burgerin üst kenarının biraz üstü */
+  raysOriginY: number;
   /** sağ alt "Sipariş ver" pill'i: dive'dan itibaren, kapanışta kaybolur */
   cta: number;
   /** iddia bölümü: yatay akış (metin tarafı) */
@@ -536,11 +536,9 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   const riseE = smooth(tOut1);
   const lightIn = Math.pow(riseE, 1.8);
   const aura = tOut > 0 ? lightIn : Math.max(0, (1 - fanE * 0.72) * (1 - Math.max(payE, upT)));
-  /* havuz ışığı burgerle birlikte yatay kayar: iddia bölümünde akış konumu, dışında 0 (px) */
-  const inClaims = claimsT > 0 && claimsT < 1 && !outro;
-  const poolX = inClaims ? flowX : tPay > 0 ? lerp(CLAIM_X[3] * vw * xk, 0, payE) : 0;
-  /* havuz burgerle birlikte dikeyde de kayar */
-  const poolY = inClaims ? flowY : tPay > 0 ? lerp(CLAIM_Y[3] * vh * xk, 0, payE) : 0;
+  /* Işık konisi: hero'da tam, yelpazede kısılır, dalış/manifesto/panelde söner; kapanışta burgerin
+     yükselmesiyle geri gelir (eski formül birebir). */
+  const rays = tOut > 0 ? lightIn * 0.9 : Math.max(0, (1 - fanE * 0.55) * (1 - Math.max(diveE * 0.85, payE, upT)));
   const cta = seg(p, S.dive[0] + 0.01, S.dive[0] + 0.05) * (1 - seg(p, S.foot[0], S.foot[0] + 0.03));
 
   /* copy */
@@ -581,6 +579,13 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   const track = tOut > 0 ? clamp((tOut2 - 0.3) / 0.5) : 1 - upT;
   const arrowsO = Math.max(heroOut, clamp((tOut2 - 0.55) / 0.4));
 
+  /* Koni kaynağı: odaktaki burgerin ÜST kenarının biraz üstü. Kart alta yaslı (bottom = card.bottom),
+     görsel yüksekliği hc·heroScale(0) = hc; üst kenar = vh − card.bottom − hc. Oradan gövdenin
+     %25'i kadar yukarı çıkılır (eski davranışla aynı oran). */
+  const focusHc = contentHeight(card, slotAr(CENTER));
+  const rayTop = vh - card.bottom - focusHc;
+  const raysOriginY = Math.round(((rayTop - 0.25 * focusHc) / vh) * 1000) / 1000;
+
   const flow: ClaimFlow = {
     on: claimsOn,
     /* metin burgerin BOŞ tarafında: burger sağdayken (c0/c1) metin solda, sola geçince (c2/c3) sağda */
@@ -602,8 +607,8 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
     foot,
     panelVeil,
     track,
-    poolX,
-    poolY,
+    rays,
+    raysOriginY,
     cta,
     flow,
   };

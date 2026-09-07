@@ -11,6 +11,7 @@ import { playStage, playSwitch, warmAudio } from "@/lib/sound";
 import Arc from "./Arc";
 import Claims from "./Claims";
 import Hero from "./Hero";
+import LightRays from "./LightRays";
 import Outro from "./Outro";
 import CUT_CENTERS from "@/lib/cutCenters.json";
 import { LOGO } from "./logo";
@@ -198,11 +199,9 @@ export default function Stage({ extra }: { extra?: ExtraCutouts }) {
         st(a, "opacity", f.arrows.opacity);
         st(a, "pointer-events", pe);
       }
-      /* ışık: hüzme+havuz ve armatür birlikte */
-      st("beam", "opacity", f.aura);
-      st("lamp", "opacity", f.aura);
-      /* havuz ışığı burgerle birlikte kayar */
-      st("pool", "transform", `translate(${f.poolX.toFixed(1)}px, ${f.poolY.toFixed(1)}px)`);
+      /* ışık konisi: opaklık + kaynak konumu (LightRays her karede --rayY okur) */
+      st("rays", "opacity", f.rays);
+      st("rays", "--rayY", f.raysOriginY.toFixed(3));
       st("cta", "opacity", f.cta);
       st("cta", "pointer-events", f.cta > 0.5 ? "auto" : "none");
 
@@ -350,6 +349,8 @@ export default function Stage({ extra }: { extra?: ExtraCutouts }) {
         }}
       >
         <div className="bgBright" ref={bind("bgBright")} aria-hidden="true" />
+
+        <LightRays bind={bind("rays")} onReady={() => load.mark("rays")} />
         <div className="panelVeil" ref={bind("panelVeil")} aria-hidden="true" />
         <Arc active={active} bind={bind} extra={extra} />
 
