@@ -178,7 +178,11 @@
     "sheetClose": "Kapat",
     "upsellTitle": "YANINDA İYİ GİDER",
     "less": "azalt",
-    "more": "artır"
+    "more": "artır",
+    "soldOut": "Tükendi",
+    "closedTitle": "Şu an kapalıyız",
+    "closedLead": "Şu an sipariş alamıyoruz. Birazdan tekrar deneyin.",
+    "soldOutWarn": "Sepetinizde tükenen ürün var: {items}. Çıkarın ya da değiştirin."
   },
   "track": {
     "title": [
@@ -221,7 +225,8 @@
     "tabs": {
       "active": "Aktif",
       "today": "Bugün",
-      "past": "Geçmiş"
+      "past": "Geçmiş",
+      "settings": "Ayarlar"
     },
     "empty": "Bu sekmede sipariş yok.",
     "soundOn": "Sesi aç",
@@ -269,7 +274,35 @@
       "stub": "Yerel stub",
       "supabase": "Supabase"
     },
-    "paid": "Ödendi"
+    "paid": "Ödendi",
+    "feedLabel": {
+      "realtime": "realtime",
+      "sse": "canlı akış",
+      "poll": "yoklama"
+    },
+    "accept": "Siparişi al",
+    "prepLabel": "Hazırlanma",
+    "min": "dk",
+    "acceptedAt": "'de alındı",
+    "closedAt": "kapandı",
+    "cancelledAt": "'de iptal edildi",
+    "cancelSure": "İptal edilsin mi?",
+    "close": {
+      "onTheWay": "Yola çıktı",
+      "delivered": "Teslim edildi"
+    },
+    "settings": "Ayarlar",
+    "orderingOpen": "Sipariş açık",
+    "orderingClosed": "Sipariş kapalı",
+    "soldOut": "Tükendi",
+    "soldOutHint": "Tıkla: tükendi işaretle",
+    "summary": "Gün sonu",
+    "sumOrders": "Sipariş",
+    "sumRevenue": "Ciro",
+    "sumTop": "En çok satan",
+    "sumAvg": "Ort. hazırlanma",
+    "sumCancelled": "İptal",
+    "sumDate": "Tarih"
   },
   "cta": {
     "order": "Sipariş ver"

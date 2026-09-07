@@ -13,6 +13,7 @@ import { useClockMinute } from "@/lib/useClock";
 import { ZONES, getZone } from "@/lib/zones";
 import MinCartInfo from "./MinCartInfo";
 import Upsell from "./Upsell";
+import { useSettings } from "@/lib/useSettings";
 import "./order.css";
 
 const fmt = (s: string, vars: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ""));
@@ -29,6 +30,8 @@ export default function CheckoutPage() {
   const [form, setForm] = useState({ name: "", phone: "", address: "", requested_at: "simdi", note: "" });
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  /* panel ayarları: sipariş kapalıysa ya da sepette tükenen ürün varsa ödeme yapılamaz */
+  const settings = useSettings();
   const minute = useClockMinute();
   const open = minute < 0 ? null : isOpen();
   const slots = useMemo(() => (minute < 0 ? ["simdi"] : timeSlots()), [minute]);
@@ -49,7 +52,8 @@ export default function CheckoutPage() {
   const totals = computeTotals(items, mode, zone);
   const count = items.reduce((s, i) => s + i.qty, 0);
   const err = (f: string) => errors.find((e) => e.field === f);
-  const canSubmit = open === true && count > 0 && totals.missing === 0 && !submitting;
+  const soldOutInCart = items.filter((it) => settings.sold_out.includes(it.id)).map((it) => findMenuItem(it.id)?.name ?? it.id);
+  const canSubmit = open === true && settings.ordering_open && soldOutInCart.length === 0 && count > 0 && totals.missing === 0 && !submitting;
 
   const submit = async () => {
     const errs: ValidationError[] = [];
@@ -258,6 +262,16 @@ export default function CheckoutPage() {
             {open === false ? <div className="warn">{fmt(o.closed, { open: OPENS_AT_LABEL })}</div> : null}
             {err("hours") ? <span className="err">{o.err.hours}</span> : null}
             {err("payment") || err("generic") ? <span className="err">{o.err.generic}</span> : null}
+            {!settings.ordering_open ? (
+              <div className="warn" data-closed>
+                <b>{o.closedTitle}</b> — {o.closedLead}
+              </div>
+            ) : null}
+            {soldOutInCart.length > 0 ? (
+              <div className="warn" data-soldout-warn>
+                {fmt(o.soldOutWarn, { items: soldOutInCart.join(", ") })}
+              </div>
+            ) : null}
             <button type="submit" className="submit" disabled={!canSubmit}>
               {submitting ? o.payingNow : `${o.payNow} · ${formatPrice(totals.total)}`}
             </button>

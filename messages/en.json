@@ -254,7 +254,11 @@
     "sheetClose": "Close",
     "upsellTitle": "GOES WELL WITH",
     "less": "decrease",
-    "more": "increase"
+    "more": "increase",
+    "soldOut": "Sold out",
+    "closedTitle": "We're closed right now",
+    "closedLead": "We can't take orders at the moment. Please try again shortly.",
+    "soldOutWarn": "Your cart has sold-out items: {items}. Please remove or replace them."
   },
   "track": {
     "metaTitle": "Order tracking",
@@ -316,7 +320,8 @@
     "tabs": {
       "active": "Aktif",
       "today": "Bugün",
-      "past": "Geçmiş"
+      "past": "Geçmiş",
+      "settings": "Settings"
     },
     "empty": "Bu sekmede sipariş yok.",
     "soundOn": "Sesi aç",
@@ -364,7 +369,35 @@
       "stub": "Yerel stub",
       "supabase": "Supabase"
     },
-    "paid": "Paid"
+    "paid": "Paid",
+    "feedLabel": {
+      "realtime": "realtime",
+      "sse": "live stream",
+      "poll": "polling"
+    },
+    "accept": "Accept order",
+    "prepLabel": "Prep time",
+    "min": "min",
+    "acceptedAt": "accepted",
+    "closedAt": "closed",
+    "cancelledAt": "cancelled",
+    "cancelSure": "Cancel this order?",
+    "close": {
+      "onTheWay": "On the way",
+      "delivered": "Delivered"
+    },
+    "settings": "Settings",
+    "orderingOpen": "Ordering open",
+    "orderingClosed": "Ordering closed",
+    "soldOut": "Sold out",
+    "soldOutHint": "Click to mark sold out",
+    "summary": "Daily summary",
+    "sumOrders": "Orders",
+    "sumRevenue": "Revenue",
+    "sumTop": "Top seller",
+    "sumAvg": "Avg prep",
+    "sumCancelled": "Cancelled",
+    "sumDate": "Date"
   },
   "payment": {
     "status": {

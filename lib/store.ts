@@ -1,10 +1,11 @@
 /** Depo seçimi — env'e göre: Supabase anahtarları varsa Supabase, yoksa yerel stub. Kod değişmez. */
 import { hasSupabaseServer } from "@/lib/env";
 import type { OrderStore, PushStore } from "@/lib/orders";
-import { FileOrderStore, FilePushStore } from "@/lib/orders-store";
-import { SupabaseOrderStore, SupabasePushStore } from "@/lib/supabase-store";
+import type { SettingsStore } from "@/lib/settings";
+import { FileOrderStore, FilePushStore, FileSettingsStore } from "@/lib/orders-store";
+import { SupabaseOrderStore, SupabasePushStore, SupabaseSettingsStore } from "@/lib/supabase-store";
 
-const g = globalThis as unknown as { __magOrderStore?: OrderStore; __magPushStore?: PushStore; __magStoreMode?: "supabase" | "stub" };
+const g = globalThis as unknown as { __magOrderStore?: OrderStore; __magPushStore?: PushStore; __magSettingsStore?: SettingsStore; __magStoreMode?: "supabase" | "stub" };
 
 export function storeMode(): "supabase" | "stub" {
   return hasSupabaseServer() ? "supabase" : "stub";
@@ -14,10 +15,15 @@ export function getOrderStore(): OrderStore {
     g.__magStoreMode = storeMode();
     g.__magOrderStore = g.__magStoreMode === "supabase" ? new SupabaseOrderStore() : new FileOrderStore();
     g.__magPushStore = g.__magStoreMode === "supabase" ? new SupabasePushStore() : new FilePushStore();
+    g.__magSettingsStore = g.__magStoreMode === "supabase" ? new SupabaseSettingsStore() : new FileSettingsStore();
   }
   return g.__magOrderStore;
 }
 export function getPushStore(): PushStore {
   getOrderStore();
   return g.__magPushStore!;
+}
+export function getSettingsStore(): SettingsStore {
+  getOrderStore();
+  return g.__magSettingsStore!;
 }

@@ -10,6 +10,7 @@ import { MENU, formatPrice, type Category, type MenuItem } from "@/lib/menu";
 import { useClockMinute } from "@/lib/useClock";
 import CartBar from "./CartBar";
 import Upsell from "./Upsell";
+import { useSettings } from "@/lib/useSettings";
 import Ingredients from "./Ingredients";
 import ProductImage from "./ProductImage";
 import ProductSheet from "./ProductSheet";
@@ -24,6 +25,8 @@ export default function OrderPage() {
   const o = t.order;
   const cart = useCart();
   const [sheet, setSheet] = useState<MenuItem | null>(null);
+  /* panel ayarları: kapalıysa sipariş yok, tükendi işaretli ürün eklenemez */
+  const settings = useSettings();
   const [activeCat, setActiveCat] = useState<Category>("burger");
   const cartHasItems = Object.keys(cart).length > 0;
   const minute = useClockMinute();
@@ -91,15 +94,16 @@ export default function OrderPage() {
                   const name = itemName(t, m);
                   const eager = cat === "burger" && idx < 3; // ilk ekran: LCP görseli lazy olmasın
                   const qty = cart[m.id]?.qty ?? 0;
+                  const out = settings.sold_out.includes(m.id);
                   return (
-                    <article key={m.id} data-pcard className={"pcard" + (qty ? " on" : "")} onClick={() => setSheet(m)} role="button" tabIndex={0} onKeyDown={(e) => {
+                    <article key={m.id} data-pcard data-sold-out={out || undefined} className={"pcard" + (qty ? " on" : "") + (out ? " soldout" : "")} onClick={() => { if (!out) setSheet(m); }} role="button" tabIndex={0} onKeyDown={(e) => {
                         /* Kart bir "button" gibi davranıyor ama içinde de düğmeler var.
                            İç düğmede basılan Enter/Space buraya kabarıyordu ve sheet açılıyordu:
                            klavye kullanıcısı "+ Ekle" düğmesini hiç kullanamıyordu. */
                         if (e.target !== e.currentTarget) return;
                         if (e.key !== "Enter" && e.key !== " ") return;
                         e.preventDefault();
-                        setSheet(m);
+                        if (!out) setSheet(m);
                       }}>
                       <ProductImage m={m} name={name} eager={eager} />
                       <div className="pbody">
@@ -114,8 +118,10 @@ export default function OrderPage() {
                           <button
                             type="button"
                             className="addbtn"
+                            disabled={out}
                             onClick={(e) => {
                               e.stopPropagation();
+                              if (out) return;
                               /* kopyalar bu kartın görselinden çıkar */
                               const img = e.currentTarget.closest("[data-pcard]")?.querySelector<HTMLElement>(".pimg");
                               if (img) void flyToCart({ source: img, commit: () => cartAdd(m.id, 1) });
@@ -123,7 +129,7 @@ export default function OrderPage() {
                             }}
                             aria-label={`${o.addShort} · ${name}`}
                           >
-                            {qty ? `${o.addShort} · ${qty}` : o.addShort}
+                            {out ? o.soldOut : qty ? `${o.addShort} · ${qty}` : o.addShort}
                           </button>
                         </div>
                       </div>

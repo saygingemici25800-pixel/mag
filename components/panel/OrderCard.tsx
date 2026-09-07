@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
+
+/** Hazırlanma süresi varsayılanı (dakika) */
+const DEFAULT_PREP = 30;
 import type { Messages } from "@/lib/i18n";
 import { formatPrice } from "@/lib/menu";
-import { nextStatus, shortId, type Order, type OrderStatus } from "@/lib/orders";
+import { closeLabelKey, panelStage, shortId, stageAdvance, type Order, type OrderStatus } from "@/lib/orders";
 import { getZone } from "@/lib/zones";
 
 interface Props {
@@ -13,19 +16,26 @@ interface Props {
   fresh: boolean;
   busy: boolean;
   onSeen: () => void;
-  onStatus: (status: OrderStatus, reason?: string) => void;
+  onStatus: (status: OrderStatus, reason?: string, prepMinutes?: number) => void;
 }
 
 function timeOf(iso: string): string {
   return new Date(iso).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" });
 }
 
-/** Sipariş kartı: ürünler+adet+not, tel:, harita, istenen saat, rozetler, sıradaki durum, iptal + sebep. */
+/**
+ * Sipariş kartı — panelde ÜÇ AŞAMA:
+ *   YENİ   → "Siparişi al" + hazırlanma süresi (dk, varsayılan 30) → HAZIR
+ *   HAZIR  → kurye ise "Yola çıktı", gel-al ise "Teslim edildi"    → KAPANDI
+ *   İptal her aşamada, sebep sorulmadan ama ONAY ile.
+ * Zaman damgaları sunucuda yazılır; kartta "19:42'de alındı · 35 dk" görünür.
+ */
 export default function OrderCard({ t, order: o, unseen, fresh, busy, onSeen, onStatus }: Props) {
   const [cancelOpen, setCancelOpen] = useState(false);
-  const [reason, setReason] = useState("");
-  const next = nextStatus(o);
-  const done = o.status === "delivered" || o.status === "cancelled";
+  const [prep, setPrep] = useState(String(DEFAULT_PREP));
+  const stage = panelStage(o);
+  const next = stageAdvance(o);
+  const done = stage === "closed" || stage === "cancelled";
   const mapQ = encodeURIComponent(`${o.address ?? ""} ${getZone(o.zone)?.name ?? ""} Fethiye`);
 
   return (
@@ -89,11 +99,37 @@ export default function OrderCard({ t, order: o, unseen, fresh, busy, onSeen, on
         </p>
       ) : null}
 
+      {/* aşama zaman damgaları: "19:42'de alındı · 35 dk" */}
+      {o.accepted_at ? (
+        <p className="ostamp">
+          {timeOf(o.accepted_at)} {t.acceptedAt}
+          {typeof o.prep_minutes === "number" ? ` · ${o.prep_minutes} ${t.min}` : ""}
+          {o.closed_at ? ` · ${timeOf(o.closed_at)} ${t.closedAt}` : ""}
+        </p>
+      ) : null}
+      {o.cancelled_at ? (
+        <p className="ostamp">
+          {timeOf(o.cancelled_at)} {t.cancelledAt}
+        </p>
+      ) : null}
+
       {!done ? (
         <div className="oacts">
-          {next ? (
-            <button type="button" className="act primary" disabled={busy} onClick={() => onStatus(next)}>
-              → {t.next[next as keyof typeof t.next]}
+          {stage === "new" && next ? (
+            <>
+              <label className="prepbox">
+                <span>{t.prepLabel}</span>
+                <input type="number" min={1} max={240} inputMode="numeric" value={prep} onChange={(e) => setPrep(e.target.value)} aria-label={t.prepLabel} data-prep />
+                <b>{t.min}</b>
+              </label>
+              <button type="button" className="act primary" disabled={busy} data-accept onClick={() => onStatus(next, undefined, Number(prep) || DEFAULT_PREP)}>
+                → {t.accept}
+              </button>
+            </>
+          ) : null}
+          {stage === "ready" && next ? (
+            <button type="button" className="act primary" disabled={busy} data-close onClick={() => onStatus(next)}>
+              → {t.close[closeLabelKey(o.type)]}
             </button>
           ) : null}
           {unseen ? (
@@ -110,13 +146,15 @@ export default function OrderCard({ t, order: o, unseen, fresh, busy, onSeen, on
       ) : null}
       {cancelOpen && !done ? (
         <div className="cancelbox">
-          <input placeholder={t.cancelReason} value={reason} onChange={(e) => setReason(e.target.value)} autoFocus />
+          {/* sebep sorulmaz, yalnızca onay */}
+          <span className="text-sm">{t.cancelSure}</span>
           <button
             type="button"
             className="act danger"
             disabled={busy}
+            data-cancel-confirm
             onClick={() => {
-              onStatus("cancelled", reason);
+              onStatus("cancelled");
               setCancelOpen(false);
             }}
           >

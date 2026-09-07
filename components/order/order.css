@@ -909,3 +909,17 @@ select.ctl {
     flex: initial;
   }
 }
+
+/* ---- tükendi: menüde soluk + üstü çizili, sepete eklenemez ---- */
+.pcard.soldout,
+.upsell-card.soldout {
+  opacity: 0.45;
+}
+.pcard.soldout .tname,
+.upsell-card.soldout .upsell-name {
+  text-decoration: line-through;
+}
+.pcard.soldout .addbtn,
+.upsell-card.soldout .upsell-add {
+  cursor: not-allowed;
+}
