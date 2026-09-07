@@ -7,8 +7,12 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /** GET /api/orders/[id] — takip sayfası (müşteri; uuid'yi bilen görür) */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function GET(_req: Request, ctx: RouteContext<"/api/orders/[id]">) {
   const { id } = await ctx.params;
+  /* uuid olmayan yol parçası (eski /api/orders/stream gibi) 500 yerine 404 dönsün */
+  if (!UUID.test(id)) return NextResponse.json({ error: "not-found" }, { status: 404 });
   const order = await getOrderStore().get(id);
   if (!order) return NextResponse.json({ error: "not-found" }, { status: 404 });
   return NextResponse.json(order, { headers: { "cache-control": "no-store" } });
@@ -21,6 +25,7 @@ export async function GET(_req: Request, ctx: RouteContext<"/api/orders/[id]">) 
 export async function PATCH(req: Request, ctx: RouteContext<"/api/orders/[id]">) {
   if (!(await isPanelAuthorized(req))) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { id } = await ctx.params;
+  if (!UUID.test(id)) return NextResponse.json({ error: "not-found" }, { status: 404 });
   let body: { status?: OrderStatus; reason?: string; prep_minutes?: number };
   try {
     body = await req.json();

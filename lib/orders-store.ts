@@ -5,7 +5,6 @@
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { emitOrder } from "@/lib/events";
 import type { Order, OrderStore, PushStore, PushSubscriptionRow } from "@/lib/orders";
 import { DEFAULT_SETTINGS, normalizeSettings, type Settings, type SettingsStore } from "@/lib/settings";
 
@@ -41,16 +40,18 @@ export class FileOrderStore implements OrderStore {
     const all = await this.db.load();
     all.unshift(order);
     await this.db.save();
-    emitOrder({ type: "insert", order });
     return order;
   }
   async get(id: string): Promise<Order | null> {
     return (await this.db.load()).find((o) => o.id === id) ?? null;
   }
-  async list(limit = 200, paidOnly = false): Promise<Order[]> {
+  async list(limit = 200, paidOnly = false, since?: string): Promise<Order[]> {
     const all = await this.db.load();
+    const changed = (o: Order) =>
+      !since || [o.created_at, o.accepted_at, o.closed_at, o.cancelled_at].some((t) => typeof t === "string" && t >= since);
     return [...all]
       .filter((o) => !paidOnly || o.payment_status === "paid")
+      .filter(changed)
       .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
       .slice(0, limit);
   }
@@ -60,7 +61,6 @@ export class FileOrderStore implements OrderStore {
     if (i < 0) return null;
     all[i] = { ...all[i], ...patch, id };
     await this.db.save();
-    emitOrder({ type: "update", order: all[i] });
     return all[i];
   }
 }

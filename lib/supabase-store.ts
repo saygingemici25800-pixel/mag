@@ -14,9 +14,12 @@ export class SupabaseOrderStore implements OrderStore {
     if (error) throw new Error("supabase select: " + error.message);
     return (data as Order | null) ?? null;
   }
-  async list(limit = 200, paidOnly = false): Promise<Order[]> {
+  async list(limit = 200, paidOnly = false, since?: string): Promise<Order[]> {
     let q = supabaseAdmin().from("orders").select("*").order("created_at", { ascending: false }).limit(limit);
     if (paidOnly) q = q.eq("payment_status", "paid");
+    /* since: son yoklamadan sonra DEĞİŞEN kayıtlar. created_at yeni sipariş için, aşama damgaları
+       ise mevcut siparişin güncellenmesi için gerekli — biri bile sonraysa kayıt döner. */
+    if (since) q = q.or(`created_at.gte.${since},accepted_at.gte.${since},closed_at.gte.${since},cancelled_at.gte.${since}`);
     const { data, error } = await q;
     if (error) throw new Error("supabase list: " + error.message);
     return (data ?? []) as Order[];

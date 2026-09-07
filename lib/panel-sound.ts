@@ -40,8 +40,16 @@ export async function unlockSound(): Promise<boolean> {
   }
   return unlocked;
 }
+/* Art arda gelen siparişlerde ses üst üste binmesin: bir çalma bitmeden yenisi tetiklenirse
+   yok sayılır (en fazla SOUND_GAP_MS'de bir çalar). Tek yoklama turunda 3 sipariş gelse de tek uyarı. */
+const SOUND_GAP_MS = 1500;
+let lastPlay = 0;
+
 export function playOrderSound(): void {
   if (!unlocked || !el || !soundPref()) return;
+  const now = Date.now();
+  if (now - lastPlay < SOUND_GAP_MS) return;
+  lastPlay = now;
   el.currentTime = 0;
   el.play().catch(() => {});
 }

@@ -49,7 +49,10 @@ export async function POST(req: Request) {
 /** GET /api/orders — panel listesi (yetkili). ?limit=200 */
 export async function GET(req: Request) {
   if (!(await isPanelAuthorized(req))) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const limit = Math.min(500, Number(new URL(req.url).searchParams.get("limit")) || 200);
-  const orders = await getOrderStore().list(limit, true); // panel: yalnızca ödenmiş
+  const url = new URL(req.url);
+  const limit = Math.min(500, Number(url.searchParams.get("limit")) || 200);
+  /* ?since=<ISO>: panel yoklaması artımlı çeker (yalnızca değişenler). Yoksa tam liste. */
+  const since = url.searchParams.get("since") || undefined;
+  const orders = await getOrderStore().list(limit, true, since); // panel: yalnızca ödenmiş
   return NextResponse.json(orders, { headers: { "cache-control": "no-store" } });
 }

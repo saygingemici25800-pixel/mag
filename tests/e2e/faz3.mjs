@@ -84,7 +84,8 @@ await cust.waitForSelector(".step.now", { timeout: 5000 });
 const beforeTxt = await cust.$eval(".step.now", (e) => e.textContent?.trim() ?? "");
 const t1 = Date.now();
 await panel.click(`.ocard[data-id="${id}"] [data-accept]`);
-await cust.waitForFunction((prev) => (document.querySelector(".step.now")?.textContent?.trim() ?? "") !== prev, beforeTxt, { timeout: 4000 }).catch(() => {});
+/* müşteri ekranı 6 sn'de bir yokluyor (SSE kaldırıldı) → bir tur + pay bekle */
+await cust.waitForFunction((prev) => (document.querySelector(".step.now")?.textContent?.trim() ?? "") !== prev, beforeTxt, { timeout: 12000 }).catch(() => {});
 const nowTxt = await cust.$eval(".step.now", (e) => e.textContent).catch(() => "");
 check("müşteri sayfası canlı güncellendi", nowTxt.trim() !== beforeTxt && nowTxt.length > 0, `${Date.now() - t1} ms · "${beforeTxt}" → "${nowTxt}"`);
 check("statü sonrası vurgu kalktı", (await panel.$(`.ocard[data-id="${id}"].unseen`)) === null);
@@ -92,7 +93,7 @@ await cust.screenshot({ path: `${out}/faz3-cust-live.png` });
 /* İptal: panelde artık SEBEP SORULMAZ, yalnızca onay istenir (üç aşamalı akış kararı). */
 await panel.click(`.ocard[data-id="${id}"] .act.danger`);
 await panel.click(`.ocard[data-id="${id}"] [data-cancel-confirm]`);
-await cust.waitForFunction(() => document.querySelector(".step.now")?.textContent?.includes("İptal"), null, { timeout: 4000 }).catch(() => {});
+await cust.waitForFunction(() => document.querySelector(".step.now")?.textContent?.includes("İptal"), null, { timeout: 12000 }).catch(() => {});
 const canc = await cust.$eval(".step.now", (e) => e.textContent).catch(() => "");
 check("iptal müşteriye yansıdı", canc.includes("İptal"), `"${canc}"`);
 await panel.click(".tabs button:nth-child(3)");

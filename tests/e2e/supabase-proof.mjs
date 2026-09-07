@@ -34,10 +34,10 @@ await panel.fill('form input[type="password"]', KEY);
 await panel.click('form button[type="submit"]');
 await panel.waitForSelector(".tabs", { timeout: 15000 });
 check("panel PANEL_KEY ile açıldı (Supabase yalnızca veri katmanı)", true);
-/* Canlı akış: panel SSE ile dinler (Supabase realtime anon RLS'i geçemediği için kullanılmıyor). */
-await panel.waitForFunction(() => document.querySelector("[data-feed]")?.dataset.live === "true", null, { timeout: 20000 }).catch(() => {});
-const st = await panel.evaluate(() => { const el = document.querySelector("[data-feed]"); return { text: el?.textContent?.trim(), live: el?.dataset.live, feed: el?.dataset.feed }; });
-check("canlı akış bağlandı (sunucu üzerinden)", st.live === "true" && ["sse", "poll"].includes(st.feed ?? ""), `${st.feed} · ${st.text}`);
+/* Canlı akış: uyarlanabilir yoklama (SSE kaldırıldı — Vercel akışı ~0.7 sn'de sonlandırıyordu). */
+await panel.waitForFunction(() => document.querySelector("[data-live]")?.dataset.live === "true", null, { timeout: 20000 }).catch(() => {});
+const st = await panel.evaluate(() => { const el = document.querySelector("[data-live]"); return { text: el?.textContent?.trim(), live: el?.dataset.live }; });
+check("gösterge canlı", st.live === "true", st.text);
 
 /* --- site: mock ödemeyle gerçek sipariş --- */
 const shopCtx = await b.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
@@ -64,7 +64,8 @@ const after = (await db.query("select count(*)::int c from public.orders")).rows
 check("tablo kayıt sayısı arttı", after === before + 1, `${before} → ${after}`);
 
 /* --- kanıt 2: panel REALTIME ile gördü (sayfa yenilenmeden) --- */
-await panel.waitForSelector(`.ocard[data-id="${id}"]`, { timeout: 8000 });
+/* yoklama 4 sn; sınırda kalan kayıt en geç tam turda (5×4=20 sn) gelir */
+await panel.waitForSelector(`.ocard[data-id="${id}"]`, { timeout: 25000 });
 const ms = Date.now() - t0;
 check("panel siparişi canlı gördü (yenileme yok)", true, `${ms} ms (ödeme akışı dahil)`);
 const cardText = await panel.locator(`.ocard[data-id="${id}"]`).textContent();

@@ -31,18 +31,43 @@ export default function OrderTrack({ initial }: { initial: Order }) {
     }
   };
 
-  // Canlı: SSE (stub'da süreç içi olay, Supabase'de sunucu yoklaması). EventSource kopunca kendi bağlanır.
+  /* Canlı durum: yoklama. SSE kaldırıldı — Vercel (Hobby) akışı ~0.7 sn içinde sonlandırıyor,
+     bağlantı hiç ayakta kalmıyordu. Müşteri ekranı 6 sn'de bir kendi siparişini sorar; sekme arka
+     plandayken 30 sn. Sipariş kapandığında (teslim/iptal) yoklama durur. */
   useEffect(() => {
     if (order.status === "delivered" || order.status === "cancelled") return;
     if (order.payment_status !== "paid" && order.payment_status !== "awaiting_payment") return;
-    const es = new EventSource(`/api/orders/stream?id=${encodeURIComponent(order.id)}`);
-    es.addEventListener("hello", () => setLive(true));
-    es.addEventListener("order", (e) => {
-      const ev = JSON.parse((e as MessageEvent).data) as { order: Order };
-      setOrder(ev.order);
-    });
-    es.onerror = () => setLive(false);
-    return () => es.close();
+    let timer = 0;
+    let stopped = false;
+    const tick = async () => {
+      if (stopped) return;
+      try {
+        const r = await fetch(`/api/orders/${order.id}`, { cache: "no-store" });
+        if (r.ok) {
+          setOrder((await r.json()) as Order);
+          setLive(true);
+        } else setLive(false);
+      } catch {
+        setLive(false);
+      } finally {
+        if (!stopped) timer = window.setTimeout(tick, document.visibilityState === "visible" ? 6_000 : 30_000);
+      }
+    };
+    const onVisible = () => {
+      if (document.visibilityState !== "visible" || stopped) return;
+      window.clearTimeout(timer);
+      void tick();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    timer = window.setTimeout(tick, 6_000);
+    /* ilk "canlı" işareti bir kare sonra (efekt gövdesinde senkron setState uyarısı) */
+    const raf = requestAnimationFrame(() => setLive(true));
+    return () => {
+      cancelAnimationFrame(raf);
+      stopped = true;
+      window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [order.id, order.status, order.payment_status]);
 
   const flow = STATUS_FLOW[order.type];

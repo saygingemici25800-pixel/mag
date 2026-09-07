@@ -275,11 +275,6 @@
       "supabase": "Supabase"
     },
     "paid": "Ödendi",
-    "feedLabel": {
-      "realtime": "realtime",
-      "sse": "canlı akış",
-      "poll": "yoklama"
-    },
     "accept": "Siparişi al",
     "prepLabel": "Hazırlanma",
     "min": "dk",

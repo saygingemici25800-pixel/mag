@@ -370,11 +370,6 @@
       "supabase": "Supabase"
     },
     "paid": "Paid",
-    "feedLabel": {
-      "realtime": "realtime",
-      "sse": "live stream",
-      "poll": "polling"
-    },
     "accept": "Accept order",
     "prepLabel": "Prep time",
     "min": "min",
