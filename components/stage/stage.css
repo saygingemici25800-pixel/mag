@@ -30,48 +30,20 @@
   z-index: 14;
 }
 
-/* ---- HERO (docs/ref/hero/hero.html birebir: hüzme, havuz, armatür, kart, isim, oklar, çubuk) ---- */
-.beam {
+/* ---- HERO (docs/ref/hero/hero.html: kart, isim, oklar, çubuk; ışık konisi ayrı .rays) ---- */
+/* ---- ışık konisi (WebGL) — zemin üstü, ürün altı; kaynak odaktaki burgerin biraz üstü ---- */
+.rays {
   position: absolute;
   inset: 0;
-  z-index: 1;
+  z-index: 5;
   pointer-events: none;
-  background: radial-gradient(ellipse 62vw 95vh at 50% 2%, rgba(var(--hero-beam-rgb), 0.2) 0%, rgba(var(--hero-beam-rgb), 0.11) 30%, rgba(var(--hero-beam-rgb), 0.05) 60%, rgba(var(--hero-beam-rgb), 0) 100%);
+  mix-blend-mode: screen;
+  opacity: 0;
 }
-.pool {
-  position: absolute;
-  inset: 0;
-  left: -8px;
-  top: 2px;
-  pointer-events: none;
-  /* burgerle birlikte yatay kayar (Stage.render → translateX) */
-  will-change: transform;
-  background: radial-gradient(ellipse 45% 27.5% at 50% 78%, rgba(var(--hero-pool-rgb), 0.62) 0%, rgba(var(--hero-pool-rgb), 0.46) 20%, rgba(var(--hero-pool-rgb), 0.22) 40%, rgba(var(--hero-pool-rgb), 0.09) 58%, rgba(var(--hero-pool-rgb), 0.03) 75%, rgba(var(--hero-pool-rgb), 0.008) 90%, rgba(var(--hero-pool-rgb), 0) 100%);
-}
-.lamp {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  z-index: 12;
-  transform: translate(-50%, -6%);
-  width: min(380px, 58vw);
-  pointer-events: none;
-}
-.lamp svg {
+.rays canvas {
   display: block;
-  overflow: visible;
   width: 100%;
-  height: auto;
-}
-.lamp .lampMark {
-  position: absolute;
-  left: 49.6%;
-  top: 60%;
-  width: 76.7%;
-  height: 16.5%;
-  transform: translateX(-50%);
-  opacity: 0.92;
-  display: block;
+  height: 100%;
 }
 
 /* kart: 66vh × 52vh (mobil min(58vh,100vw) × min(46vh,80vw)), altı 26vh'de, ölçek/döndürme merkezi alt-orta.

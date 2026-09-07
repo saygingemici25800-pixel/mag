@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 
 /** Yükleme adımları — hepsi eşit ağırlıklı, ilerleme = tamamlanan / toplam */
-export type LoadStep = "fonts" | "cutouts" | "firstRender";
-export const LOAD_STEPS: LoadStep[] = ["fonts", "cutouts", "firstRender"];
+export type LoadStep = "fonts" | "cutouts" | "rays" | "firstRender";
+export const LOAD_STEPS: LoadStep[] = ["fonts", "cutouts", "rays", "firstRender"];
 
 /** Yüzde göstergesi bu süreyi aşan yüklemelerde açılır (yavaş bağlantı) */
 export const SLOW_MS = 4000;
@@ -54,6 +54,12 @@ export function useLoadProgress(): LoadProgress {
     return () => {
       cancelled = true;
     };
+  }, [mark]);
+
+  // WebGL desteklenmiyorsa rays adımı hiç gelmez → 2 sn sonra kendiliğinden tamam say
+  useEffect(() => {
+    const id = window.setTimeout(() => mark("rays"), 2000);
+    return () => window.clearTimeout(id);
   }, [mark]);
 
   // yavaş bağlantı: 4 sn'yi aşarsa yüzdeyi göster

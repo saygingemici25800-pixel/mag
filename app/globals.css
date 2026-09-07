@@ -69,9 +69,7 @@
   --surface: color-mix(in srgb, var(--mag-purple-soft) 55%, var(--mag-purple-deep)); /* kart/sheet yüzeyi */
   --accent: var(--mag-lime); /* aktif/vurgu: sepet çubuğu, rozet, ilerleme, üstü çizili */
   --page-bg: linear-gradient(180deg, var(--mag-purple-deep) 0%, var(--mag-purple-mid) 55%, var(--mag-purple) 100%);
-  /* hero referansı (docs/ref/hero/hero.html) — sayılar birebir: hüzme/havuz ışık renkleri, beyaz/siyah */
-  --hero-beam-rgb: 255, 232, 170;
-  --hero-pool-rgb: 255, 236, 190;
+  /* hero referansı (docs/ref/hero/hero.html) — beyaz/siyah (ışık konisi rengi LightRays içinde) */
   --hero-white: #fff;
   --hero-white-rgb: 255, 255, 255;
   --hero-black: #000;

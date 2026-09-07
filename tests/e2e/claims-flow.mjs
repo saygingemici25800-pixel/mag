@@ -3,7 +3,7 @@
 //  - dört durak: c0 (+26%,−14%) · c1 (−26%,−6%) · c2 (+22%,+4%) · c3 (−26%,+14%) — mobilde yarısı
 //  - dönüş c0 −2° → c3 +2° doğrusal; ölçek 1 → 1.03 → 1; filtre yok
 //  - metin burgerin karşı tarafında (c0 sol, c1 sağ, c2 sol, c3 sağ), hiçbir durakta çakışma yok
-//  - havuz ışığı burgerle birlikte kayar; burger ışığın dışında kalmaz
+//  - ışık konisi (LightRays) hero'dan devralınır; iddia bölümünde sönümlenir
 //  - reduced-motion: burger sabit, metinler hareketsiz görünür
 //  - eski dilim/katman sistemi kaynakta yok
 import { chromium } from "playwright";
@@ -35,7 +35,6 @@ const probe = (p) => p.evaluate(() => {
   const item = document.querySelector(".item.focus");
   const img = item?.querySelector(".img");
   const txt = document.querySelector(".claimText");
-  const pool = document.querySelector(".pool");
   const rail = document.querySelector(".rail");
   const cs = (el) => getComputedStyle(el);
   const r = img.getBoundingClientRect();
@@ -57,7 +56,6 @@ const probe = (p) => p.evaluate(() => {
     imgOpacity: +cs(img).opacity,
     text: t ? { x0: t.x, x1: t.right, y0: t.y, y1: t.bottom } : null,
     side: txt?.dataset.side ?? "", ci: txt?.dataset.ci ?? "", textOp: txt ? +cs(txt).opacity : 0,
-    poolTf: pool ? cs(pool).transform : "none",
     claimY: innerHeight * (innerWidth < 900 ? 0.3 : 0.46),
     rail: rail ? (() => { const q = rail.getBoundingClientRect(); return { x0: q.x, x1: q.right, y0: q.y, y1: q.bottom }; })() : null,
     vw: innerWidth, vh: innerHeight,
@@ -100,10 +98,7 @@ for (let i = 0; i < 4; i++) {
   check(`c${i}: metin ikon rayıyla çakışmıyor`, !overlap(s.text, s.rail), s.text && s.rail ? `metin ${s.text.x0.toFixed(0)}–${s.text.x1.toFixed(0)} · ray ${s.rail.x0.toFixed(0)}–${s.rail.x1.toFixed(0)}` : "");
   check(`c${i}: metin burgerle çakışmıyor`, !overlap(s.text, s.burger), s.text ? `metin ${s.text.x0.toFixed(0)}–${s.text.x1.toFixed(0)} · burger ${s.burger.x0.toFixed(0)}–${s.burger.x1.toFixed(0)}` : "metin yok");
   /* havuz ışığı burgerle kayar: translateX ≈ burger merkezi */
-  const mm = s.poolTf.match(/matrix\([^,]+,[^,]+,[^,]+,[^,]+,\s*([-\d.]+),\s*([-\d.]+)\)/);
-  const px = parseFloat(mm?.[1] ?? "0"), py = parseFloat(mm?.[2] ?? "0");
-  check(`c${i}: havuz ışığı yatayda burgerle kaydı`, Math.abs(px - expX) < s.vw * 0.05, `ışık ${px.toFixed(0)} px · burger ${expX.toFixed(0)} px`);
-  check(`c${i}: havuz ışığı dikeyde burgerle kaydı`, Math.abs(py - CLAIM_Y[i] * s.vh) < s.vh * 0.05, `ışık ${py.toFixed(0)} px · beklenen ${(CLAIM_Y[i] * s.vh).toFixed(0)} px`);
+
 }
 /* dikey duraklar: c0 −14% → c3 +14% vh. Mutlak taban (claimY) ölçek kısıtından etkilendiği için
    DURAKLAR ARASI FARK ölçülür: aradaki mesafe CLAIM_Y farkı × vh olmalı (±2% vh). */

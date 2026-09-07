@@ -13,84 +13,6 @@ import type { Bind } from "./Arc";
  * Işık katmanı kontrol paneli (Armatür/Hüzme/Havuz/Yansıma anahtarları) bilerek yok.
  */
 
-/* ---- Armatür: referans SVG olduğu gibi (hex'ler kopyalanan varlığın kendisi; palette testinde muaf) ---- */
-export function Lamp({ bind }: { bind: Bind }) {
-  return (
-    <div className="lamp" ref={bind("lamp")} aria-hidden="true">
-      <svg viewBox="0 0 400 220" aria-hidden="true">
-        <defs>
-          <linearGradient id="domeFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#2a2233" />
-            <stop offset=".55" stopColor="#110c17" />
-            <stop offset="1" stopColor="#1c1524" />
-          </linearGradient>
-          <linearGradient id="domeSheen" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stopColor="#fff" stopOpacity="0" />
-            <stop offset=".5" stopColor="#fff" stopOpacity=".07" />
-            <stop offset="1" stopColor="#fff" stopOpacity="0" />
-          </linearGradient>
-          <linearGradient id="skirtGlow" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#3a2416" />
-            <stop offset=".3" stopColor="#c98a44" />
-            <stop offset=".65" stopColor="#f3c581" />
-            <stop offset="1" stopColor="#8a5a2c" />
-          </linearGradient>
-          <linearGradient id="skirtSide" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stopColor="#000" stopOpacity=".55" />
-            <stop offset=".2" stopColor="#000" stopOpacity="0" />
-            <stop offset=".8" stopColor="#000" stopOpacity="0" />
-            <stop offset="1" stopColor="#000" stopOpacity=".55" />
-          </linearGradient>
-          <linearGradient id="knob" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#3b3242" />
-            <stop offset="1" stopColor="#0c0810" />
-          </linearGradient>
-          <radialGradient id="halo2" cx=".5" cy=".5" r=".5">
-            <stop offset="0" stopColor="#FFD662" stopOpacity=".22" />
-            <stop offset="1" stopColor="#FFD662" stopOpacity="0" />
-          </radialGradient>
-          <pattern id="ribsDark" width="7" height="10" patternUnits="userSpaceOnUse">
-            <rect x="0" y="0" width="3.2" height="10" fill="#fff" opacity=".05" />
-            <rect x="3.2" y="0" width="1" height="10" fill="#000" opacity=".5" />
-          </pattern>
-          <pattern id="ribsGlow" width="7" height="10" patternUnits="userSpaceOnUse">
-            <rect x="0" y="0" width="2.4" height="10" fill="#fff5dc" opacity=".55" />
-            <rect x="2.4" y="0" width="2.2" height="10" fill="#4a2c14" opacity=".55" />
-            <rect x="4.6" y="0" width="2.4" height="10" fill="#000" opacity=".12" />
-          </pattern>
-          <clipPath id="domeClip">
-            <path d="M52 132 C52 60 130 26 200 26 C270 26 348 60 348 132 Z" />
-          </clipPath>
-        </defs>
-        <ellipse cx="200" cy="175" rx="230" ry="60" fill="url(#halo2)" />
-        <rect x="196" y="20" width="8" height="12" fill="#1a1320" />
-        <circle cx="200" cy="16" r="9" fill="url(#knob)" />
-        <path d="M52 132 C52 60 130 26 200 26 C270 26 348 60 348 132 Z" fill="url(#domeFill)" />
-        <path d="M52 132 C52 60 130 26 200 26 C270 26 348 60 348 132 Z" fill="url(#ribsDark)" clipPath="url(#domeClip)" />
-        <path d="M52 132 C52 60 130 26 200 26 C270 26 348 60 348 132 Z" fill="url(#domeSheen)" />
-        <ellipse cx="200" cy="32" rx="34" ry="7" fill="#0a0710" />
-        <path d="M50 132 L350 132 L346 166 Q200 178 54 166 Z" fill="url(#skirtGlow)" />
-        <path d="M50 132 L350 132 L346 166 Q200 178 54 166 Z" fill="url(#ribsGlow)" />
-        <path d="M50 132 L350 132 L346 166 Q200 178 54 166 Z" fill="url(#skirtSide)" />
-        <path d="M50 132 L350 132" stroke="#0a0710" strokeWidth="3" />
-        <path d="M54 166 Q200 178 346 166" fill="none" stroke="#f7d9a3" strokeWidth="2" opacity=".85" />
-        <path d="M54 168 Q200 181 346 168" fill="none" stroke="#3a2416" strokeWidth="2.5" />
-      </svg>
-      {/* eslint-disable-next-line @next/next/no-img-element -- konumu SVG'ye yüzdeyle bağlı, ölçeklenmez */}
-      <img className="lampMark" src="/brand/lamp-logo.png" alt="MAG" width={372} height={148} decoding="async" />
-    </div>
-  );
-}
-
-/* ---- Hüzme + havuz (opaklık Stage.render'dan: hero'da 1, dalışa doğru söner, kapanışta geri gelir) ---- */
-export function HeroLights({ bind }: { bind: Bind }) {
-  return (
-    <div className="beam" ref={bind("beam")} aria-hidden="true">
-      <div className="pool" ref={bind("pool")} />
-    </div>
-  );
-}
-
 /* ---- İsim: referansta değişimde opaklık 0'a düşer, 0.45×480 ms sonra geri gelir ---- */
 export function HeroName({ l1, l2, k, bind }: { l1: string; l2: string; k: string; bind: Bind }) {
   const [dim, setDim] = useState(false);
@@ -211,8 +133,6 @@ export function Card({ id, name, focus, slot, ar, extra, bind, hasImg, alt }: { 
 export default function Hero({ bind, l1, l2, k, index, count, onPrev, onNext, prevAria, nextAria }: { bind: Bind; l1: string; l2: string; k: string; index: number; count: number; onPrev: () => void; onNext: () => void; prevAria: string; nextAria: string }) {
   return (
     <>
-      <HeroLights bind={bind} />
-      <Lamp bind={bind} />
       <HeroName l1={l1} l2={l2} k={k} bind={bind} />
       <HeroNav bind={bind} onPrev={onPrev} onNext={onNext} prevAria={prevAria} nextAria={nextAria} />
       <HeroBar index={index} count={count} bind={bind} />
