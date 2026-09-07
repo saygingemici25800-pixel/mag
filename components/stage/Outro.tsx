@@ -5,6 +5,7 @@ import { useLocale } from "@/components/LocaleProvider";
 import { localePath, type Messages } from "@/lib/i18n";
 import { SITE } from "@/lib/site";
 import type { Bind } from "./Arc";
+import Faq from "./Faq";
 
 interface Props {
   t: Messages;
@@ -31,14 +32,7 @@ export default function Outro({ t, bind }: Props) {
           <br />
           {t.faq.title[1]}
         </h2>
-        <div className="faqlist">
-          {t.faq.items.map((q, i) => (
-            <div key={q} className={i === 0 ? "hot" : undefined}>
-              <span>{q}</span>
-              <span aria-hidden="true">+</span>
-            </div>
-          ))}
-        </div>
+        <Faq items={t.faq.items} />
         </div>
       </section>
 

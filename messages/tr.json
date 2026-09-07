@@ -30,27 +30,31 @@
   "claims": [
     {
       "no": "donmuş köfte",
-      "l1": "130 GR",
-      "l2": "KIYMA",
-      "d": "Her burgerde 130 gr köfte var. Kıymayı her sabah kendimiz çekiyoruz, dünden kalanı tezgâha çıkmıyor."
+      "l1": "DOKU",
+      "l2": "",
+      "d": "Her burgerde 130 gr köfte var. Kıymayı her sabah kendimiz çekiyoruz, dünden kalanı tezgâha çıkmıyor.",
+      "_acik": "AÇIK: açıklama metni işletmeden gelecek (başlık onaylandı)"
     },
     {
       "no": "market ekmeği",
-      "l1": "GÜNLÜK",
-      "l2": "BRIOCHE",
-      "d": "Ekmek her gün taze geliyor, siparişte tereyağında tavada mühürleniyor."
+      "l1": "KARAKTER",
+      "l2": "",
+      "d": "Ekmek her gün taze geliyor, siparişte tereyağında tavada mühürleniyor.",
+      "_acik": "AÇIK: açıklama metni işletmeden gelecek (başlık onaylandı)"
     },
     {
       "no": "tek tip peynir",
-      "l1": "CHEDDAR",
-      "l2": "& GRAVYER",
-      "d": "Menüde iki gerçek peynir var: cheddar ve gravyer. Kaplama peynir kullanmıyoruz."
+      "l1": "KATMAN",
+      "l2": "",
+      "d": "Menüde iki gerçek peynir var: cheddar ve gravyer. Kaplama peynir kullanmıyoruz.",
+      "_acik": "AÇIK: açıklama metni işletmeden gelecek (başlık onaylandı)"
     },
     {
       "no": "hazır sos",
-      "l1": "DÖRT",
-      "l2": "EV SOSU",
-      "d": "Trüflü mayonez, jalapeno, sweet & chili ve MAG sos. Dördü de mutfakta yapılıyor, yanına 50 ₺."
+      "l1": "DENGE",
+      "l2": "",
+      "d": "Trüflü mayonez, jalapeno, sweet & chili ve MAG sos. Dördü de mutfakta yapılıyor, yanına 50 ₺.",
+      "_acik": "AÇIK: açıklama metni işletmeden gelecek (başlık onaylandı)"
     }
   ],
   "rail": [
@@ -69,11 +73,26 @@
       "SORULANLAR"
     ],
     "items": [
-      "Paket servis ve gel-al var mı?",
-      "Burgerlerin yanında patates geliyor mu?",
-      "Sosları ayrı isteyebilir miyim?",
-      "Taco ve noodle da yapıyor musunuz?",
-      "Kaçta kapanıyorsunuz?"
+      {
+        "q": "Paket servis ve gel-al var mı?",
+        "a": "Gel-al ve kurye ile paket servis var. Kurye bölgeleri ve minimum sepet tutarı sipariş sayfasında listeleniyor."
+      },
+      {
+        "q": "Burgerlerin yanında patates geliyor mu?",
+        "a": "Evet, tüm burgerlerin yanında patates kızartması dahil."
+      },
+      {
+        "q": "Sosları ayrı isteyebilir miyim?",
+        "a": "İsteyebilirsiniz. Sipariş notuna yazmanız yeterli; ek sosları menüden ayrıca ekleyebilirsiniz."
+      },
+      {
+        "q": "Taco ve noodle da yapıyor musunuz?",
+        "a": "Evet, menüde taco ve noodle da var."
+      },
+      {
+        "q": "Kaçta kapanıyorsunuz?",
+        "a": "Her gün 00:00'da kapanıyoruz. Açılış saati işletmeden teyit edilecek."
+      }
     ]
   },
   "footer": {
