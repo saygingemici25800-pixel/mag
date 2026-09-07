@@ -40,9 +40,11 @@ export default function StaticFallback({ t }: { t: Messages }) {
           {t.faq.title[0]} {t.faq.title[1]}
         </h2>
         <ul className="mt-6 divide-y divide-cream/15 border-y border-cream/15">
-          {t.faq.items.map((q) => (
-            <li key={q} className="py-4 text-dim">
-              {q}
+          {/* reduced-motion: akordiyon yok, soru ve cevap birlikte görünür */}
+          {t.faq.items.map((it) => (
+            <li key={it.q} className="py-4 text-dim">
+              <p className="m-0 text-cream">{it.q}</p>
+              <p className="m-0 mt-1 text-sm">{it.a}</p>
             </li>
           ))}
         </ul>

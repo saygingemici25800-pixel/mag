@@ -30,27 +30,31 @@
   "claims": [
     {
       "no": "frozen patties",
-      "l1": "130 G",
-      "l2": "MINCE",
-      "d": "Every burger gets a 130 g patty. We grind the beef ourselves each morning; yesterday's never makes it to the counter."
+      "l1": "TEXTURE",
+      "l2": "",
+      "d": "Every burger gets a 130 g patty. We grind the beef ourselves each morning; yesterday's never makes it to the counter.",
+      "_acik": "AÇIK: başlık karşılığı işletmeden teyit edilecek; açıklama metni ayrıca verilecek"
     },
     {
       "no": "supermarket buns",
-      "l1": "DAILY",
-      "l2": "BRIOCHE",
-      "d": "Buns arrive fresh every day and are seared in butter to order."
+      "l1": "CHARACTER",
+      "l2": "",
+      "d": "Buns arrive fresh every day and are seared in butter to order.",
+      "_acik": "AÇIK: başlık karşılığı işletmeden teyit edilecek; açıklama metni ayrıca verilecek"
     },
     {
       "no": "one generic cheese",
-      "l1": "CHEDDAR",
-      "l2": "& GRUYÈRE",
-      "d": "Two real cheeses on the menu: cheddar and gruyère. No processed slices."
+      "l1": "LAYERS",
+      "l2": "",
+      "d": "Two real cheeses on the menu: cheddar and gruyère. No processed slices.",
+      "_acik": "AÇIK: başlık karşılığı işletmeden teyit edilecek; açıklama metni ayrıca verilecek"
     },
     {
       "no": "bottled sauce",
-      "l1": "FOUR",
-      "l2": "HOUSE SAUCES",
-      "d": "Truffle mayo, jalapeño, sweet & chili and MAG sauce. All four made in our kitchen, 50 ₺ on the side."
+      "l1": "BALANCE",
+      "l2": "",
+      "d": "Truffle mayo, jalapeño, sweet & chili and MAG sauce. All four made in our kitchen, 50 ₺ on the side.",
+      "_acik": "AÇIK: başlık karşılığı işletmeden teyit edilecek; açıklama metni ayrıca verilecek"
     }
   ],
   "rail": [
@@ -69,11 +73,26 @@
       "ASKED"
     ],
     "items": [
-      "Do you do delivery and pickup?",
-      "Do burgers come with fries?",
-      "Can I get sauces on the side?",
-      "Do you make tacos and noodles too?",
-      "What time do you close?"
+      {
+        "q": "Do you do delivery and pickup?",
+        "a": "Both pickup and courier delivery are available. Delivery zones and minimum basket amounts are listed on the order page."
+      },
+      {
+        "q": "Do burgers come with fries?",
+        "a": "Yes, fries are included with every burger."
+      },
+      {
+        "q": "Can I get sauces on the side?",
+        "a": "Sure. Just add a note to your order; extra sauces can be added from the menu."
+      },
+      {
+        "q": "Do you make tacos and noodles too?",
+        "a": "Yes, tacos and noodles are on the menu."
+      },
+      {
+        "q": "What time do you close?",
+        "a": "We close at midnight every day. Opening time to be confirmed."
+      }
     ]
   },
   "footer": {

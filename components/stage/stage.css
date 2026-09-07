@@ -542,21 +542,6 @@
   width: 100%;
   margin: 0 auto;
 }
-.faqlist div {
-  padding: 15px 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--cream) 13%, transparent);
-  color: var(--dim);
-  font-size: clamp(0.86rem, 1.9vw, 1rem);
-  display: flex;
-  justify-content: space-between;
-  gap: 14px;
-}
-.faqlist div:first-child {
-  border-top: 1px solid color-mix(in srgb, var(--cream) 13%, transparent);
-}
-.faqlist div.hot {
-  color: var(--cream);
-}
 .signup {
   max-width: 500px;
   margin: 0 auto;
@@ -898,5 +883,75 @@ html.lm .ctaPill {
   .claimText.out {
     transform: none !important;
     opacity: 1 !important;
+  }
+}
+
+/* ---- SSS akordiyonu ----
+   Sorular <button>: klavyeyle gezilir, Enter/Space açar. Cevap grid-template-rows 0fr→1fr ile
+   yumuşak açılır (sabit yükseklik varsaymaz, uzun cevap da sığar). */
+.faqitem {
+  border-bottom: 1px solid color-mix(in srgb, var(--cream) 13%, transparent);
+}
+.faqitem:first-child {
+  border-top: 1px solid color-mix(in srgb, var(--cream) 13%, transparent);
+}
+.faqq {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 15px 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  font-size: clamp(0.86rem, 1.9vw, 1rem);
+  color: var(--dim);
+  transition: color 0.25s ease;
+}
+.faqq:hover,
+.faqitem.open .faqq {
+  color: var(--cream);
+}
+.faqq:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+/* + → × : 45° döner */
+.faqsign {
+  flex: none;
+  font-size: 1.15em;
+  line-height: 1;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.28, 1);
+}
+.faqitem.open .faqsign {
+  transform: rotate(45deg);
+}
+.faqa {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.32s cubic-bezier(0.22, 1, 0.28, 1);
+}
+.faqitem.open .faqa {
+  grid-template-rows: 1fr;
+}
+.faqa-in {
+  overflow: hidden;
+}
+.faqa p {
+  margin: 0;
+  padding: 0 0 16px;
+  max-width: 62ch;
+  color: var(--dim);
+  font-size: clamp(0.82rem, 1.7vw, 0.95rem);
+  line-height: 1.6;
+}
+@media (prefers-reduced-motion: reduce) {
+  .faqa,
+  .faqsign {
+    transition: none;
   }
 }
