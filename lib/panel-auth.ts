@@ -1,7 +1,12 @@
 /**
- * Panel yetkisi — ÇİFT YOL:
- *  - Supabase varsa: `Authorization: Bearer <access_token>` (Supabase Auth, e-posta/şifre).
- *  - Yoksa: PANEL_KEY. `x-panel-key` başlığı ya da 30 günlük imzalı httpOnly çerez (`mag_panel`).
+ * Panel yetkisi — TEK ORTAK ŞİFRE (PANEL_KEY).
+ *
+ * KARAR (7 Eyl 2026, kullanıcı): Supabase YALNIZCA veri katmanıdır; kimlik doğrulama için
+ * kullanılmaz. Supabase anahtarları tanımlı olsa bile panel PANEL_KEY ile açılır.
+ *
+ *  - PANEL_KEY: `x-panel-key` başlığı ya da 30 günlük imzalı httpOnly çerez (`mag_panel`).
+ *  - Supabase Auth (Bearer) hâlâ KABUL EDİLİR ama zorunlu değildir: mevcut oturumlar kırılmasın
+ *    diye ek bir yol olarak durur; panel arayüzü şifre kapısını gösterir.
  *  - PANEL_KEY tanımsız: geliştirmede açık, üretimde (NODE_ENV=production) her zaman 401.
  */
 import { createHmac, timingSafeEqual } from "node:crypto";
@@ -12,10 +17,14 @@ export const PANEL_COOKIE = "mag_panel";
 export const PANEL_COOKIE_DAYS = 30;
 
 export type PanelMode = "supabase" | "key" | "open";
+/**
+ * Panelin göstereceği kapı. PANEL_KEY varsa HER ZAMAN şifre kapısı — Supabase anahtarları
+ * tanımlı olsa bile (Supabase yalnızca veri katmanı). Anahtar yoksa: geliştirmede açık,
+ * üretimde "key" (yani hiç kimse geçemez).
+ */
 export function panelMode(): PanelMode {
-  if (hasSupabaseServer()) return "supabase";
   if (process.env.PANEL_KEY) return "key";
-  return isProduction() ? "key" : "open"; // üretimde anahtar yoksa da "key" modu → hiç kimse geçemez
+  return isProduction() ? "key" : "open";
 }
 
 function sign(exp: number): string {
@@ -53,15 +62,22 @@ function cookieValue(req: Request, name: string): string | undefined {
 export async function isPanelAuthorized(req: Request): Promise<boolean> {
   const mode = panelMode();
   if (mode === "open") return true;
-  if (mode === "supabase") {
+
+  // 1) Asıl yol: PANEL_KEY (başlık ya da imzalı httpOnly çerez)
+  if (process.env.PANEL_KEY) {
+    if (checkPanelKey(req.headers.get("x-panel-key"))) return true;
+    if (verifyPanelToken(cookieValue(req, PANEL_COOKIE))) return true;
+  }
+
+  /* 2) Ek yol: Supabase Auth Bearer token'ı. Zorunlu değil; Supabase yapılandırılmışsa
+     var olan bir oturumla gelen isteği de kabul ederiz. PANEL_KEY yoksa tek geçerli yol budur. */
+  if (hasSupabaseServer()) {
     const auth = req.headers.get("authorization") || "";
     const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-    if (!token) return false;
-    const { data, error } = await supabaseAdmin().auth.getUser(token);
-    return !error && Boolean(data.user);
+    if (token) {
+      const { data, error } = await supabaseAdmin().auth.getUser(token);
+      if (!error && data.user) return true;
+    }
   }
-  // key modu
-  if (!process.env.PANEL_KEY) return false; // üretim, anahtar yok → kapalı
-  if (checkPanelKey(req.headers.get("x-panel-key"))) return true;
-  return verifyPanelToken(cookieValue(req, PANEL_COOKIE));
+  return false;
 }

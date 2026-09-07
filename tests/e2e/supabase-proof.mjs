@@ -10,7 +10,7 @@ const ROOT = "/Users/saygin/Downloads/mag-starter";
 const base = "http://localhost:3112";
 const raw = await readFile(ROOT + "/.env.local", "utf8");
 const env = Object.fromEntries(raw.split("\n").filter(l => l.includes("=") && !l.trim().startsWith("#")).map(l => [l.slice(0, l.indexOf("=")).trim(), l.slice(l.indexOf("=") + 1).trim()]));
-const cred = JSON.parse(await readFile("/tmp/claude-502/panel-user.json", "utf8"));
+const KEY = process.env.PANEL_KEY ?? "test1234";
 
 let fail = 0;
 const check = (n, ok, x = "") => { if (!ok) fail++; console.log(`${ok ? "PASS" : "FAIL"} ${n}${x ? " — " + x : ""}`); };
@@ -29,19 +29,15 @@ const panelCtx = await b.newContext({ viewport: { width: 1440, height: 900 } });
 await panelCtx.addInitScript(() => { localStorage.setItem("mag:panel-sound", "1"); });
 const panel = await panelCtx.newPage();
 await panel.goto(base + "/panel", { waitUntil: "load" });
-await panel.waitForSelector("form input[type=email], form input[type=password]", { timeout: 10000 });
-await panel.fill('form input[type="email"]', cred.email);
-await panel.fill('form input[type="password"]', cred.password);
+await panel.waitForSelector("form input[type=password]", { timeout: 10000 });
+await panel.fill('form input[type="password"]', KEY);
 await panel.click('form button[type="submit"]');
 await panel.waitForSelector(".tabs", { timeout: 15000 });
-check("panel Supabase Auth ile açıldı", true);
-/* Realtime aboneliği kurulana kadar bekle: data-live="true" olmadan gösterge "Bağlantı yok" der. */
-await panel.waitForFunction(() => {
-  const el = document.querySelector("[data-feed]");
-  return el?.dataset.feed === "realtime" && el?.dataset.live === "true";
-}, null, { timeout: 20000 }).catch(() => {});
+check("panel PANEL_KEY ile açıldı (Supabase yalnızca veri katmanı)", true);
+/* Canlı akış: panel SSE ile dinler (Supabase realtime anon RLS'i geçemediği için kullanılmıyor). */
+await panel.waitForFunction(() => document.querySelector("[data-feed]")?.dataset.live === "true", null, { timeout: 20000 }).catch(() => {});
 const st = await panel.evaluate(() => { const el = document.querySelector("[data-feed]"); return { text: el?.textContent?.trim(), live: el?.dataset.live, feed: el?.dataset.feed }; });
-check("canlı akış: realtime bağlı", st.feed === "realtime" && st.live === "true", st.text);
+check("canlı akış bağlandı (sunucu üzerinden)", st.live === "true" && ["sse", "poll"].includes(st.feed ?? ""), `${st.feed} · ${st.text}`);
 
 /* --- site: mock ödemeyle gerçek sipariş --- */
 const shopCtx = await b.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
@@ -70,7 +66,7 @@ check("tablo kayıt sayısı arttı", after === before + 1, `${before} → ${aft
 /* --- kanıt 2: panel REALTIME ile gördü (sayfa yenilenmeden) --- */
 await panel.waitForSelector(`.ocard[data-id="${id}"]`, { timeout: 8000 });
 const ms = Date.now() - t0;
-check("panel siparişi realtime ile gördü (yenileme yok)", true, `${ms} ms (ödeme akışı dahil)`);
+check("panel siparişi canlı gördü (yenileme yok)", true, `${ms} ms (ödeme akışı dahil)`);
 const cardText = await panel.locator(`.ocard[data-id="${id}"]`).textContent();
 check("kartta müşteri ve ürün görünüyor", /Supabase Kanit/.test(cardText ?? "") && /Smooky/.test(cardText ?? ""));
 await panel.screenshot({ path: ROOT + "/docs/screens/panel/supabase-realtime.png" });

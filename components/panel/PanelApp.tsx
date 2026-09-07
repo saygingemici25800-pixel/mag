@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { hasSupabaseClient } from "@/lib/env";
 import { getMessages } from "@/lib/i18n";
 import { OPEN_STATUSES, type Order, type OrderStatus } from "@/lib/orders";
 import { apiFetch } from "@/lib/panel-client";
@@ -136,18 +135,17 @@ export default function PanelApp() {
       const list = (await res.json()) as Order[];
       setOrders(new Map(list.map((o) => [o.id, o])));
 
-      if (hasSupabaseClient && store === "supabase") {
-        const sb = supabaseBrowser()!;
-        const ch = sb
-          .channel("orders-feed")
-          .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders" }, (p) => upsert(p.new as Order, true))
-          .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders" }, (p) => upsert(p.new as Order, false))
-          .subscribe((s) => setLive(s === "SUBSCRIBED"));
-        stop = () => {
-          sb.removeChannel(ch);
-        };
-        setFeed("realtime");
-      } else {
+      /* CANLI AKIŞ SEÇİMİ
+         Supabase realtime, WAL'dan gelen satırı ABONENİN rolüyle RLS'ten geçirir. Panel tarayıcıda
+         anon anahtarıyla dinler; `orders` üzerinde anon SELECT politikası YOK (bilinçli: müşteri
+         verisi anon'a açılmamalı), bu yüzden INSERT/UPDATE olayları abonelere hiç düşmüyordu —
+         ölçüldü: panel açıkken paid güncellemesi 6 sn boyunca gelmedi.
+
+         Çözüm: panel akışı sunucu üzerinden (SSE). Panel API'si zaten PANEL_KEY ile korunuyor ve
+         SSE aynı kapıdan geçiyor; anon'a hiçbir okuma açmadan canlı kalıyoruz. Realtime'ı kullanmak
+         için `orders` üzerinde authenticated SELECT + panelde Supabase Auth oturumu gerekir ki
+         kullanıcı kararı panelin PANEL_KEY ile açılması yönünde. */
+      {
         /* SSE; bağlantı kurulamazsa 5 sn poll'a düş (panel her hâlükârda güncel kalsın) */
         const es = new EventSource("/api/orders/stream");
         let pollTimer = 0;
