@@ -7,6 +7,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { emitOrder } from "@/lib/events";
 import type { Order, OrderStore, PushStore, PushSubscriptionRow } from "@/lib/orders";
+import { DEFAULT_SETTINGS, normalizeSettings, type Settings, type SettingsStore } from "@/lib/settings";
 
 const DIR = path.join(process.cwd(), ".data");
 
@@ -83,5 +84,47 @@ export class FilePushStore implements PushStore {
       all.splice(i, 1);
       await this.db.save();
     }
+  }
+}
+
+/* ---- Ayarlar (sipariş açık/kapalı, tükendi) — dosya stub'ı ---- */
+class JsonDoc<T> {
+  private cache: T | null = null;
+  private fileOk = true;
+  constructor(
+    private file: string,
+    private fallback: T,
+  ) {}
+  async read(): Promise<T> {
+    if (this.cache) return this.cache;
+    try {
+      this.cache = JSON.parse(await readFile(path.join(DIR, this.file), "utf8")) as T;
+    } catch {
+      this.cache = this.fallback;
+    }
+    return this.cache;
+  }
+  async write(next: T): Promise<T> {
+    this.cache = next;
+    if (this.fileOk) {
+      try {
+        await mkdir(DIR, { recursive: true });
+        await writeFile(path.join(DIR, this.file), JSON.stringify(next, null, 2));
+      } catch {
+        this.fileOk = false; // salt okunur FS → bellekte devam
+      }
+    }
+    return next;
+  }
+}
+
+export class FileSettingsStore implements SettingsStore {
+  private doc = new JsonDoc<Settings>("settings.json", DEFAULT_SETTINGS);
+  async get(): Promise<Settings> {
+    return normalizeSettings(await this.doc.read());
+  }
+  async patch(p: Partial<Omit<Settings, "updated_at">>): Promise<Settings> {
+    const cur = await this.get();
+    return this.doc.write(normalizeSettings({ ...cur, ...p, updated_at: new Date().toISOString() }));
   }
 }

@@ -8,15 +8,19 @@ import { apiFetch } from "@/lib/panel-client";
 import { isUnlocked, playOrderSound, setSoundPref, soundPref, unlockSound } from "@/lib/panel-sound";
 import { supabaseBrowser } from "@/lib/supabase";
 import OrderCard from "./OrderCard";
+import PanelSettings from "./PanelSettings";
+import PanelSummary from "./PanelSummary";
 import PushButton from "./PushButton";
 import "./panel.css";
 
 const t = getMessages("tr").panel;
 type Gate = "loading" | "login" | "closed" | "ok";
-type Tab = "active" | "today" | "past";
+type Tab = "active" | "today" | "past" | "settings";
 type Mode = "supabase" | "key" | "open";
 const SEEN_KEY = "mag:panel-seen";
 const REPEAT_MS = 20_000;
+/** SSE de yoksa yoklama aralığı (spec: 5 sn) */
+const POLL_MS = 5_000;
 
 function loadSeen(): Set<string> {
   if (typeof window === "undefined") return new Set();
@@ -48,6 +52,8 @@ export default function PanelApp() {
   const [fresh, setFresh] = useState<Set<string>>(() => new Set());
   const [tab, setTab] = useState<Tab>("active");
   const [live, setLive] = useState(false);
+  /* hangi kanal aktif: realtime | sse | poll (panelde küçük göstergede yazar) */
+  const [feed, setFeed] = useState<"realtime" | "sse" | "poll">("sse");
   const [busy, setBusy] = useState<string | null>(null);
   const [sound, setSound] = useState<{ unlocked: boolean; on: boolean }>(() => ({
     unlocked: isUnlocked(),
@@ -140,15 +146,50 @@ export default function PanelApp() {
         stop = () => {
           sb.removeChannel(ch);
         };
+        setFeed("realtime");
       } else {
+        /* SSE; bağlantı kurulamazsa 5 sn poll'a düş (panel her hâlükârda güncel kalsın) */
         const es = new EventSource("/api/orders/stream");
-        es.addEventListener("hello", () => setLive(true));
+        let pollTimer = 0;
+        const startPoll = () => {
+          if (pollTimer) return;
+          setFeed("poll");
+          pollTimer = window.setInterval(async () => {
+            try {
+              const r = await apiFetch("/api/orders?limit=300");
+              if (!r.ok) return;
+              const fresh = (await r.json()) as Order[];
+              setOrders((prev) => {
+                const next = new Map(prev);
+                for (const o of fresh) {
+                  const had = prev.get(o.id);
+                  next.set(o.id, o);
+                  if (!had && o.status === "received") playOrderSound();
+                }
+                return next;
+              });
+              setLive(true);
+            } catch {
+              setLive(false);
+            }
+          }, POLL_MS);
+        };
+        es.addEventListener("hello", () => {
+          setLive(true);
+          setFeed("sse");
+        });
         es.addEventListener("order", (e) => {
           const ev = JSON.parse((e as MessageEvent).data) as { type: "insert" | "update"; order: Order };
           upsert(ev.order, ev.type === "insert");
         });
-        es.onerror = () => setLive(false);
-        stop = () => es.close();
+        es.onerror = () => {
+          setLive(false);
+          startPoll(); // SSE düştü → poll devralsın
+        };
+        stop = () => {
+          es.close();
+          if (pollTimer) window.clearInterval(pollTimer);
+        };
       }
     })().catch(() => setLive(false));
     return () => stop();
@@ -172,10 +213,10 @@ export default function PanelApp() {
       return n;
     });
 
-  const setStatus = async (id: string, status: OrderStatus, reason?: string) => {
+  const setStatus = async (id: string, status: OrderStatus, reason?: string, prepMinutes?: number) => {
     setBusy(id);
     try {
-      const res = await apiFetch(`/api/orders/${id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status, reason }) });
+      const res = await apiFetch(`/api/orders/${id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status, reason, prep_minutes: prepMinutes }) });
       if (res.status === 401) return setGate("login");
       if (res.ok) {
         upsert((await res.json()) as Order, false);
@@ -205,6 +246,7 @@ export default function PanelApp() {
     active: all.filter((o) => OPEN_STATUSES.includes(o.status)),
     today: all.filter((o) => istanbulDay(o.created_at) === today),
     past: all.filter((o) => !OPEN_STATUSES.includes(o.status)),
+    settings: [],
   };
 
   if (gate === "loading") return <main className="login" />;
@@ -222,15 +264,15 @@ export default function PanelApp() {
           </span>
         </div>
         <div className="pnl-hud">
-          <span className="pill" aria-live="polite" data-live={live}>
-            <i className={"dot" + (live ? "" : " off")} /> {live ? t.live : t.offline}
+          <span className="pill" aria-live="polite" data-live={live} data-feed={feed} title={t.feedLabel[feed]}>
+            <i className={"dot" + (live ? "" : " off")} /> {live ? t.live : t.offline} · {t.feedLabel[feed]}
           </span>
           <button type="button" className={"pill" + (sound.unlocked && sound.on ? " on" : "")} onClick={toggleSound} data-sound={sound.unlocked ? (sound.on ? "on" : "off") : "locked"}>
             {sound.unlocked ? (sound.on ? `🔊 ${t.soundIsOn}` : `🔇 ${t.soundIsOff}`) : `🔈 ${t.soundOn}`}
           </button>
           <PushButton t={t} />
           {mode !== "open" ? (
-            <button type="button" className="pill" onClick={logout}>
+            <button type="button" className="pill" data-logout onClick={logout}>
               {t.logout}
             </button>
           ) : null}
@@ -238,7 +280,7 @@ export default function PanelApp() {
       </header>
 
       <div className="tabs" role="tablist">
-        {(["active", "today", "past"] as Tab[]).map((k) => (
+        {(["active", "today", "past", "settings"] as Tab[]).map((k) => (
           <button key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)}>
             {t.tabs[k]}
             <b>{lists[k].length}</b>
@@ -246,7 +288,12 @@ export default function PanelApp() {
         ))}
       </div>
 
-      {lists[tab].length === 0 ? (
+      {tab === "settings" ? (
+        <>
+          <PanelSummary t={t} apiFetch={apiFetch} onUnauthorized={() => setGate("login")} />
+          <PanelSettings t={t} apiFetch={apiFetch} onUnauthorized={() => setGate("login")} />
+        </>
+      ) : lists[tab].length === 0 ? (
         <p className="text-dim">{t.empty}</p>
       ) : (
         <div className="feed">
@@ -259,7 +306,7 @@ export default function PanelApp() {
               fresh={fresh.has(o.id)}
               busy={busy === o.id}
               onSeen={() => markSeen(o.id)}
-              onStatus={(s, r) => setStatus(o.id, s, r)}
+              onStatus={(st, r, prep) => setStatus(o.id, st, r, prep)}
             />
           ))}
         </div>

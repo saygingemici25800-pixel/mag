@@ -3,7 +3,7 @@ import { buildOrder, validateOrder, type NewOrderInput } from "@/lib/orders";
 import { isPanelAuthorized } from "@/lib/panel-auth";
 import { getPaymentProvider } from "@/lib/payments";
 import { siteUrl } from "@/lib/site";
-import { getOrderStore } from "@/lib/store";
+import { getOrderStore, getSettingsStore } from "@/lib/store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,8 +19,13 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ errors: [{ field: "body", code: "invalid-json" }] }, { status: 400 });
   }
+  /* Panel ayarları önce: dükkân kapalıysa form doğrulamasına hiç girme (kapalı cevabı net olsun) */
+  const settings = await getSettingsStore().get();
+  if (!settings.ordering_open) return NextResponse.json({ errors: [{ field: "form", code: "ordering-closed" }] }, { status: 409 });
   const errors = validateOrder(input);
   if (errors.length) return NextResponse.json({ errors }, { status: 422 });
+  const soldOut = input.items.filter((i) => settings.sold_out.includes(i.id)).map((i) => i.id);
+  if (soldOut.length) return NextResponse.json({ errors: soldOut.map((id) => ({ field: "items", code: "sold-out", id })) }, { status: 409 });
   let provider;
   try {
     provider = getPaymentProvider();

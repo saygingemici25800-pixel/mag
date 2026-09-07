@@ -6,6 +6,7 @@ import { flyToCart } from "@/lib/cartFx";
 import { itemName } from "@/lib/i18n";
 import { formatPrice, upsellItems } from "@/lib/menu";
 import ProductImage from "./ProductImage";
+import { useSettings } from "@/lib/useSettings";
 
 /**
  * "YANINDA İYİ GİDER" — sepet özetinin altında içecek / yan ürün / sos önerileri.
@@ -17,6 +18,7 @@ export default function Upsell() {
   const t = useT();
   const o = t.order;
   const cart = useCart();
+  const settings = useSettings();
   const items = upsellItems();
   if (Object.keys(cart).length === 0) return null;
 
@@ -36,8 +38,9 @@ export default function Upsell() {
         {items.map((m) => {
           const qty = cart[m.id]?.qty ?? 0;
           const name = itemName(t, m);
+          const out = settings.sold_out.includes(m.id);
           return (
-            <li key={m.id} className="upsell-card" data-upsell-item={m.id}>
+            <li key={m.id} className={"upsell-card" + (out ? " soldout" : "")} data-upsell-item={m.id} data-sold-out={out || undefined}>
               <ProductImage m={m} name={name} size={72} />
               <div className="upsell-name">{name}</div>
               <div className="upsell-price">{formatPrice(m.price)}</div>
@@ -52,8 +55,8 @@ export default function Upsell() {
                   </button>
                 </span>
               ) : (
-                <button type="button" className="addbtn upsell-add" data-upsell-add onClick={(e) => add(m.id, e.currentTarget.closest<HTMLElement>(".upsell-card"))}>
-                  {o.add}
+                <button type="button" className="addbtn upsell-add" data-upsell-add disabled={out} onClick={(e) => { if (!out) add(m.id, e.currentTarget.closest<HTMLElement>(".upsell-card")); }}>
+                  {out ? o.soldOut : o.add}
                 </button>
               )}
             </li>

@@ -78,22 +78,23 @@ check("panel kartı geldi", cardEl !== null, `${dt} ms (sipariş tıklamasından
 check("kart vurgulu (unseen)", (await panel.$(`.ocard[data-id="${id}"].unseen`)) !== null);
 await panel.waitForTimeout(300);
 await panel.screenshot({ path: `${out}/faz3-panel-new.png` });
-// panelde Hazırlanıyor → müşteri ≤ 2 sn
+/* Panel üç aşamalı: "Siparişi al" siparişi doğrudan HAZIR'a taşır (kurye → Yolda, gel-al → Hazır).
+   Müşteri takip ekranı bu değişimi ≤ 2 sn içinde görmeli. */
 await cust.waitForSelector(".step.now", { timeout: 5000 });
+const beforeTxt = await cust.$eval(".step.now", (e) => e.textContent?.trim() ?? "");
 const t1 = Date.now();
-await panel.click(`.ocard[data-id="${id}"] .act.primary`);
-await cust.waitForFunction(() => document.querySelector(".step.now")?.textContent?.includes("Hazırlanıyor"), null, { timeout: 4000 }).catch(() => {});
+await panel.click(`.ocard[data-id="${id}"] [data-accept]`);
+await cust.waitForFunction((prev) => (document.querySelector(".step.now")?.textContent?.trim() ?? "") !== prev, beforeTxt, { timeout: 4000 }).catch(() => {});
 const nowTxt = await cust.$eval(".step.now", (e) => e.textContent).catch(() => "");
-check("müşteri sayfası canlı güncellendi", nowTxt.includes("Hazırlanıyor"), `${Date.now() - t1} ms · "${nowTxt}"`);
+check("müşteri sayfası canlı güncellendi", nowTxt.trim() !== beforeTxt && nowTxt.length > 0, `${Date.now() - t1} ms · "${beforeTxt}" → "${nowTxt}"`);
 check("statü sonrası vurgu kalktı", (await panel.$(`.ocard[data-id="${id}"].unseen`)) === null);
 await cust.screenshot({ path: `${out}/faz3-cust-live.png` });
-// iptal + sebep
+/* İptal: panelde artık SEBEP SORULMAZ, yalnızca onay istenir (üç aşamalı akış kararı). */
 await panel.click(`.ocard[data-id="${id}"] .act.danger`);
-await panel.fill(`.ocard[data-id="${id}"] .cancelbox input`, "Müşteri aradı");
-await panel.click(`.ocard[data-id="${id}"] .cancelbox .act.danger`);
+await panel.click(`.ocard[data-id="${id}"] [data-cancel-confirm]`);
 await cust.waitForFunction(() => document.querySelector(".step.now")?.textContent?.includes("İptal"), null, { timeout: 4000 }).catch(() => {});
 const canc = await cust.$eval(".step.now", (e) => e.textContent).catch(() => "");
-check("iptal + sebep müşteride", canc.includes("Müşteri aradı"), `"${canc}"`);
+check("iptal müşteriye yansıdı", canc.includes("İptal"), `"${canc}"`);
 await panel.click(".tabs button:nth-child(3)");
 await panel.waitForTimeout(300);
 await panel.screenshot({ path: `${out}/faz3-panel-past.png` });

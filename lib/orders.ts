@@ -26,6 +26,32 @@ export function nextStatus(o: { type: OrderType; status: OrderStatus }): OrderSt
   return i >= 0 && i < flow.length - 1 ? flow[i + 1] : null;
 }
 
+/* ---- PANEL: üç aşama (YENİ → HAZIR → KAPANDI, + İPTAL) ----
+   Alt durumlar (received/preparing/ready/on_the_way/delivered) veri modelinde kalır; panel bunları
+   üç kovaya indirger. "Siparişi al" → hazır (kurye: on_the_way'e değil, ready'ye; kapanışta türüne
+   göre delivered). Böylece mevcut şema ve müşteri takip ekranı bozulmaz. */
+export type PanelStage = "new" | "ready" | "closed" | "cancelled";
+
+export function panelStage(o: { status: OrderStatus }): PanelStage {
+  if (o.status === "cancelled") return "cancelled";
+  if (o.status === "delivered") return "closed";
+  if (o.status === "received" || o.status === "preparing") return "new";
+  return "ready"; // ready | on_the_way
+}
+
+/** Aşamayı ilerletirken yazılacak yeni status (kurye/gel-al farkı burada) */
+export function stageAdvance(o: { type: OrderType; status: OrderStatus }): OrderStatus | null {
+  const st = panelStage(o);
+  if (st === "new") return o.type === "delivery" ? "on_the_way" : "ready";
+  if (st === "ready") return "delivered";
+  return null;
+}
+
+/** HAZIR kartındaki butonun anlamı: kurye → "Yola çıktı", gel-al → "Teslim edildi" */
+export function closeLabelKey(type: OrderType): "onTheWay" | "delivered" {
+  return type === "delivery" ? "onTheWay" : "delivered";
+}
+
 /** Kısa görünen sipariş kodu (uuid'in ilk 8 hanesi) */
 export function shortId(id: string): string {
   return id.slice(0, 8).toUpperCase();
@@ -61,6 +87,15 @@ export interface Order {
   locale: OrderLocale;
   status: OrderStatus;
   cancel_reason?: string | null;
+  /* --- panel üç aşamalı akış (0003_panel.sql) --- */
+  /** "Siparişi al" anında girilen hazırlanma süresi (dakika) */
+  prep_minutes?: number | null;
+  /** YENİ → HAZIR zamanı */
+  accepted_at?: string | null;
+  /** HAZIR → KAPANDI zamanı (yola çıktı / teslim edildi) */
+  closed_at?: string | null;
+  /** iptal zamanı */
+  cancelled_at?: string | null;
 }
 
 export interface NewOrderInput {

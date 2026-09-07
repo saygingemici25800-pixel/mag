@@ -1,6 +1,7 @@
 /** Supabase depo — OrderStore / PushStore arayüzleri, `orders` ve `push_subscriptions` tabloları (0001_orders.sql). */
 import type { Order, OrderStore, PushStore, PushSubscriptionRow } from "@/lib/orders";
 import { supabaseAdmin } from "@/lib/supabase";
+import { normalizeSettings, type Settings, type SettingsStore } from "@/lib/settings";
 
 export class SupabaseOrderStore implements OrderStore {
   async create(order: Order): Promise<Order> {
@@ -41,5 +42,18 @@ export class SupabasePushStore implements PushStore {
   }
   async remove(endpoint: string): Promise<void> {
     await supabaseAdmin().from("push_subscriptions").delete().eq("endpoint", endpoint);
+  }
+}
+
+/* ---- Ayarlar — Supabase (settings tablosu, tek satır: id = 'singleton') ---- */
+export class SupabaseSettingsStore implements SettingsStore {
+  async get(): Promise<Settings> {
+    const { data } = await supabaseAdmin().from("settings").select("*").eq("id", "singleton").maybeSingle();
+    return normalizeSettings(data ?? undefined);
+  }
+  async patch(p: Partial<Omit<Settings, "updated_at">>): Promise<Settings> {
+    const next = normalizeSettings({ ...(await this.get()), ...p, updated_at: new Date().toISOString() });
+    const { data } = await supabaseAdmin().from("settings").upsert({ id: "singleton", ...next }).select().single();
+    return normalizeSettings(data ?? next);
   }
 }

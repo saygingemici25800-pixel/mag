@@ -2,7 +2,12 @@ import type { Metadata } from "next";
 import { FontPreload } from "@/components/layout/FontPreload";
 import "@/app/globals.css";
 
-export const metadata: Metadata = { title: "Panel — MAG", robots: { index: false, follow: false } };
+export const metadata: Metadata = {
+  title: "Panel — MAG",
+  robots: { index: false, follow: false },
+  manifest: "/panel/manifest.webmanifest",
+  appleWebApp: { capable: true, title: "MAG Panel", statusBarStyle: "black-translucent" },
+};
 export { viewport } from "@/lib/seo";
 
 /** Panel kök layout'u — chrome yok, TR. */
