@@ -789,13 +789,15 @@ html.lm .ctaPill {
 /* logo: iki katman üst üste, aynı kutu */
 .preLogo {
   position: relative;
-  width: min(62vw, 560px);
-  aspect-ratio: 1120 / 825;
+  /* masaüstü genişliği; mobil aşağıda. Oran kaynağın kendisi (912×434) — alt yazı grubu
+     ("STREET FOOD EST. 2025") kilidin parçası, netleşme dalgası tümünü kapsar. */
+  width: min(460px, 42vw);
+  aspect-ratio: 912 / 434;
   line-height: 0;
 }
 @media (max-width: 900px) {
   .preLogo {
-    width: min(78vw, 560px);
+    width: min(300px, 72vw);
   }
 }
 .preLogo img {
@@ -804,6 +806,8 @@ html.lm .ctaPill {
   display: block;
   width: 100%;
   height: 100%;
+  /* kaynak (912 px) CSS boyutundan büyük: küçültme kalitesi tarayıcıya bırakılmasın */
+  image-rendering: auto;
 }
 /* alt katman: bulanık + sönük başlar (JS her karede blur 16→0, brightness .55→1, saturate .7→1) */
 .preBase {
