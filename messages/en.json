@@ -9,7 +9,7 @@
     "open": "Open",
     "soundOn": "Sound on",
     "soundOff": "Sound off",
-    "menu": "Menu",
+    "menu": "Order",
     "contact": "Contact",
     "city": "FETHIYE",
     "brand": "mag",
@@ -17,7 +17,9 @@
       "tr": "TR",
       "en": "EN",
       "switchAria": "Language"
-    }
+    },
+    "closedNow": "We're closed right now",
+    "closedNowShort": "Closed"
   },
   "hero": {
     "sub": "fries included",

@@ -9,7 +9,7 @@
     "open": "Açık",
     "soundOn": "Ses açık",
     "soundOff": "Ses kapalı",
-    "menu": "Menü",
+    "menu": "Sipariş",
     "contact": "İletişim",
     "city": "FETHIYE",
     "brand": "mag",
@@ -17,7 +17,9 @@
       "tr": "TR",
       "en": "EN",
       "switchAria": "Dil"
-    }
+    },
+    "closedNow": "Şu an kapalıyız",
+    "closedNowShort": "Kapalıyız"
   },
   "hero": {
     "sub": "patates kızartması dahil",

@@ -2,10 +2,11 @@ import Link from "next/link";
 import { getMessages, localePath, type Locale } from "@/lib/i18n";
 import ContactOverlay from "./ContactOverlay";
 import LangSwitch from "./LangSwitch";
+import OrderCta from "./OrderCta";
 import SoundToggle from "./SoundToggle";
 import "./chrome.css";
 
-/** Topbar (ses anahtarı · mag. · TR|EN · ::MENÜ · İLETİŞİM) ve dört köşe braketi. */
+/** Topbar (ses anahtarı · mag. · TR|EN · SİPARİŞ · İLETİŞİM) ve dört köşe braketi. */
 export default function Chrome({ locale }: { locale: Locale }) {
   const t = getMessages(locale);
   const c = t.chrome;
@@ -21,15 +22,7 @@ export default function Chrome({ locale }: { locale: Locale }) {
           <i>.</i>
         </Link>
         <nav className="navR">
-          <Link href={localePath(locale, "/siparis")} className="menu" prefetch={false} aria-label={c.menu}>
-            <span className="grid2" aria-hidden="true">
-              <s />
-              <s />
-              <s />
-              <s />
-            </span>
-            <span>{c.menu}</span>
-          </Link>
+          <OrderCta locale={locale} label={c.menu} closedLabel={c.closedNow} closedShort={c.closedNowShort} />
           <ContactOverlay t={t.contact} />
         </nav>
       </header>
