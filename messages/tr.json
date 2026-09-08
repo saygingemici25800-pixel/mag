@@ -201,7 +201,13 @@
     "soldOut": "Tükendi",
     "closedTitle": "Şu an kapalıyız",
     "closedLead": "Şu an sipariş alamıyoruz. Birazdan tekrar deneyin.",
-    "soldOutWarn": "Sepetinizde tükenen ürün var: {items}. Çıkarın ya da değiştirin."
+    "soldOutWarn": "Sepetinizde tükenen ürün var: {items}. Çıkarın ya da değiştirin.",
+    "removeIngredients": "Malzeme çıkar",
+    "editIngredients": "Malzemeleri düzenle",
+    "notRemovable": "çıkarılamaz",
+    "removedState": "çıkarıldı",
+    "includedState": "içinde",
+    "removedLabel": "Çıkarılan"
   },
   "track": {
     "title": [
@@ -316,7 +322,8 @@
     "sumTop": "En çok satan",
     "sumAvg": "Ort. hazırlanma",
     "sumCancelled": "İptal",
-    "sumDate": "Tarih"
+    "sumDate": "Tarih",
+    "removedLabel": "Çıkarılan"
   },
   "cta": {
     "order": "Sipariş ver"

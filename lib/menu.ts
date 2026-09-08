@@ -7,6 +7,12 @@ export type Category = "burger" | "taco" | "noodle" | "yan" | "sos" | "icecek";
 
 export type HeroId = "smooky" | "brisket" | "berry" | "jalapeno" | "caesar" | "orjinal" | "truffle" | "citir";
 
+export interface Ingredient {
+  name: string;
+  /** false: ana protein ya da ekmek — müşteri çıkaramaz */
+  removable: boolean;
+}
+
 export interface MenuItem {
   id: string;
   name: string;
@@ -16,6 +22,9 @@ export interface MenuItem {
   hero?: boolean;
   /** Katman animasyonu için (sonraki faz) */
   layers?: string[];
+  /** Malzeme listesi — "malzeme çıkar" bunu kullanır (desc metninden türetildi, tek kaynak burası).
+      removable:false → ana bileşen (protein) ve ekmek; listede görünür ama çıkarılamaz. */
+  ingredients?: Ingredient[];
   /** "Şununla iyi gider" — ürün sheet'inde öneri çipleri (id) */
   pairs?: string[];
   /** Sepet/ödeme sayfasındaki "YANINDA İYİ GİDER" bölümünde öne çıkar */
@@ -37,6 +46,7 @@ export const MENU: Record<Category, MenuItem[]> = {
       price: 620,
       hero: true,
       desc: "130 gr burger köftesi, füme kaburga, karamelize soğan, cheddar, iceberg marul, tütsü biberli aioli",
+      ingredients: [{ name: "brioche ekmek", removable: false }, { name: "130 gr burger köftesi", removable: false }, { name: "füme kaburga", removable: true }, { name: "karamelize soğan", removable: true }, { name: "cheddar", removable: true }, { name: "iceberg marul", removable: true }, { name: "tütsü biberli aioli", removable: true }],
       layers: ["ust-ekmek", "aioli", "iceberg", "cheddar", "fume-kaburga", "karamelize-sogan", "kofte", "alt-ekmek"],
     },
     {
@@ -46,6 +56,7 @@ export const MENU: Record<Category, MenuItem[]> = {
       price: 600,
       hero: true,
       desc: "Ağır ateşte pişmiş tiftik et, karamelize soğan, cheddar, tütsü biberli aioli, soğan turşusu",
+      ingredients: [{ name: "brioche ekmek", removable: false }, { name: "Ağır ateşte pişmiş tiftik et", removable: false }, { name: "karamelize soğan", removable: true }, { name: "cheddar", removable: true }, { name: "tütsü biberli aioli", removable: true }, { name: "soğan turşusu", removable: true }],
     },
     {
       id: "berry",
@@ -54,6 +65,7 @@ export const MENU: Record<Category, MenuItem[]> = {
       price: 550,
       hero: true,
       desc: "Karamelize vişne, gravyer peyniri, 130 gr burger köftesi",
+      ingredients: [{ name: "brioche ekmek", removable: false }, { name: "Karamelize vişne", removable: true }, { name: "gravyer peyniri", removable: true }, { name: "130 gr burger köftesi", removable: false }],
     },
     {
       id: "jalapeno",
@@ -62,6 +74,7 @@ export const MENU: Record<Category, MenuItem[]> = {
       price: 520,
       hero: true,
       desc: "Jalapeno sos, cheddar, çıtır soğan, 130 gr burger köftesi, roka",
+      ingredients: [{ name: "brioche ekmek", removable: false }, { name: "Jalapeno sos", removable: true }, { name: "cheddar", removable: true }, { name: "çıtır soğan", removable: true }, { name: "130 gr burger köftesi", removable: false }, { name: "roka", removable: true }],
     },
     {
       id: "caesar",
@@ -70,6 +83,7 @@ export const MENU: Record<Category, MenuItem[]> = {
       price: 490,
       hero: true,
       desc: "Mag sos, marul, gravyer, panelenmiş tavuk",
+      ingredients: [{ name: "brioche ekmek", removable: false }, { name: "Mag sos", removable: true }, { name: "marul", removable: true }, { name: "gravyer", removable: true }, { name: "panelenmiş tavuk", removable: false }],
     },
     // foto yok → hero'da tipografik kutu; assets/cut/<id>.webp gelince otomatik cutout (lib/cutouts-available.ts)
     {
@@ -79,6 +93,7 @@ export const MENU: Record<Category, MenuItem[]> = {
       price: 520,
       hero: true,
       desc: "Mag sos, kıtır soğan, cheddar, 130 gr burger köftesi",
+      ingredients: [{ name: "brioche ekmek", removable: false }, { name: "Mag sos", removable: true }, { name: "kıtır soğan", removable: true }, { name: "cheddar", removable: true }, { name: "130 gr burger köftesi", removable: false }],
     },
     {
       id: "truffle",
@@ -87,6 +102,7 @@ export const MENU: Record<Category, MenuItem[]> = {
       price: 550,
       hero: true,
       desc: "130 gr burger köftesi, mantar düxelles, trüflü mayonez, cheddar, soğan turşusu",
+      ingredients: [{ name: "brioche ekmek", removable: false }, { name: "130 gr burger köftesi", removable: false }, { name: "mantar düxelles", removable: true }, { name: "trüflü mayonez", removable: true }, { name: "cheddar", removable: true }, { name: "soğan turşusu", removable: true }],
     },
     {
       id: "citir",
@@ -95,6 +111,7 @@ export const MENU: Record<Category, MenuItem[]> = {
       price: 490,
       hero: true,
       desc: "Panelenmiş tavuk parçaları, cips, sweet chili sos",
+      ingredients: [{ name: "brioche ekmek", removable: false }, { name: "Panelenmiş tavuk parçaları", removable: false }, { name: "cips", removable: true }, { name: "sweet chili sos", removable: true }],
     },
   ],
   taco: [
@@ -105,6 +122,7 @@ export const MENU: Record<Category, MenuItem[]> = {
       name: "Tavuk Taco",
       price: 450,
       desc: "Sotelenmiş baharatlı tavuk, iceberg marul, gravyer peyniri, avokado, chipotle mayo",
+      ingredients: [{ name: "Sotelenmiş baharatlı tavuk", removable: false }, { name: "iceberg marul", removable: true }, { name: "gravyer peyniri", removable: true }, { name: "avokado", removable: true }, { name: "chipotle mayo", removable: true }],
     },
     {
       id: "tiftik-taco",
@@ -112,6 +130,7 @@ export const MENU: Record<Category, MenuItem[]> = {
       name: "Tiftik Taco",
       price: 530,
       desc: "Ağır ateşte pişmiş tiftik et, maydanoz & soğan, cheddar, tütsü biberli aioli",
+      ingredients: [{ name: "Ağır ateşte pişmiş tiftik et", removable: false }, { name: "maydanoz & soğan", removable: true }, { name: "cheddar", removable: true }, { name: "tütsü biberli aioli", removable: true }],
     },
     {
       id: "karides-taco",
@@ -119,6 +138,7 @@ export const MENU: Record<Category, MenuItem[]> = {
       name: "Karidesli Taco",
       price: 520,
       desc: "Tereyağında sotelenmiş karides, lahanaslaw, avokado, chipotle mayo, taze soğan",
+      ingredients: [{ name: "Tereyağında sotelenmiş karides", removable: false }, { name: "lahanaslaw", removable: true }, { name: "avokado", removable: true }, { name: "chipotle mayo", removable: true }, { name: "taze soğan", removable: true }],
     },
   ],
   noodle: [
@@ -128,6 +148,7 @@ export const MENU: Record<Category, MenuItem[]> = {
       name: "Tavuklu",
       price: 450,
       desc: "Tavuk göğsü, taze soğan, havuç, zencefil, kapya biber, soya sos, susam",
+      ingredients: [{ name: "Tavuk göğsü", removable: false }, { name: "taze soğan", removable: true }, { name: "havuç", removable: true }, { name: "zencefil", removable: true }, { name: "kapya biber", removable: true }, { name: "soya sos", removable: true }, { name: "susam", removable: true }],
     },
     {
       id: "karidesli-noodle",
@@ -135,6 +156,7 @@ export const MENU: Record<Category, MenuItem[]> = {
       name: "Karidesli",
       price: 550,
       desc: "Karides, taze soğan, havuç, zencefil, kapya biber, soya sos, susam",
+      ingredients: [{ name: "Karides", removable: false }, { name: "taze soğan", removable: true }, { name: "havuç", removable: true }, { name: "zencefil", removable: true }, { name: "kapya biber", removable: true }, { name: "soya sos", removable: true }, { name: "susam", removable: true }],
     },
   ],
   yan: [

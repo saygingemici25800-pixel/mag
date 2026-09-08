@@ -63,6 +63,8 @@ export interface OrderItem {
   price: number;
   qty: number;
   note?: string;
+  /** Müşterinin çıkardığı malzemeler. Fiyatı ETKİLEMEZ; mutfak için taşınır. */
+  removed?: string[];
 }
 
 export interface Order {
@@ -101,7 +103,7 @@ export interface Order {
 export interface NewOrderInput {
   type: OrderType;
   zone?: string | null;
-  items: { id: string; qty: number; note?: string }[];
+  items: { id: string; qty: number; note?: string; removed?: string[] }[];
   name: string;
   phone: string;
   address?: string | null;
@@ -196,7 +198,18 @@ export function newOrderId(): string {
 export function buildOrder(input: NewOrderInput, now: Date = defaultNow()): Order {
   const items: OrderItem[] = input.items.map((it) => {
     const m = findMenuItem(it.id)!;
-    return { id: m.id, name: m.name, price: m.price, qty: it.qty, ...(it.note?.trim() ? { note: it.note.trim() } : {}) };
+    /* removed: yalnızca üründe gerçekten bulunan ve çıkarılabilir olan malzemeler kabul edilir
+       (istemciden gelen listeye güvenilmez); fiyat hesabına GİRMEZ. */
+    const allowed = new Set((m.ingredients ?? []).filter((g) => g.removable).map((g) => g.name));
+    const removed = (it.removed ?? []).filter((r) => allowed.has(r));
+    return {
+      id: m.id,
+      name: m.name,
+      price: m.price,
+      qty: it.qty,
+      ...(it.note?.trim() ? { note: it.note.trim() } : {}),
+      ...(removed.length ? { removed } : {}),
+    };
   });
   const t = computeTotals(items, input.type, input.zone);
   return {

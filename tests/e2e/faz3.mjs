@@ -70,8 +70,8 @@ await cust.waitForURL(/\/odeme\/test\?ref=/, { timeout: 15000 });
 await cust.locator("form:has(input[value=ok]) button").click();
 await cust.waitForURL(/\/siparis\/[0-9a-f-]{36}$/, { timeout: 15000 });
 const id = cust.url().split("/").pop();
-// panelde kart ≤ 2 sn
-await panel.waitForSelector(`.ocard[data-id="${id}"]`, { timeout: 4000 }).catch(() => {});
+/* Panelde kart: realtime varsa ~1-2 sn, SUPABASE_JWT_SECRET yoksa yoklama yedeği (15 sn). */
+await panel.waitForSelector(`.ocard[data-id="${id}"]`, { timeout: 25000 }).catch(() => {});
 const dt = Date.now() - t0;
 const cardEl = await panel.$(`.ocard[data-id="${id}"]`);
 check("panel kartı geldi", cardEl !== null, `${dt} ms (sipariş tıklamasından itibaren)`);

@@ -9,6 +9,7 @@ import { formatPrice, type MenuItem } from "@/lib/menu";
 import { findMenuItem } from "@/lib/orders-shared";
 import Ingredients from "./Ingredients";
 import ProductImage from "./ProductImage";
+import IngredientPicker from "./IngredientPicker";
 
 interface Props {
   item: MenuItem;
@@ -23,6 +24,9 @@ export default function ProductSheet({ item, onClose, onAdded }: Props) {
   const [qty, setQty] = useState(1);
   const [note, setNote] = useState("");
   const [addedPair, setAddedPair] = useState<Set<string>>(() => new Set());
+  /* sepete eklemeden önce çıkarılan malzemeler */
+  const [removed, setRemoved] = useState<string[]>([]);
+  const [pickerOpen, setPickerOpen] = useState(false);
   /* kopyaların çıkacağı büyük görsel */
   const imgRef = useRef<HTMLDivElement>(null);
 
@@ -86,6 +90,20 @@ export default function ProductSheet({ item, onClose, onAdded }: Props) {
             </button>
           </span>
         </div>
+        {/* Malzeme çıkarma: sepete eklemeden önce de seçilebilir */}
+        {item.ingredients?.length ? (
+          <>
+            <button type="button" className="ing-toggle" onClick={() => setPickerOpen((v) => !v)} aria-expanded={pickerOpen} data-ing-open>
+              {removed.length ? o.editIngredients : o.removeIngredients}
+            </button>
+            {removed.length ? (
+              <p className="removed-line" data-removed>
+                {o.removedLabel}: {removed.join(", ")}
+              </p>
+            ) : null}
+            {pickerOpen ? <IngredientPicker item={item} removed={removed} onChange={setRemoved} onClose={() => setPickerOpen(false)} /> : null}
+          </>
+        ) : null}
         <input className="ctl" placeholder={o.notePlaceholder} maxLength={120} value={note} onChange={(e) => setNote(e.target.value)} aria-label={o.noteToggle} />
         {pairs.length ? (
           <div>
@@ -107,7 +125,7 @@ export default function ProductSheet({ item, onClose, onAdded }: Props) {
           onClick={() => {
             const source = imgRef.current?.querySelector<HTMLElement>(".pimg");
             const commit = () => {
-              cartAdd(item.id, qty, note.trim() || undefined);
+              cartAdd(item.id, qty, note.trim() || undefined, removed);
               onAdded();
             };
             /* sheet 150 ms sonra kapanır; kopyalar fixed olduğu için uçmaya devam eder */

@@ -6,8 +6,25 @@ import { useSyncExternalStore } from "react";
 export interface CartLine {
   qty: number;
   note: string;
+  /** Çıkarılan malzemeler (ürün id'sinden bağımsız, isim listesi). Fiyatı DEĞİŞTİRMEZ. */
+  removed?: string[];
 }
+/** Anahtar = satır kimliği (lineKey): ürün id'si + sıralı çıkarılan malzemeler */
 export type CartLines = Record<string, CartLine>;
+
+/**
+ * Satır kimliği: aynı üründen "sade" ve "malzemesi çıkarılmış" iki adet AYRI satır olsun diye
+ * çıkarılanlar da anahtara girer. Sıralama sabit → aynı seçim her zaman aynı anahtarı verir.
+ * Örn: smooky · ["cheddar","roka"] → "smooky::cheddar|roka"
+ */
+export function lineKey(id: string, removed?: string[]): string {
+  const r = (removed ?? []).filter(Boolean).slice().sort();
+  return r.length ? `${id}::${r.join("|")}` : id;
+}
+/** Satır kimliğinden ürün id'sini çıkar (menü araması için) */
+export function lineProductId(key: string): string {
+  return key.split("::")[0];
+}
 const KEY = "mag:cart";
 const EMPTY: CartLines = {};
 let snapshot: CartLines | null = null;
@@ -52,18 +69,43 @@ const getServer = () => EMPTY;
 export function useCart(): CartLines {
   return useSyncExternalStore(subscribe, read, getServer);
 }
-export function cartAdd(id: string, qty = 1, note?: string) {
+export function cartAdd(id: string, qty = 1, note?: string, removed?: string[]) {
   const c = read();
-  const cur = c[id];
-  write({ ...c, [id]: { qty: (cur?.qty ?? 0) + qty, note: note ?? cur?.note ?? "" } });
+  const key = lineKey(id, removed);
+  const cur = c[key];
+  const rem = (removed ?? cur?.removed ?? []).slice().sort();
+  write({ ...c, [key]: { qty: (cur?.qty ?? 0) + qty, note: note ?? cur?.note ?? "", ...(rem.length ? { removed: rem } : {}) } });
 }
-export function cartSet(id: string, qty: number, note?: string) {
+
+/** Var olan satırın çıkarılanlarını değiştir: satır kimliği değişir, adet ve not taşınır.
+    Hedef kimlikte zaten satır varsa adetler birleşir. */
+export function cartSetRemoved(key: string, removed: string[]) {
+  const c = read();
+  const cur = c[key];
+  if (!cur) return;
+  const id = lineProductId(key);
+  const nextKey = lineKey(id, removed);
+  const rem = removed.slice().sort();
+  const next = { ...c };
+  delete next[key];
+  const existing = next[nextKey];
+  next[nextKey] = {
+    qty: (existing?.qty ?? 0) + cur.qty,
+    note: existing?.note || cur.note,
+    ...(rem.length ? { removed: rem } : {}),
+  };
+  write(next);
+}
+export function cartSet(key: string, qty: number, note?: string) {
   const c = read();
   if (qty <= 0) {
     const next = { ...c };
-    delete next[id];
+    delete next[key];
     write(next);
-  } else write({ ...c, [id]: { qty, note: note ?? c[id]?.note ?? "" } });
+  } else {
+    const cur = c[key];
+    write({ ...c, [key]: { qty, note: note ?? cur?.note ?? "", ...(cur?.removed?.length ? { removed: cur.removed } : {}) } });
+  }
 }
 export function cartRemove(id: string) {
   cartSet(id, 0);
@@ -73,4 +115,9 @@ export function cartClear() {
 }
 export function cartCount(c: CartLines): number {
   return Object.values(c).reduce((s, l) => s + l.qty, 0);
+}
+
+/** Bir ürünün TÜM varyantlarındaki toplam adet (menü kartındaki "+ Ekle · 2" sayacı için) */
+export function qtyOf(c: CartLines, id: string): number {
+  return Object.entries(c).reduce((sum, [key, l]) => (lineProductId(key) === id ? sum + l.qty : sum), 0);
 }

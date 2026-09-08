@@ -1,7 +1,7 @@
 "use client";
 
 import { useT } from "@/components/LocaleProvider";
-import { cartAdd, cartSet, useCart } from "@/lib/cart";
+import { cartAdd, cartSet, qtyOf, useCart } from "@/lib/cart";
 import { flyToCart } from "@/lib/cartFx";
 import { itemName } from "@/lib/i18n";
 import { formatPrice, upsellItems } from "@/lib/menu";
@@ -36,7 +36,7 @@ export default function Upsell() {
       </h2>
       <ul className="upsell-list">
         {items.map((m) => {
-          const qty = cart[m.id]?.qty ?? 0;
+          const qty = qtyOf(cart, m.id);
           const name = itemName(t, m);
           const out = settings.sold_out.includes(m.id);
           return (

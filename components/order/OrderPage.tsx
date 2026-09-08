@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useT } from "@/components/LocaleProvider";
 import { OPENS_AT_LABEL, isOpen } from "@/lib/hours";
-import { cartAdd, useCart } from "@/lib/cart";
+import { cartAdd, qtyOf, useCart } from "@/lib/cart";
 import { flyToCart, prefetchCartFx } from "@/lib/cartFx";
 import { itemDesc, itemName } from "@/lib/i18n";
 import { MENU, formatPrice, type Category, type MenuItem } from "@/lib/menu";
@@ -93,7 +93,7 @@ export default function OrderPage() {
                 {MENU[cat].map((m, idx) => {
                   const name = itemName(t, m);
                   const eager = cat === "burger" && idx < 3; // ilk ekran: LCP görseli lazy olmasın
-                  const qty = cart[m.id]?.qty ?? 0;
+                  const qty = qtyOf(cart, m.id);
                   const out = settings.sold_out.includes(m.id);
                   return (
                     <article key={m.id} data-pcard data-sold-out={out || undefined} className={"pcard" + (qty ? " on" : "") + (out ? " soldout" : "")} onClick={() => { if (!out) setSheet(m); }} role="button" tabIndex={0} onKeyDown={(e) => {

@@ -277,7 +277,13 @@
     "soldOut": "Sold out",
     "closedTitle": "We're closed right now",
     "closedLead": "We can't take orders at the moment. Please try again shortly.",
-    "soldOutWarn": "Your cart has sold-out items: {items}. Please remove or replace them."
+    "soldOutWarn": "Your cart has sold-out items: {items}. Please remove or replace them.",
+    "removeIngredients": "Remove ingredients",
+    "editIngredients": "Edit ingredients",
+    "notRemovable": "can't be removed",
+    "removedState": "removed",
+    "includedState": "included",
+    "removedLabel": "Removed"
   },
   "track": {
     "metaTitle": "Order tracking",
@@ -411,7 +417,8 @@
     "sumTop": "Top seller",
     "sumAvg": "Avg prep",
     "sumCancelled": "Cancelled",
-    "sumDate": "Date"
+    "sumDate": "Date",
+    "removedLabel": "Removed"
   },
   "payment": {
     "status": {
