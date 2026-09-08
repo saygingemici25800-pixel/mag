@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useLocale, useT } from "@/components/LocaleProvider";
-import { cartClear, cartRemove, cartSet, useCart } from "@/lib/cart";
+import { cartClear, cartRemove, cartSet, cartSetRemoved, lineProductId, useCart } from "@/lib/cart";
 import { animateLineOut, animateSummaryIn, prefetchCartFx } from "@/lib/cartFx";
 import { OPENS_AT_LABEL, isOpen, timeSlots } from "@/lib/hours";
 import { itemName, localePath } from "@/lib/i18n";
@@ -13,6 +13,7 @@ import { useClockMinute } from "@/lib/useClock";
 import { ZONES, getZone } from "@/lib/zones";
 import MinCartInfo from "./MinCartInfo";
 import Upsell from "./Upsell";
+import IngredientPicker from "./IngredientPicker";
 import { useSettings } from "@/lib/useSettings";
 import "./order.css";
 
@@ -30,13 +31,19 @@ export default function CheckoutPage() {
   const [form, setForm] = useState({ name: "", phone: "", address: "", requested_at: "simdi", note: "" });
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  /* malzeme paneli açık olan satır (kimlik) */
+  const [pickerKey, setPickerKey] = useState<string | null>(null);
   /* panel ayarları: sipariş kapalıysa ya da sepette tükenen ürün varsa ödeme yapılamaz */
   const settings = useSettings();
   const minute = useClockMinute();
   const open = minute < 0 ? null : isOpen();
   const slots = useMemo(() => (minute < 0 ? ["simdi"] : timeSlots()), [minute]);
 
-  const items = useMemo(() => Object.entries(cart).map(([id, l]) => ({ id, qty: l.qty, note: l.note || undefined })), [cart]);
+  /* key = satır kimliği (ürün + çıkarılanlar); id = menü araması için ürün kimliği */
+  const items = useMemo(
+    () => Object.entries(cart).map(([key, l]) => ({ key, id: lineProductId(key), qty: l.qty, note: l.note || undefined, removed: l.removed ?? [] })),
+    [cart],
+  );
   /* sepet özeti girişi (Codrops cart drawer): bir kez, ilk çizimde */
   /* `summary` hem mobil hem masaüstü sütununda render ediliyor; görünür olan(lar)ı canlandır */
   useEffect(() => {
@@ -66,7 +73,8 @@ export default function CheckoutPage() {
     const body: NewOrderInput = {
       type: mode,
       zone: mode === "delivery" ? zone : null,
-      items,
+      /* Sunucuya yalnızca sözleşmedeki alanlar: satır kimliği (key) istemci detayı, gitmez. */
+      items: items.map((it) => ({ id: it.id, qty: it.qty, ...(it.note ? { note: it.note } : {}), ...(it.removed.length ? { removed: it.removed } : {}) })),
       name: form.name,
       phone: form.phone,
       address: mode === "delivery" ? form.address : null,
@@ -109,26 +117,41 @@ export default function CheckoutPage() {
             const m = findMenuItem(it.id);
             if (!m) return null;
             return (
-              <div key={it.id} className="line" data-cart-line>
+              <div key={it.key} className="line" data-cart-line data-line-key={it.key}>
                 <div>
                   <div className="text-sm font-bold">{itemName(t, m)}</div>
+                  {it.removed.length ? (
+                    <p className="removed-line" data-removed>
+                      {o.removedLabel}: {it.removed.join(", ")}
+                    </p>
+                  ) : null}
                   {it.note ? <div className="text-xs text-dim">{it.note}</div> : null}
-                  <button type="button" className="ord-label mt-1 cursor-pointer hover:text-cream" onClick={(e) => removeLine(it.id, e.currentTarget.closest<HTMLElement>("[data-cart-line]"))}>
+                  {m.ingredients?.length ? (
+                    <button type="button" className="ing-toggle" onClick={() => setPickerKey(pickerKey === it.key ? null : it.key)} aria-expanded={pickerKey === it.key} data-ing-open>
+                      {it.removed.length ? o.editIngredients : o.removeIngredients}
+                    </button>
+                  ) : null}
+                  <button type="button" className="ord-label mt-1 block cursor-pointer hover:text-cream" onClick={(e) => removeLine(it.key, e.currentTarget.closest<HTMLElement>("[data-cart-line]"))}>
                     {o.remove}
                   </button>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="qty">
-                    <button type="button" aria-label="Azalt" onClick={() => cartSet(it.id, it.qty - 1)}>
+                    <button type="button" aria-label="Azalt" onClick={() => cartSet(it.key, it.qty - 1)}>
                       −
                     </button>
                     <b>{it.qty}</b>
-                    <button type="button" aria-label="Artır" onClick={() => cartSet(it.id, it.qty + 1)}>
+                    <button type="button" aria-label="Artır" onClick={() => cartSet(it.key, it.qty + 1)}>
                       +
                     </button>
                   </span>
                   <span className="min-w-14 text-right font-display text-sm">{formatPrice(m.price * it.qty)}</span>
                 </div>
+                {pickerKey === it.key ? (
+                  <div className="w-full">
+                    <IngredientPicker item={m} removed={it.removed} onChange={(next) => cartSetRemoved(it.key, next)} onClose={() => setPickerKey(null)} />
+                  </div>
+                ) : null}
               </div>
             );
           })}

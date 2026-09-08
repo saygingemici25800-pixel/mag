@@ -923,3 +923,118 @@ select.ctl {
 .upsell-card.soldout .upsell-add {
   cursor: not-allowed;
 }
+
+/* ---- Malzeme çıkarma ----
+   Çıkarılan malzeme üstü çizili ve soluk; aktif olanlar normal. Dokunma alanı ≥44 px. */
+.ingpick {
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--cream) 14%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+}
+.ingpick-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.ingpick-title {
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  color: var(--cream);
+}
+.ingpick-close {
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  background: none;
+  color: var(--dim);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.inglist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  /* li'ler flex öğesi: çipler satır içinde akmalı, üst üste binmemeli */
+  align-items: flex-start;
+}
+.inglist li {
+  display: flex;
+  min-width: 0;
+}
+.ingchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+  min-height: 44px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--cream) 25%, transparent);
+  background: transparent;
+  color: var(--cream);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition:
+    opacity 0.2s ease,
+    border-color 0.2s ease;
+}
+.ingchip:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+.ingchip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+/* çıkarıldı: üstü çizili + soluk */
+.ingchip.out .ingname {
+  text-decoration: line-through;
+}
+.ingchip.out {
+  opacity: 0.5;
+  border-color: color-mix(in srgb, var(--cream) 15%, transparent);
+}
+/* çıkarılamaz: pasif, imleç yok. NOT: sınıf adı 'fixed' OLAMAZ — Tailwind'in position:fixed
+   yardımcı sınıfıyla çakışıyor ve çipler akıştan çıkıp üst üste biniyordu. */
+.ingchip.ingfix {
+  cursor: default;
+  opacity: 0.6;
+  border-style: dashed;
+}
+.ingfixed {
+  font-size: 0.66rem;
+  color: var(--dim);
+  white-space: nowrap;
+}
+/* sepet satırındaki özet: küçük ama yüksek kontrast (mutfak kaçırmasın) */
+.removed-line {
+  margin: 4px 0 0;
+  font-size: 0.74rem;
+  line-height: 1.4;
+  color: var(--accent);
+}
+.ing-toggle {
+  margin-top: 4px;
+  padding: 6px 0;
+  min-height: 32px;
+  background: none;
+  border: 0;
+  color: var(--dim);
+  font: inherit;
+  font-size: 0.74rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.ing-toggle:hover {
+  color: var(--cream);
+}

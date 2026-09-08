@@ -438,3 +438,12 @@
   min-height: 48px;
   padding: 12px 22px;
 }
+
+/* Çıkarılan malzemeler — mutfak için: küçük punto, yüksek kontrast (limon, üstü çizili değil) */
+.oitems .oremoved {
+  display: block;
+  grid-column: 2 / -1;
+  color: var(--accent);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
