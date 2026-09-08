@@ -93,54 +93,79 @@
 .navL {
   gap: 18px;
 }
-.menu {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-body);
-  font-size: 0.66rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--cream);
-  text-decoration: none;
-}
-.grid2 {
-  display: grid;
-  grid-template-columns: 3px 3px;
-  gap: 3px;
-}
-.grid2 s {
-  width: 3px;
-  height: 3px;
-  background: var(--cream);
-  display: block;
-  text-decoration: none;
-}
+/* ---- SİPARİŞ + İLETİŞİM: bir çift ----
+   Aynı sınıf (.cta) ikisini de biçimler: aynı yükseklik, aynı tipografi, aynı yuvarlaklık.
+   Ayrım yalnızca dolgudan: SİPARİŞ limon dolgu (birincil eylem), İLETİŞİM çerçeveli (ikincil).
+   Yükseklik min-height ile SABİT: link ve button farklı satır kutusu üretir, yoksa 1-2 px kayarlar. */
 .cta {
   font-family: var(--font-display);
-  background: var(--cream);
-  color: var(--char);
-  border: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px; /* dokunma hedefi (a11y target-size) */
+  box-sizing: border-box;
+  background: var(--accent);
+  color: var(--ink);
+  border: 1px solid var(--accent);
   border-radius: 999px;
-  padding: 11px 22px;
+  padding: 0 24px;
   font-weight: 800;
-  font-size: 0.72rem;
+  font-size: 0.86rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  box-shadow: 0 0 30px color-mix(in srgb, var(--cream) 28%, transparent);
+  white-space: nowrap;
+  box-shadow: 0 0 30px color-mix(in srgb, var(--accent) 26%, transparent);
   cursor: pointer;
   text-decoration: none;
-  line-height: normal;
+  line-height: 1;
+}
+.cta:focus-visible {
+  outline: 2px solid var(--cream);
+  outline-offset: 3px;
+}
+/* İLETİŞİM — aynı kalıp, ters dolgu: iki limon leke yan yana durunca hangisinin asıl
+   eylem olduğu okunmuyor. */
+.cta[data-contact-open] {
+  background: transparent;
+  color: var(--cream);
+  border-color: color-mix(in srgb, var(--cream) 55%, transparent);
+  box-shadow: none;
+}
+/* Kapalı etiketi: geniş ekranda tam cümle, darda kısa. İkisi de DOM'da, seçim CSS'te. */
+.cta-short {
+  display: none;
+}
+/* Sipariş kapalıyken: soluk, çerçeveli, imleç "izin yok". Bağlantı canlı kalır
+   (müşteri menüye bakabilsin), yalnızca GÖRÜNÜM pasif. */
+.cta.is-closed {
+  background: transparent;
+  color: color-mix(in srgb, var(--cream) 62%, transparent);
+  border-color: color-mix(in srgb, var(--cream) 26%, transparent);
+  box-shadow: none;
+  cursor: not-allowed;
+  letter-spacing: 0.06em;
 }
 @media (max-width: 820px) {
+  /* Mobilde her iki düğme de GÖRÜNÜR kalır; yalnızca yatay dolgu kısalır.
+     Yükseklik (44 px) ve yazı boyutu KÜÇÜLMEZ — uzaktan okunması gereken şey bu. */
   .cta {
-    padding: 9px 15px;
-    font-size: 0.62rem;
+    padding: 0 15px;
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
   }
-  .menu span {
+  /* "Şu an kapalıyız" mobilde çok geniş: 390 px'te TR|EN ayıracının üstüne biniyordu.
+     Kısa etiket devreye girer; ekran okuyucu aria-label'dan tam cümleyi duymaya devam eder. */
+  .cta.is-closed {
+    letter-spacing: 0.04em;
+  }
+  .cta-long {
     display: none;
   }
-  /* dar ekranda ortadaki logoyla çakışmasın: ses etiketi gizli (aria-label kalır), TR|EN sıkı */
+  .cta-short {
+    display: inline;
+  }
+  /* Yer açmak için ikincil öğeler sadeleşir: ses etiketi gizli (aria-label kalır,
+     eşitleyici çubukları görünür durur), TR|EN sıkışır. */
   .onbox > span:first-child {
     display: none;
   }
@@ -148,7 +173,35 @@
     gap: 10px;
   }
   .navR {
-    gap: 12px;
+    gap: 8px;
+  }
+  .lang a {
+    min-width: 30px;
+    padding: 2px;
+  }
+  /* Ortadaki mag. logosu mobilde GİZLENİR. Ölçtüm: 390 ve 430 px'te logonun sağ kenarı
+     SİPARİŞ'in sol kenarını 28 ve 8 px geciyordu; küçültmek yetmedi çünkü logo ortalı,
+     çift ise sağdan büyüyor. Kullanıcı kuralı: çift her koşulda görünür kalır.
+     Site adı sekme başlığında, hero'da ve alt bilgide zaten var; kayıp yok. */
+  .mark {
+    display: none;
+  }
+}
+/* Çok dar ekran (≤380 px): ortadaki mag. logosu çifte çarpmasın diye TR|EN daha da sıkışır.
+   SİPARİŞ ve İLETİŞİM hiçbir koşulda gizlenmez. */
+@media (max-width: 380px) {
+  .cta {
+    padding: 0 12px;
+    font-size: 0.74rem;
+  }
+  .navR {
+    gap: 6px;
+  }
+  .lang {
+    gap: 2px;
+  }
+  .lang a {
+    min-width: 26px;
   }
 }
 
@@ -160,14 +213,16 @@
   z-index: 30;
   pointer-events: none;
 }
+/* Üst braketler çiftin ALTINDAN başlar: düğmeler 26 px'te başlayıp 70 px'te bitiyor,
+   eski 62 px braketi İLETİŞİM'in sağ alt köşesini kesiyordu. */
 .b1 {
-  top: 62px;
+  top: 80px;
   left: 16px;
   border-right: 0;
   border-bottom: 0;
 }
 .b2 {
-  top: 62px;
+  top: 80px;
   right: 16px;
   border-left: 0;
   border-bottom: 0;
@@ -187,7 +242,6 @@
 
 /* light mode for the bright chapter */
 html.lm .onbox,
-html.lm .menu,
 html.lm .mark {
   color: var(--char);
 }
@@ -195,14 +249,30 @@ html.lm .mark i {
   color: var(--char);
   opacity: 0.4;
 }
-html.lm .eq b,
-html.lm .grid2 s {
+html.lm .eq b {
   background: var(--char);
 }
+/* Aydınlık bölümde limon dolgu krem zeminde erir; çift, koyu/çerçeveli olarak devam eder. */
 html.lm .cta {
   background: var(--char);
   color: var(--cream);
-  box-shadow: 0 0 30px color-mix(in srgb, var(--char) 25%, transparent);
+  border-color: var(--char);
+  box-shadow: 0 0 30px color-mix(in srgb, var(--char) 22%, transparent);
+}
+html.lm .cta[data-contact-open] {
+  background: transparent;
+  color: var(--char);
+  border-color: color-mix(in srgb, var(--char) 45%, transparent);
+  box-shadow: none;
+}
+html.lm .cta.is-closed {
+  background: transparent;
+  color: color-mix(in srgb, var(--char) 60%, transparent);
+  border-color: color-mix(in srgb, var(--char) 26%, transparent);
+  box-shadow: none;
+}
+html.lm .cta:focus-visible {
+  outline-color: var(--char);
 }
 html.lm .bracket {
   border-color: color-mix(in srgb, var(--char) 40%, transparent);

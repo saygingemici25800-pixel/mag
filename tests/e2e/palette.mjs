@@ -153,10 +153,15 @@ const lm = await page.evaluate(() => ({
   lm: document.documentElement.classList.contains("lm"),
   bright: parseFloat(getComputedStyle(document.querySelector(".bgBright")).opacity),
   brightBg: getComputedStyle(document.querySelector(".bgBright")).backgroundColor,
-  menuColor: getComputedStyle(document.querySelector(".menu")).color,
+  /* .menu kalktı: üst çubuk artık SİPARİŞ + İLETİŞİM çifti. Aydınlık bölümde
+     SİPARİŞ koyu dolgu/krem yazı, İLETİŞİM çerçeveli ink yazı olur. */
+  orderBg: getComputedStyle(document.querySelector("[data-order-cta]")).backgroundColor,
+  orderColor: getComputedStyle(document.querySelector("[data-order-cta]")).color,
+  contactColor: getComputedStyle(document.querySelector("[data-contact-open]")).color,
 }));
 check("manifesto: html.lm + limon perde ≥ .95", lm.lm && lm.bright >= 0.95 && lm.brightBg === "rgb(255, 214, 98)", JSON.stringify(lm));
-check("manifesto: chrome yazısı ink", lm.menuColor === "rgb(26, 12, 34)", lm.menuColor);
+check("manifesto: SİPARİŞ ters dolgu (ink zemin, krem yazı)", lm.orderBg === "rgb(26, 12, 34)" && lm.orderColor === "rgb(255, 214, 98)", `${lm.orderBg} / ${lm.orderColor}`);
+check("manifesto: İLETİŞİM yazısı ink", lm.contactColor === "rgb(26, 12, 34)", lm.contactColor);
 
 /* sipariş sayfası: fiyat Comico, açıklama Bonny */
 await page.goto(base + "/siparis", { waitUntil: "load" });
