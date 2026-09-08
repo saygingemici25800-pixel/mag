@@ -22,8 +22,9 @@ export function GET() {
       background_color: PALETTE.purpleDeep,
       theme_color: PALETTE.purpleDeep,
       icons: [
-        { src: "/brand/mag-safe.png", sizes: "512x512", type: "image/png", purpose: "any" },
-        { src: "/brand/mag-safe.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+        /* kare ikon: mor zemin + limon wordmark (scripts/brand-derivatives.mjs yanında üretildi) */
+        { src: "/brand/panel-icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+        { src: "/brand/panel-icon-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
       ],
     },
     { headers: { "content-type": "application/manifest+json" } },

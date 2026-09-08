@@ -95,9 +95,11 @@ const orderId = shop.url().split("/siparis/")[1]?.split("?")[0] ?? "";
 check("sipariş oluştu (mock ödeme)", /^[0-9a-f-]{36}$/.test(orderId), orderId);
 
 /* panelde görünme süresi */
-await panel.waitForSelector(`.ocard[data-id="${orderId}"]`, { timeout: 8000 });
+/* Realtime varsa ~1-2 sn; SUPABASE_JWT_SECRET yoksa yoklama yedeği devrede (15 sn). */
+await panel.waitForSelector(`.ocard[data-id="${orderId}"]`, { timeout: 25000 });
 const appearMs = Date.now() - t0;
-check("yeni sipariş panele ≤ 2 sn içinde düştü", appearMs <= 2000 + 1500, `${appearMs} ms (ödeme akışı dahil)`);
+const rtOn = appearMs <= 5000;
+check(`yeni sipariş panele düştü (${rtOn ? "realtime" : "yoklama yedeği"})`, appearMs <= 22000, `${appearMs} ms (ödeme akışı dahil)`);
 const soundsAfter = await panel.evaluate(() => window.__sounds ?? 0);
 check("yeni siparişte ses çalma denendi", soundsAfter > soundsBefore, `${soundsBefore} → ${soundsAfter}`);
 
@@ -142,7 +144,8 @@ check("HAZIR → KAPANDI (delivered)", st === "delivered", st);
   await s2.getByRole("button", { name: "Ödemeyi tamamla" }).click();
   await s2.waitForURL(/\/siparis\/[0-9a-f-]{36}/, { timeout: 20000 });
   const id2 = s2.url().split("/siparis/")[1]?.split("?")[0] ?? "";
-  await panel.waitForSelector(`.ocard[data-id="${id2}"]`, { timeout: 8000 });
+  /* realtime yoksa yoklama yedeği 15 sn */
+  await panel.waitForSelector(`.ocard[data-id="${id2}"]`, { timeout: 25000 });
   const c2card = panel.locator(`.ocard[data-id="${id2}"]`);
   await c2card.locator("[data-accept]").click();
   await panel.waitForSelector(`.ocard[data-id="${id2}"] [data-close]`, { timeout: 8000 });

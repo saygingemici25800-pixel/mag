@@ -21,9 +21,8 @@ const REPEAT_MS = 20_000;
 /* Yoklama aralıkları — Vercel Hobby kotasına göre seçildi (aşağıdaki hesap yorumda).
    Sekme önde: hızlı tepki. Arka planda: panel açık unutulsa da kota yanmasın.
    Dükkân kapalıyken sipariş gelmeyeceği için en seyrek. */
-const POLL_ACTIVE_MS = 4_000;
-const POLL_HIDDEN_MS = 30_000;
-const POLL_CLOSED_MS = 60_000;
+/** Realtime kopukken yedek yoklama aralığı (spec: 15 sn) */
+const POLL_FALLBACK_MS = 15_000;
 
 function loadSeen(): Set<string> {
   if (typeof window === "undefined") return new Set();
@@ -61,8 +60,6 @@ export default function PanelApp() {
     on: typeof window === "undefined" ? true : soundPref(),
   }));
   const unseenRef = useRef(0);
-  /* Dükkân açık mı — yoklama aralığını belirler (kapalıyken 60 sn). Ayarlar ucundan beslenir. */
-  const orderingOpenRef = useRef<boolean | null>(null);
   const ordersRef = useRef<Map<string, Order>>(new Map());
   useEffect(() => {
     ordersRef.current = orders;
@@ -139,103 +136,130 @@ export default function PanelApp() {
       const list = (await res.json()) as Order[];
       setOrders(new Map(list.map((o) => [o.id, o])));
 
-      /* CANLI AKIŞ — UYARLANABİLİR YOKLAMA
-         Neden SSE değil: Vercel (Hobby) akışı hemen sonlandırıyor. Canlıda ölçüldü — /api/orders/stream
-         `hello` olayını gönderip 0.7 sn içinde kapanıyor, panel hiç canlı olmuyordu (4 dk boyunca
-         104 örneğin hepsinde live=false). Ayrıca SSE bağlantısı boyunca fonksiyon ayakta sayıldığı
-         için bir gecelik açık panel Hobby'nin aylık kotasını tek başına aşıyordu.
+      /* CANLI AKIŞ — SUPABASE REALTIME (+ yoklama yedeği)
+         Panel girişi PANEL_KEY olarak kalır; Supabase Auth ekranı YOK. Sunucu, PANEL_KEY çerezi
+         geçerliyken yalnızca realtime için kısa ömürlü role="authenticated" JWT imzalar
+         (/api/panel/realtime-token). RLS'te authenticated SELECT açık, anon hâlâ hiçbir şey okuyamaz.
 
-         Yoklama aralığı duruma göre: sekme önde 4 sn · arka planda 30 sn · dükkân kapalıyken 60 sn.
-         Her tur ?since ile yalnızca DEĞİŞENLERİ çeker; sekme uykudan dönerse aradaki tüm kayıtlar
-         tek istekte telafi edilir (son görülen damgadan sonrası). */
+         Realtime kurulamazsa (token yok/501, WebSocket engelli, bağlantı koptu) 15 sn'de bir
+         yoklamaya düşülür; bağlantı geri gelince TAM LİSTE tazelenir, arada kaçan sipariş kalmaz. */
       {
-        let timer = 0;
         let stopped = false;
-        /* Son görülen değişiklik damgası — SUNUCUNUN saatinden türetilir, tarayıcınınkinden değil.
-           Neden: istemci saati sunucudan sapabilir (ve testte MAG_FAKE_NOW sabit bir tarih verir);
-           tarayıcı damgası kullanılınca yeni kayıtlar "since" filtresine takılıp hiç görünmüyordu.
-           Her turda gelen kayıtların en yeni damgası bir sonraki turun başlangıcı olur. */
+        let pollTimer = 0;
+        let refreshTimer = 0;
+        let channel: ReturnType<NonNullable<ReturnType<typeof supabaseBrowser>>["channel"]> | null = null;
         let since = "";
-        let firstDone = false;
-        /** Bir siparişin en son değişim anı (oluşturma ya da aşama damgası) */
         const stamp = (o: Order) =>
           [o.created_at, o.accepted_at, o.closed_at, o.cancelled_at].filter((x): x is string => typeof x === "string").sort().pop() ?? o.created_at;
 
-        const intervalMs = () => {
-          if (document.visibilityState !== "visible") return POLL_HIDDEN_MS;
-          return orderingOpenRef.current === false ? POLL_CLOSED_MS : POLL_ACTIVE_MS;
+        /** Tam ya da artımlı liste çek; realtime kopukluğunda telafi de bunu kullanır. */
+        const fetchList = async (full: boolean) => {
+          const url = full || !since ? "/api/orders?limit=300" : `/api/orders?limit=300&since=${encodeURIComponent(since)}`;
+          const r = await apiFetch(url);
+          if (r.status === 401) { setGate("login"); return false; }
+          if (!r.ok) return false;
+          const fresh = (await r.json()) as Order[];
+          const newest = fresh.map(stamp).sort().pop();
+          if (newest) since = new Date(new Date(newest).getTime() - 1_000).toISOString();
+          for (const o of fresh) upsert(o, false);
+          return true;
         };
 
-        /* Artımlı çekme her N turda bir TAM listeyle tazelenir. Neden: bir kaydın damgası
-           "since" sınırının gerisinde kalabiliyor (sunucu saati farkı, sahte saat, geç yazılan
-           aşama damgası) ve o kayıt artımlı turlarda hiç dönmüyor. Tam tur bunu telafi eder;
-           maliyeti aynı istek sayısı, yalnızca yanıt biraz büyük. */
-        let ticks = 0;
-        const FULL_EVERY = 5;
+        /* --- yoklama yedeği: yalnızca realtime yokken çalışır --- */
+        const startPoll = () => {
+          if (pollTimer || stopped) return;
+          const tick = async () => {
+            if (stopped) return;
+            setLive(await fetchList(false));
+            if (!stopped) pollTimer = window.setTimeout(tick, POLL_FALLBACK_MS);
+          };
+          pollTimer = window.setTimeout(tick, POLL_FALLBACK_MS);
+        };
+        const stopPoll = () => {
+          window.clearTimeout(pollTimer);
+          pollTimer = 0;
+        };
 
-        const tick = async () => {
+        /* --- realtime --- */
+        const connect = async () => {
           if (stopped) return;
+          const sb = supabaseBrowser();
+          if (!sb) return startPoll();
+          let token: string | null = null;
+          let ttl = 900;
           try {
-            /* İlk tur ve her 5 turda bir tam liste; aradakiler artımlı. */
-            const full = !firstDone || !since || ticks % FULL_EVERY === 0;
-            ticks++;
-            const url = full ? "/api/orders?limit=300" : `/api/orders?limit=300&since=${encodeURIComponent(since)}`;
-            const r = await apiFetch(url);
-            if (r.status === 401) return setGate("login");
-            if (!r.ok) { setLive(false); return; }
-            const fresh = (await r.json()) as Order[];
-            /* Yeni sınır: gelen kayıtların en yeni damgası (1 sn geri — aynı saniyedeki kayıt kaçmasın).
-               Hiç kayıt gelmediyse eski sınır korunur; böylece arada yazılan hiçbir sipariş atlanmaz. */
-            const newest = fresh.map(stamp).sort().pop();
-            if (newest) since = new Date(new Date(newest).getTime() - 1_000).toISOString();
-            firstDone = true;
-            setLive(true);
-            for (const o of fresh) upsert(o, false);
+            const r = await apiFetch("/api/panel/realtime-token");
+            if (r.ok) {
+              const j = (await r.json()) as { token: string; expiresIn: number };
+              token = j.token;
+              ttl = j.expiresIn;
+            }
           } catch {
-            setLive(false);
-          } finally {
-            if (!stopped) timer = window.setTimeout(tick, intervalMs());
+            /* ağ hatası → yoklama */
           }
+          if (!token || stopped) return startPoll();
+
+          /* Token yalnızca realtime kanalı için; REST istekleri hâlâ PANEL_KEY çerezinden geçer. */
+          sb.realtime.setAuth(token);
+          channel = sb
+            .channel("panel-orders")
+            .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders" }, (p) => upsert(p.new as Order, true))
+            .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders" }, (p) => upsert(p.new as Order, false))
+            .subscribe((status) => {
+              if (stopped) return;
+              if (status === "SUBSCRIBED") {
+                setLive(true);
+                stopPoll();
+                /* Bağlantı (yeniden) kuruldu: arada kaçan kayıt kalmasın diye TAM liste tazele. */
+                void fetchList(true);
+              } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+                setLive(false);
+                startPoll(); // kopuk süre boyunca yoklama devralır
+              }
+            });
+
+          /* Token ömrünün yarısında tazele: oturum sessizce düşmesin. */
+          refreshTimer = window.setTimeout(() => {
+            void (async () => {
+              try {
+                const r = await apiFetch("/api/panel/realtime-token");
+                if (r.ok) sb.realtime.setAuth(((await r.json()) as { token: string }).token);
+              } catch {
+                /* tazelenemezse abonelik düşer, yoklama devralır */
+              }
+              if (!stopped) connectRefresh();
+            })();
+          }, (ttl * 1000) / 2);
+        };
+        const connectRefresh = () => {
+          window.clearTimeout(refreshTimer);
+          refreshTimer = window.setTimeout(() => void connect(), 60_000);
         };
 
-        /* Sekme öne gelince: hemen bir tur ve aralığı sıfırla */
+        /* Sekme öne gelince tam tazeleme (uykuda kaçan kayıtlar) */
         const onVisible = () => {
           if (document.visibilityState !== "visible" || stopped) return;
-          window.clearTimeout(timer);
-          void tick();
+          void fetchList(true);
         };
         document.addEventListener("visibilitychange", onVisible);
-        void tick();
+
+        void fetchList(true).then((ok) => {
+          setLive(ok);
+          void connect();
+        });
 
         stop = () => {
           stopped = true;
-          window.clearTimeout(timer);
+          stopPoll();
+          window.clearTimeout(refreshTimer);
           document.removeEventListener("visibilitychange", onVisible);
+          const sb = supabaseBrowser();
+          if (channel && sb) sb.removeChannel(channel);
         };
       }
     })().catch(() => setLive(false));
     return () => stop();
   }, [gate, store, upsert]);
-
-  /* Dükkân açık/kapalı durumunu yoklama aralığı için izle (ayarlar ucu herkese açık okuma) */
-  useEffect(() => {
-    if (gate !== "ok") return;
-    let alive = true;
-    const read = async () => {
-      try {
-        const r = await fetch("/api/panel/settings", { cache: "no-store" });
-        if (r.ok && alive) orderingOpenRef.current = ((await r.json()) as { ordering_open?: boolean }).ordering_open ?? null;
-      } catch {
-        /* okunamazsa varsayılan aralık kullanılır */
-      }
-    };
-    void read();
-    const id = window.setInterval(read, 60_000);
-    return () => {
-      alive = false;
-      window.clearInterval(id);
-    };
-  }, [gate]);
 
   /* --- görüldü / ses tekrarı --- */
   const unseenIds = useMemo(() => [...orders.values()].filter((o) => o.status === "received" && !seen.has(o.id)).map((o) => o.id), [orders, seen]);
