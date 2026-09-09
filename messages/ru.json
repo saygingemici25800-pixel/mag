@@ -1,0 +1,523 @@
+{
+  "_acik": "AÇIK: Bu dosyadaki TÜM Rusça metinler onay bekliyor. Tek dosyadan düzenlenebilir; anahtar yapısı tr.json/en.json ile birebir aynıdır. Ürün ADLARI çevrilmez (SMOOKY, MAG BERRY marka adıdır); açıklamalar ve malzeme adları menuDesc/menuIng altında çevrilir.",
+  "meta": {
+    "title": "MAG Street Food — Фетхие",
+    "template": "%s · MAG Street Food Фетхие",
+    "homeTitle": "Бургеры, тако и лапша",
+    "description": "Котлета 130 г, свежая булочка бриошь, чеддер и грюйер, четыре домашних соуса в Фетхие. Бургеры, тако и лапша. Самовывоз и доставка.",
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek"
+  },
+  "chrome": {
+    "open": "Открыть",
+    "soundOn": "Звук включён",
+    "soundOff": "Звук выключен",
+    "menu": "Заказать",
+    "contact": "Контакты",
+    "city": "ФЕТХИЕ",
+    "brand": "mag",
+    "lang": {
+      "tr": "TR",
+      "en": "EN",
+      "ru": "RU",
+      "switchAria": "Язык"
+    },
+    "closedNow": "Сейчас мы закрыты",
+    "closedNowShort": "Закрыто",
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek · menuShort/contactShort yalnızca dar ekranda kullanılır",
+    "menuShort": "Заказ",
+    "contactShort": "Контакт"
+  },
+  "hero": {
+    "sub": "картофель включён",
+    "hint": "Листайте вниз",
+    "prev": "назад",
+    "next": "вперёд",
+    "prevAria": "Предыдущая позиция",
+    "nextAria": "Следующая позиция",
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek"
+  },
+  "claims": [
+    {
+      "no": "замороженных котлет",
+      "l1": "ТЕКСТУРА",
+      "l2": "",
+      "d": "В каждом бургере котлета 130 г. Мясо рубим сами каждое утро; вчерашнее до прилавка не доходит.",
+      "_acik": "AÇIK: başlık karşılığı işletmeden teyit edilecek; Rusça çeviri onay bekliyor"
+    },
+    {
+      "no": "магазинных булок",
+      "l1": "ХАРАКТЕР",
+      "l2": "",
+      "d": "Булочки привозят свежими каждый день и обжаривают на сливочном масле под заказ.",
+      "_acik": "AÇIK: başlık karşılığı işletmeden teyit edilecek; Rusça çeviri onay bekliyor"
+    },
+    {
+      "no": "одного сыра на всё",
+      "l1": "СЛОИ",
+      "l2": "",
+      "d": "В меню два настоящих сыра: чеддер и грюйер. Никаких плавленых ломтиков.",
+      "_acik": "AÇIK: başlık karşılığı işletmeden teyit edilecek; Rusça çeviri onay bekliyor"
+    },
+    {
+      "no": "соуса из бутылки",
+      "l1": "БАЛАНС",
+      "l2": "",
+      "d": "Трюфельный майонез, халапеньо, sweet & chili и соус MAG. Все четыре готовим на своей кухне, 50 ₺ за порцию.",
+      "_acik": "AÇIK: başlık karşılığı işletmeden teyit edilecek; Rusça çeviri onay bekliyor"
+    }
+  ],
+  "rail": [
+    "🥩",
+    "🍞",
+    "🧀",
+    "🫙"
+  ],
+  "payoff": [
+    "ОГОНЬ",
+    "И МЯСО"
+  ],
+  "faq": {
+    "title": [
+      "ЧАСТЫЕ",
+      "ВОПРОСЫ"
+    ],
+    "items": [
+      {
+        "q": "У вас есть доставка и самовывоз?",
+        "a": "Доступны и самовывоз, и доставка курьером. Зоны доставки и минимальная сумма заказа указаны на странице заказа."
+      },
+      {
+        "q": "Картофель входит в бургер?",
+        "a": "Да, картофель входит в каждый бургер."
+      },
+      {
+        "q": "Можно соусы отдельно?",
+        "a": "Конечно. Оставьте комментарий к заказу; дополнительные соусы можно добавить из меню."
+      },
+      {
+        "q": "Вы готовите тако и лапшу?",
+        "a": "Да, тако и лапша есть в меню."
+      },
+      {
+        "q": "До скольки вы работаете?",
+        "a": "Мы закрываемся в полночь каждый день. Время открытия уточняется."
+      }
+    ],
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek"
+  },
+  "footer": {
+    "title": [
+      "ПРИСОЕДИНЯЙТЕСЬ",
+      "К НАМ"
+    ],
+    "lead": "Узнавайте первыми о новинках и акциях.",
+    "placeholder": "ваш e-mail",
+    "cta": "Подписаться",
+    "legal": "Подписываясь, вы принимаете нашу политику конфиденциальности.",
+    "copy": "© 2026 MAG. STREET FOOD · ФЕТХИЕ",
+    "tiktok": "TikTok",
+    "instagram": "Instagram",
+    "links": [
+      "Правовая информация",
+      "Дистанционная продажа",
+      "Конфиденциальность (KVKK)",
+      "Файлы cookie"
+    ],
+    "linkSlugs": [
+      "iade-iptal",
+      "mesafeli-satis",
+      "kvkk",
+      "cerez"
+    ],
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek"
+  },
+  "order": {
+    "metaTitle": "Заказ",
+    "metaDesc": "Самовывоз или доставка. Минимальная сумма по районам, оплата картой онлайн.",
+    "title": [
+      "ОФОРМИТЬ",
+      "ЗАКАЗ"
+    ],
+    "lead": "Самовывоз или доставка. Оплата картой онлайн.",
+    "pickup": "Самовывоз",
+    "delivery": "Доставка",
+    "zoneLabel": "Район",
+    "zonePlaceholder": "Выберите район",
+    "minInfoAria": "Минимальные суммы заказа",
+    "minInfoTitle": "Минимальные суммы заказа",
+    "minInfoLead": "Для доставки действует минимальная сумма по районам. Плата за доставку пока не взимается.",
+    "minInfoZone": "Район",
+    "minInfoMin": "Мин. сумма",
+    "minInfoFee": "Доставка",
+    "close": "Закрыть",
+    "burgerNote": "Ко всем бургерам идёт картофель.",
+    "sauceNote": "Соусы 50 ₺.",
+    "add": "Добавить",
+    "noteToggle": "Комментарий",
+    "notePlaceholder": "например, без лука",
+    "cart": "Корзина",
+    "cartEmpty": "Корзина пуста. Добавьте что-нибудь из меню.",
+    "subtotal": "Сумма",
+    "fee": "Доставка",
+    "total": "Итого",
+    "minWarn": "Мин. сумма {min} ₺ — добавьте ещё {missing} ₺",
+    "info": "Данные",
+    "name": "Имя и фамилия",
+    "phone": "Телефон",
+    "phonePlaceholder": "05XX XXX XX XX",
+    "address": "Адрес",
+    "addressPlaceholder": "Район, улица, дом, этаж/квартира, ориентиры",
+    "when": "Когда",
+    "now": "Сейчас",
+    "orderNote": "Комментарий к заказу",
+    "submit": "Подтвердить заказ",
+    "submitting": "Отправляем…",
+    "closed": "Сейчас мы закрыты — откроемся завтра в {open}.",
+    "closedShort": "Закрыто · откроется в {open}",
+    "hours": "Ежедневно {open}–00:00",
+    "err": {
+      "name": "Укажите имя",
+      "phone": "Введите телефон в формате 05XX XXX XX XX",
+      "address": "Укажите адрес",
+      "zone": "Выберите район",
+      "items": "Корзина пуста или сумма ниже минимальной",
+      "requested_at": "Выберите время",
+      "hours": "Заказы вне часов работы недоступны",
+      "generic": "Не удалось отправить заказ, попробуйте ещё раз."
+    },
+    "openCart": "Открыть корзину",
+    "closeCart": "Закрыть корзину",
+    "addShort": "+ Добавить",
+    "goodWith": "Хорошо вместе с",
+    "addToCart": "В корзину",
+    "qty": "Кол-во",
+    "goCart": "В корзину",
+    "itemsCount": "шт.",
+    "checkoutTitle": [
+      "ОФОРМЛЕНИЕ"
+    ],
+    "summary": "Состав заказа",
+    "remove": "Убрать",
+    "deliveryInfo": "Доставка",
+    "payNow": "Перейти к оплате",
+    "payingNow": "Переходим…",
+    "onlineOnly": "Оплата картой онлайн. Оплата при получении недоступна.",
+    "backToMenu": "Назад в меню",
+    "emptyGo": "Перейти в меню",
+    "ingredients": "Состав",
+    "sheetClose": "Закрыть",
+    "upsellTitle": "ХОРОШО ВМЕСТЕ",
+    "less": "уменьшить",
+    "more": "увеличить",
+    "soldOut": "Закончилось",
+    "closedTitle": "Сейчас мы закрыты",
+    "closedLead": "Сейчас мы не принимаем заказы. Попробуйте чуть позже.",
+    "soldOutWarn": "В корзине есть позиции, которых нет в наличии: {items}. Уберите или замените их.",
+    "removeIngredients": "Убрать ингредиенты",
+    "editIngredients": "Изменить состав",
+    "notRemovable": "нельзя убрать",
+    "removedState": "убрано",
+    "includedState": "входит",
+    "removedLabel": "Убрано",
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek"
+  },
+  "track": {
+    "metaTitle": "Отслеживание заказа",
+    "title": [
+      "ЗАКАЗ",
+      "ПРИНЯТ"
+    ],
+    "id": "Номер заказа",
+    "status": "Статус",
+    "items": "Состав",
+    "when": "Желаемое время",
+    "payment": "Оплата",
+    "steps": {
+      "received": "Принят",
+      "preparing": "Готовим",
+      "ready": "Готов",
+      "on_the_way": "В пути",
+      "delivered": "Доставлен",
+      "cancelled": "Отменён"
+    },
+    "pickupHint": "Мы покажем здесь, когда заказ будет готов. Адрес: {address}",
+    "deliveryHint": "Мы покажем здесь, когда курьер выедет.",
+    "notFound": "Такого заказа нет.",
+    "back": "Назад в меню",
+    "newOrder": "Новый заказ",
+    "cancelReason": "Причина",
+    "live": "Онлайн",
+    "paymentLabel": "Оплата",
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek"
+  },
+  "panel": {
+    "title": "Panel",
+    "login": "Giriş",
+    "email": "E-posta",
+    "password": "Şifre",
+    "key": "Panel şifresi",
+    "enter": "Gir",
+    "loginFail": "Şifre yanlış",
+    "logout": "Çıkış",
+    "closedProd": "Panel kapalı: sunucuda PANEL_KEY tanımlı değil.",
+    "tabs": {
+      "active": "Aktif",
+      "today": "Bugün",
+      "past": "Geçmiş",
+      "settings": "Ayarlar"
+    },
+    "empty": "Bu sekmede sipariş yok.",
+    "soundOn": "Sesi aç",
+    "soundOff": "Sesi kapat",
+    "soundIsOn": "Ses açık",
+    "soundIsOff": "Ses kapalı",
+    "pushOn": "Bildirimleri aç",
+    "pushOk": "Bildirimler açık",
+    "pushDenied": "Bildirim izni verilmedi",
+    "pushUnsupported": "Bu tarayıcı bildirim desteklemiyor",
+    "pushFail": "Bildirim kaydı başarısız",
+    "seen": "Görüldü",
+    "new": "Yeni",
+    "pickup": "Gel-al",
+    "delivery": "Kurye",
+    "cod": "Nakit",
+    "cardOnDelivery": "Kart",
+    "online": "Online",
+    "call": "Ara",
+    "map": "Haritada aç",
+    "when": "İstenen",
+    "now": "Şimdi",
+    "note": "Not",
+    "status": {
+      "received": "Alındı",
+      "preparing": "Hazırlanıyor",
+      "ready": "Hazır",
+      "on_the_way": "Yolda",
+      "delivered": "Teslim edildi",
+      "cancelled": "İptal"
+    },
+    "next": {
+      "preparing": "Hazırlanıyor",
+      "ready": "Hazır",
+      "on_the_way": "Yolda",
+      "delivered": "Teslim edildi"
+    },
+    "cancel": "İptal",
+    "cancelReason": "İptal sebebi",
+    "cancelConfirm": "İptal et",
+    "cancelBack": "Vazgeç",
+    "live": "Canlı",
+    "offline": "Bağlantı yok — yeniden bağlanıyor",
+    "store": {
+      "stub": "Yerel stub",
+      "supabase": "Supabase"
+    },
+    "paid": "Ödendi",
+    "accept": "Siparişi al",
+    "prepLabel": "Hazırlanma",
+    "min": "dk",
+    "acceptedAt": "'de alındı",
+    "closedAt": "kapandı",
+    "cancelledAt": "'de iptal edildi",
+    "cancelSure": "İptal edilsin mi?",
+    "close": {
+      "onTheWay": "Yola çıktı",
+      "delivered": "Teslim edildi"
+    },
+    "settings": "Ayarlar",
+    "orderingOpen": "Sipariş açık",
+    "orderingClosed": "Sipariş kapalı",
+    "soldOut": "Tükendi",
+    "soldOutHint": "Tıkla: tükendi işaretle",
+    "summary": "Gün sonu",
+    "sumOrders": "Sipariş",
+    "sumRevenue": "Ciro",
+    "sumTop": "En çok satan",
+    "sumAvg": "Ort. hazırlanma",
+    "sumCancelled": "İptal",
+    "sumDate": "Tarih",
+    "removedLabel": "Çıkarılan"
+  },
+  "cta": {
+    "order": "Заказать",
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek"
+  },
+  "contact": {
+    "title": [
+      "КОНТАКТЫ"
+    ],
+    "address": "Адрес",
+    "phone": "Телефон",
+    "hours": "Часы работы",
+    "hoursValue": "Ежедневно 11:00–00:00",
+    "map": "Открыть в Google Картах",
+    "social": "Соцсети",
+    "close": "Закрыть",
+    "open": "Контакты",
+    "walk": "В ПЕШЕЙ ДОСТУПНОСТИ",
+    "directions": "ПРОЛОЖИТЬ МАРШРУТ",
+    "minutes": "мин",
+    "pending": "— скоро",
+    "instagram": "Instagram",
+    "tiktok": "TikTok",
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek"
+  },
+  "categories": {
+    "burger": "Бургеры",
+    "taco": "Тако",
+    "noodle": "Лапша",
+    "yan": "Закуски",
+    "sos": "Соусы",
+    "icecek": "Напитки",
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek"
+  },
+  "legal": {
+    "kvkk": "Уведомление о конфиденциальности (KVKK)",
+    "mesafeli-satis": "Договор дистанционной продажи",
+    "iade-iptal": "Возврат и отмена",
+    "cerez": "Политика использования cookie",
+    "index": "Правовая информация",
+    "updated": "Последнее обновление",
+    "placeholderNote": "Поля в скобках будут заполнены после получения данных заведения.",
+    "trOnly": "Юридические тексты предоставлены на турецком языке — языке договора. Напишите нам, если нужна помощь.",
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek"
+  },
+  "notFound": {
+    "title": [
+      "СТРАНИЦА",
+      "НЕ НАЙДЕНА"
+    ],
+    "lead": "Такой страницы нет. Вернитесь в меню или оформите заказ.",
+    "home": "На главную",
+    "order": "Заказать",
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek"
+  },
+  "menuName": {
+    "tavuk-taco": "Тако с курицей",
+    "tiftik-taco": "Тако с томлёной говядиной",
+    "karides-taco": "Тако с креветками",
+    "tavuklu-noodle": "С курицей",
+    "karidesli-noodle": "С креветками",
+    "patates": "Картофель фри (домашний)",
+    "patates-parmesan": "Картофель фри с пармезаном",
+    "sogan-halkasi": "Луковые кольца",
+    "truflu-mayonez": "Трюфельный майонез",
+    "mag-sos": "Соус MAG",
+    "ekstra-cheddar-sos": "Дополнительный соус чеддер",
+    "tutsu-biberli-aioli": "Айоли с копчёным перцем",
+    "ayran": "Айран Arslan",
+    "icecekler": "Напитки",
+    "su": "Вода",
+    "soda": "Газированная вода",
+    "zencefilli-gazoz": "Имбирный лимонад",
+    "alkolsuz-bira": "Безалкогольное пиво",
+    "salgam": "Шалгам",
+    "kola": "Кола",
+    "limonata": "Лимонад",
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek · SMOOKY, BRISKET, MAG BERRY, JALAPENO, MAG CAESAR, MAG ORJINAL, TRUFFLE & MUSH, MAG ÇITIR ve SWEET & CHILI marka adı olarak ÇEVRİLMEDİ",
+    "jalapeno-sos": "Халапеньо",
+    "sweet-chili": "Sweet & chili"
+  },
+  "menuIng": {
+    "130 gr burger köftesi": "котлета 130 г",
+    "Ağır ateşte pişmiş tiftik et": "томлёная говядина",
+    "Jalapeno sos": "соус халапеньо",
+    "Karamelize vişne": "карамелизованная вишня",
+    "Karides": "креветки",
+    "Mag sos": "соус MAG",
+    "Panelenmiş tavuk parçaları": "куриные кусочки в панировке",
+    "Sotelenmiş baharatlı tavuk": "пряная курица соте",
+    "Tavuk göğsü": "куриная грудка",
+    "Tereyağında sotelenmiş karides": "креветки соте на сливочном масле",
+    "avokado": "авокадо",
+    "brioche ekmek": "булочка бриошь",
+    "cheddar": "чеддер",
+    "chipotle mayo": "майонез чипотле",
+    "cips": "чипсы",
+    "füme kaburga": "копчёные рёбрышки",
+    "gravyer": "грюйер",
+    "gravyer peyniri": "сыр грюйер",
+    "havuç": "морковь",
+    "iceberg marul": "салат айсберг",
+    "kapya biber": "перец капия",
+    "karamelize soğan": "карамелизованный лук",
+    "kıtır soğan": "хрустящий лук",
+    "lahanaslaw": "капустный салат коул слоу",
+    "mantar düxelles": "грибной дюксель",
+    "marul": "салат",
+    "maydanoz & soğan": "петрушка и лук",
+    "panelenmiş tavuk": "курица в панировке",
+    "roka": "руккола",
+    "soya sos": "соевый соус",
+    "soğan turşusu": "маринованный лук",
+    "susam": "кунжут",
+    "sweet chili sos": "соус sweet chili",
+    "taze soğan": "зелёный лук",
+    "trüflü mayonez": "трюфельный майонез",
+    "tütsü biberli aioli": "айоли с копчёным перцем",
+    "zencefil": "имбирь",
+    "çıtır soğan": "хрустящий лук",
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek"
+  },
+  "menuDesc": {
+    "smooky": "Котлета 130 г, копчёные рёбрышки, карамелизованный лук, чеддер, салат айсберг, айоли с копчёным перцем",
+    "brisket": "Томлёная говядина, карамелизованный лук, чеддер, айоли с копчёным перцем, маринованный лук",
+    "berry": "Карамелизованная вишня, сыр грюйер, котлета 130 г",
+    "jalapeno": "Соус халапеньо, чеддер, хрустящий лук, котлета 130 г, руккола",
+    "caesar": "Соус MAG, салат, грюйер, курица в панировке",
+    "orjinal": "Соус MAG, хрустящий лук, чеддер, котлета 130 г",
+    "truffle": "Котлета 130 г, грибной дюксель, трюфельный майонез, чеддер, маринованный лук",
+    "citir": "Куриные кусочки в панировке, чипсы, соус sweet chili",
+    "tavuk-taco": "Пряная курица соте, салат айсберг, сыр грюйер, авокадо, майонез чипотле",
+    "tiftik-taco": "Томлёная говядина, петрушка и лук, чеддер, айоли с копчёным перцем",
+    "karides-taco": "Креветки соте на сливочном масле, капустный салат коул слоу, авокадо, майонез чипотле, зелёный лук",
+    "tavuklu-noodle": "Куриная грудка, зелёный лук, морковь, имбирь, перец капия, соевый соус, кунжут",
+    "karidesli-noodle": "Креветки, зелёный лук, морковь, имбирь, перец капия, соевый соус, кунжут",
+    "patates": "Картофель фри (домашний)",
+    "patates-parmesan": "Картофель фри с пармезаном",
+    "sogan-halkasi": "Луковые кольца",
+    "truflu-mayonez": "Трюфельный майонез",
+    "mag-sos": "Соус MAG",
+    "ekstra-cheddar-sos": "Дополнительный соус чеддер",
+    "tutsu-biberli-aioli": "Айоли с копчёным перцем",
+    "ayran": "Айран Arslan",
+    "icecekler": "Напитки",
+    "su": "Вода",
+    "soda": "Газированная вода",
+    "zencefilli-gazoz": "Имбирный лимонад",
+    "alkolsuz-bira": "Безалкогольное пиво",
+    "salgam": "Шалгам",
+    "kola": "Кола",
+    "limonata": "Лимонад",
+    "jalapeno-sos": "Халапеньо",
+    "sweet-chili": "Sweet & chili",
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek · açıklamalar menuIng haritasından türetildi (ikinci liste yok)"
+  },
+  "payment": {
+    "status": {
+      "awaiting_payment": "Ожидает оплаты",
+      "paid": "Оплачено",
+      "payment_failed": "Оплата не прошла"
+    },
+    "retry": "Повторить оплату",
+    "failedLead": "Оплата не прошла. Заказ сохранён, попробуйте ещё раз.",
+    "awaitingLead": "Заказ попадёт на кухню после оплаты.",
+    "paidLead": "Оплата получена.",
+    "mock": {
+      "title": [
+        "ТЕСТОВАЯ",
+        "ОПЛАТА"
+      ],
+      "lead": "Это тестовая страница оплаты (mock). Реального списания нет.",
+      "ok": "Завершить оплату",
+      "fail": "Ошибка",
+      "amount": "Сумма",
+      "order": "Заказ"
+    },
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek"
+  },
+  "pre": {
+    "loading": "ЗАГРУЗКА · {n}%",
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek"
+  }
+}

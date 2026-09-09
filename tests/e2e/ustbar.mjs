@@ -52,7 +52,12 @@ const box = (p, sel) => p.evaluate((s) => {
     right: Math.round(r.right), bottom: Math.round(r.bottom),
     display: c.display, visibility: c.visibility, opacity: c.opacity,
     fs: parseFloat(c.fontSize), ff: c.fontFamily, radius: c.borderRadius,
-    text: (e.textContent || "").trim(),
+    /* Düğmede uzun+kısa iki etiket var (dar ekranda kısa gösterilir); textContent ikisini
+       birleştirir, bu yüzden GÖRÜNEN olanı ölçüyoruz. */
+    text: (() => {
+      const spans = [...e.querySelectorAll("span")].filter((x) => getComputedStyle(x).display !== "none");
+      return (spans.length ? spans.map((x) => x.textContent).join("") : e.textContent || "").trim();
+    })(),
   };
 }, sel);
 

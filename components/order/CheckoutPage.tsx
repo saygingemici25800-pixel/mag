@@ -6,9 +6,9 @@ import { useLocale, useT } from "@/components/LocaleProvider";
 import { cartClear, cartRemove, cartSet, cartSetRemoved, lineProductId, useCart } from "@/lib/cart";
 import { animateLineOut, animateSummaryIn, prefetchCartFx } from "@/lib/cartFx";
 import { OPENS_AT_LABEL, isOpen, timeSlots } from "@/lib/hours";
-import { itemName, localePath } from "@/lib/i18n";
+import { formatPriceFor, ingName, itemName, localePath } from "@/lib/i18n";
 import type { NewOrderInput, ValidationError } from "@/lib/orders";
-import { computeTotals, findMenuItem, formatPrice, normalizePhone, type OrderType } from "@/lib/orders-shared";
+import { computeTotals, findMenuItem, normalizePhone, type OrderType } from "@/lib/orders-shared";
 import { useClockMinute } from "@/lib/useClock";
 import { ZONES, getZone } from "@/lib/zones";
 import MinCartInfo from "./MinCartInfo";
@@ -122,7 +122,7 @@ export default function CheckoutPage() {
                   <div className="text-sm font-bold">{itemName(t, m)}</div>
                   {it.removed.length ? (
                     <p className="removed-line" data-removed>
-                      {o.removedLabel}: {it.removed.join(", ")}
+                      {o.removedLabel}: {it.removed.map((r) => ingName(t, r)).join(", ")}
                     </p>
                   ) : null}
                   {it.note ? <div className="text-xs text-dim">{it.note}</div> : null}
@@ -145,7 +145,7 @@ export default function CheckoutPage() {
                       +
                     </button>
                   </span>
-                  <span className="min-w-14 text-right font-display text-sm">{formatPrice(m.price * it.qty)}</span>
+                  <span className="min-w-14 text-right font-display text-sm">{formatPriceFor(locale, m.price * it.qty)}</span>
                 </div>
                 {pickerKey === it.key ? (
                   <div className="w-full">
@@ -160,7 +160,7 @@ export default function CheckoutPage() {
       <div className="flex flex-col gap-1 font-display text-sm" data-cart-totals>
         <div className="flex justify-between text-dim">
           <span>{o.subtotal}</span>
-          <span>{formatPrice(totals.subtotal)}</span>
+          <span>{formatPriceFor(locale, totals.subtotal)}</span>
         </div>
         {mode === "delivery" ? (
           <div className="flex justify-between text-dim">
@@ -168,12 +168,12 @@ export default function CheckoutPage() {
               {o.fee}
               {getZone(zone) ? ` · ${getZone(zone)!.name}` : ""}
             </span>
-            <span>{totals.fee ? formatPrice(totals.fee) : "—"}</span>
+            <span>{totals.fee ? formatPriceFor(locale, totals.fee) : "—"}</span>
           </div>
         ) : null}
         <div className="flex justify-between text-base font-bold">
           <span>{o.total}</span>
-          <span>{formatPrice(totals.total)}</span>
+          <span>{formatPriceFor(locale, totals.total)}</span>
         </div>
       </div>
       {mode === "delivery" && totals.minCart > 0 && totals.missing > 0 ? <div className="warn">{fmt(o.minWarn, { min: totals.minCart, missing: totals.missing })}</div> : null}
@@ -296,7 +296,7 @@ export default function CheckoutPage() {
               </div>
             ) : null}
             <button type="submit" className="submit" disabled={!canSubmit}>
-              {submitting ? o.payingNow : `${o.payNow} · ${formatPrice(totals.total)}`}
+              {submitting ? o.payingNow : `${o.payNow} · ${formatPriceFor(locale, totals.total)}`}
             </button>
           </form>
           <aside className="hidden lg:block">

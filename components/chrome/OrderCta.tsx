@@ -15,7 +15,7 @@ import { localePath, type Locale } from "@/lib/i18n";
  *
  * Yönlendirme her koşulda /siparis (localePath ile dil ön eki).
  */
-export default function OrderCta({ locale, label, closedLabel, closedShort }: { locale: Locale; label: string; closedLabel: string; closedShort: string }) {
+export default function OrderCta({ locale, label, labelShort, closedLabel, closedShort }: { locale: Locale; label: string; labelShort: string; closedLabel: string; closedShort: string }) {
   const [closed, setClosed] = useState(false);
 
   useEffect(() => {
@@ -60,8 +60,12 @@ export default function OrderCta({ locale, label, closedLabel, closedShort }: { 
   }
 
   return (
-    <Link href={localePath(locale, "/siparis")} className="cta cta-order" prefetch={false} data-order-cta>
-      {label}
+    <Link href={localePath(locale, "/siparis")} className="cta cta-order" prefetch={false} aria-label={label} data-order-cta>
+      {/* Rusça "Заказать" mobilde 142 px tutup ekrandan taşıyordu; dar ekranda kısa karşılık
+          ("Заказ") gösterilir, ekran okuyucu aria-label'dan TAM etiketi duyar.
+          TR/EN'de kısa = uzun olduğu için görünüm hiç değişmez. */}
+      <span className="cta-long" aria-hidden="true">{label}</span>
+      <span className="cta-short" aria-hidden="true">{labelShort}</span>
     </Link>
   );
 }

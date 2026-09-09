@@ -153,6 +153,13 @@
     font-size: 0.8rem;
     letter-spacing: 0.06em;
   }
+  /* Kiril büyük harfler Latin'den geniş: aynı kelime Rusça'da ~1.5× yer tutuyor
+     (ölçüm: "İLETİŞİM" 91 px, "КОНТАКТ" 137 px). Yalnızca RU'da harf aralığı ve
+     dolgu kısılır; TR/EN görünümü DEĞİŞMEZ çünkü kural :lang(ru) ile sınırlı. */
+  :lang(ru) .cta {
+    padding: 0 11px;
+    letter-spacing: 0.01em;
+  }
   /* "Şu an kapalıyız" mobilde çok geniş: 390 px'te TR|EN ayıracının üstüne biniyordu.
      Kısa etiket devreye girer; ekran okuyucu aria-label'dan tam cümleyi duymaya devam eder. */
   .cta.is-closed {
@@ -193,6 +200,11 @@
   .cta {
     padding: 0 12px;
     font-size: 0.74rem;
+  }
+  :lang(ru) .cta {
+    padding: 0 9px;
+    font-size: 0.7rem;
+    letter-spacing: 0;
   }
   .navR {
     gap: 6px;

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { OG_LOCALE, getMessages, localePath, type Locale } from "@/lib/i18n";
+import { OG_LOCALE, getMessages, hreflangMap, localePath, type Locale } from "@/lib/i18n";
 import type { HeroId } from "@/lib/menu";
 import { PALETTE } from "@/lib/palette";
 import { SITE, siteUrl } from "@/lib/site";
@@ -30,7 +30,7 @@ interface PageMetaInput {
   noIndex?: boolean;
 }
 
-/** Sayfa metadata'sı: canonical + hreflang (tr/en/x-default) + dinamik OG görseli (/api/og). */
+/** Sayfa metadata'sı: canonical + hreflang (her dil + x-default) + dinamik OG görseli (/api/og). */
 export function pageMetadata({ locale, path, title, description, ogItem = "smooky", noIndex }: PageMetaInput): Metadata {
   const t = getMessages(locale);
   const desc = description ?? t.meta.description;
@@ -41,7 +41,8 @@ export function pageMetadata({ locale, path, title, description, ogItem = "smook
     description: desc,
     alternates: {
       canonical: url,
-      languages: { tr: localePath("tr", path), en: localePath("en", path), "x-default": localePath("tr", path) },
+      /* Diller LOCALES'ten türer: yeni dil eklenince hreflang kendiliğinden gelir. */
+      languages: hreflangMap(path),
     },
     openGraph: {
       title: `${title} · ${SITE.name} ${SITE.city}`,

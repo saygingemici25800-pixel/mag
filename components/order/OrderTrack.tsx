@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useLocale, useT } from "@/components/LocaleProvider";
-import { localePath } from "@/lib/i18n";
+import { formatPriceFor, localePath } from "@/lib/i18n";
 import { STATUS_FLOW, shortId, type Order } from "@/lib/orders";
-import { formatPrice } from "@/lib/menu";
+
 import { getZone } from "@/lib/zones";
 import { SITE } from "@/lib/site";
 import "./order.css";
@@ -135,12 +135,12 @@ export default function OrderTrack({ initial }: { initial: Order }) {
                   </div>
                   {it.note ? <div className="text-xs text-dim">{it.note}</div> : null}
                 </div>
-                <span className="font-display text-sm">{formatPrice(it.price * it.qty)}</span>
+                <span className="font-display text-sm">{formatPriceFor(locale, it.price * it.qty)}</span>
               </div>
             ))}
             <div className="mt-3 flex justify-between font-display text-base">
               <span>{t.order.total}</span>
-              <span>{formatPrice(order.total)}</span>
+              <span>{formatPriceFor(locale, order.total)}</span>
             </div>
           </div>
           <div className="flex flex-col gap-4 text-sm">

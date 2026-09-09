@@ -25,7 +25,8 @@ export default function LegalPage({ locale, slug }: { locale: Locale; slug: Lega
         <p className="ord-label mt-4">
           {t.legal.updated}: {doc.updated}
         </p>
-        {locale === "en" ? <p className="mt-6 text-dim">{t.legal.trOnly}</p> : null}
+        {/* Yasal metinler yalnızca Türkçe; TR dışındaki her dilde uyarı gösterilir. */}
+      {locale !== "tr" ? <p className="mt-6 text-dim">{t.legal.trOnly}</p> : null}
         <p className="mt-2 text-sm text-dim">{t.legal.placeholderNote}</p>
         <article className="mt-8 flex flex-col gap-6 text-[1.02rem] leading-relaxed">
           {doc.sections.map((s, i) => (

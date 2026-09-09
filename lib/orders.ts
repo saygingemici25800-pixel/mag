@@ -2,6 +2,7 @@
  * Sipariş modeli + sunucu tarafı doğrulama. Fiyatlar her zaman lib/menu.ts'ten hesaplanır (istemciye güvenilmez).
  * Depo: lib/orders-store.ts (şimdilik dosya/bellek; Faz 3'te Supabase — arayüz aynı).
  */
+import { DEFAULT_LOCALE, isLocale, type Locale } from "@/lib/i18n";
 import { MENU, type MenuItem } from "@/lib/menu";
 import { getZone } from "@/lib/zones";
 import { defaultNow, isOpen, timeSlots } from "@/lib/hours";
@@ -9,7 +10,9 @@ import { defaultNow, isOpen, timeSlots } from "@/lib/hours";
 export type OrderType = "pickup" | "delivery";
 export type Payment = "online"; // karar 3 Eyl 2026: yalnızca online
 export type PaymentStatus = "awaiting_payment" | "paid" | "payment_failed";
-export type OrderLocale = "tr" | "en";
+/* Sipariş dili = sitenin dili (lib/i18n LOCALES). Ayrı bir birlik yazmıyoruz ki
+   yeni dil eklenince burası sessizce geride kalmasın. */
+export type OrderLocale = Locale;
 export type OrderStatus = "received" | "preparing" | "ready" | "on_the_way" | "delivered" | "cancelled";
 export const STATUSES: OrderStatus[] = ["received", "preparing", "ready", "on_the_way", "delivered", "cancelled"];
 export const OPEN_STATUSES: OrderStatus[] = ["received", "preparing", "ready", "on_the_way"];
@@ -229,7 +232,9 @@ export function buildOrder(input: NewOrderInput, now: Date = defaultNow()): Orde
     payment: "online",
     payment_status: "awaiting_payment",
     payment_ref: null,
-    locale: input.locale === "en" ? "en" : "tr",
+    /* İstemciden gelen dili LOCALES'e karşı doğrula. Eskiden "en değilse tr" yazıyordu;
+       bu, ru siparişini sessizce tr'ye düşürüp ödeme dönüşünü yanlış dile yönlendiriyordu. */
+    locale: isLocale(input.locale) ? input.locale : DEFAULT_LOCALE,
     status: "received",
     cancel_reason: null,
   };

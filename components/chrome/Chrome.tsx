@@ -22,8 +22,8 @@ export default function Chrome({ locale }: { locale: Locale }) {
           <i>.</i>
         </Link>
         <nav className="navR">
-          <OrderCta locale={locale} label={c.menu} closedLabel={c.closedNow} closedShort={c.closedNowShort} />
-          <ContactOverlay t={t.contact} />
+          <OrderCta locale={locale} label={c.menu} labelShort={c.menuShort} closedLabel={c.closedNow} closedShort={c.closedNowShort} />
+          <ContactOverlay t={t.contact} label={c.contact} labelShort={c.contactShort} />
         </nav>
       </header>
       <span className="bracket b1" aria-hidden="true" />

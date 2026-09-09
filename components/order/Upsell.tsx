@@ -1,10 +1,10 @@
 "use client";
 
-import { useT } from "@/components/LocaleProvider";
+import { useLocale, useT } from "@/components/LocaleProvider";
 import { cartAdd, cartSet, qtyOf, useCart } from "@/lib/cart";
 import { flyToCart } from "@/lib/cartFx";
-import { itemName } from "@/lib/i18n";
-import { formatPrice, upsellItems } from "@/lib/menu";
+import { formatPriceFor, itemName } from "@/lib/i18n";
+import { upsellItems } from "@/lib/menu";
 import ProductImage from "./ProductImage";
 import { useSettings } from "@/lib/useSettings";
 
@@ -16,6 +16,7 @@ import { useSettings } from "@/lib/useSettings";
  */
 export default function Upsell() {
   const t = useT();
+  const locale = useLocale();
   const o = t.order;
   const cart = useCart();
   const settings = useSettings();
@@ -43,7 +44,7 @@ export default function Upsell() {
             <li key={m.id} className={"upsell-card" + (out ? " soldout" : "")} data-upsell-item={m.id} data-sold-out={out || undefined}>
               <ProductImage m={m} name={name} size={72} />
               <div className="upsell-name">{name}</div>
-              <div className="upsell-price">{formatPrice(m.price)}</div>
+              <div className="upsell-price">{formatPriceFor(locale, m.price)}</div>
               {qty > 0 ? (
                 <span className="qty" data-upsell-qty>
                   <button type="button" aria-label={`${name} ${o.less}`} onClick={() => cartSet(m.id, qty - 1)}>

@@ -46,6 +46,61 @@
   src: url("/fonts/BonnyBold.woff2") format("woff2");
 }
 
+/* ---- KİRİL (RU) ----
+   Comico ve Bonny'de Kiril YOK (ölçüldü: her ikisinde de 0/66 harf), bu yüzden Rusça metin
+   kutu (tofu) çıkardı. Çözüm: yalnızca Kiril aralığı için yedek aile tanımlamak.
+
+   unicode-range SAYESİNDE Türkçe ve İngilizce'nin görünümü DEĞİŞMEZ: tarayıcı bu dosyaları
+   sadece sayfada Kiril harf varsa indirir ve yalnızca o harfler için kullanır. Latin harfler,
+   rakamlar ve ₺ simgesi Comico/Bonny'de kalır (₺ bu dosyalarda yok, aileye geri düşer).
+
+   NEDEN BU İKİSİ:
+    - Seymour One ← Comico: Comico kalın, yuvarlak uçlu, elle çizilmiş, hep büyük harf bir
+      başlık yazı tipi. Denenenler arasında (Neucha, Marmelad, Amatic SC, Caveat, Russo One)
+      bu ağırlığı ve yuvarlaklığı taşıyan tek aile Seymour One. Neucha karakteri yakalıyor ama
+      başlık için fazla ince; Russo One mekanik; Caveat italik el yazısı.
+      Ölçü: x-yükseklik 0.501 (Comico 0.500), cap 0.715 (Comico 0.700) — neredeyse birebir.
+    - Fira Sans Condensed ← Bonny: Bonny dar, sıkışık bir gövde yazı tipi. PT Sans Narrow ve
+      Roboto Condensed'a göre Fira'nın daralması ve harf sonlandırmaları Bonny'ye daha yakın;
+      ayrıca 400/500/700 üç kalınlıkta Kiril veriyor (Bonny'nin kullandığı kalınlıklar).
+      Ölçü: x-yükseklik 0.526 (Bonny 0.515), cap 0.688 (Bonny 0.725).
+
+   Dosyalar Latin+Kiril alt kümelerinin BİRLEŞİMİ (scripts/ru-fonts.mjs): salt Kiril alt kümesinde
+   rakam yok, fiyatlar ("1 310 ₺") bozulurdu. Yerelden sunulur, harici istek yok.
+   İkisi de OFL-1.1. */
+@font-face {
+  font-family: "SeymourOne";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/SeymourOneRU-400.woff2") format("woff2");
+  unicode-range: U+0400-04FF, U+0500-052F, U+2DE0-2DFF, U+A640-A69F;
+}
+@font-face {
+  font-family: "FiraSansCondensed";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/FiraSansCondensedRU-400.woff2") format("woff2");
+  unicode-range: U+0400-04FF, U+0500-052F, U+2DE0-2DFF, U+A640-A69F;
+}
+@font-face {
+  font-family: "FiraSansCondensed";
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/FiraSansCondensedRU-500.woff2") format("woff2");
+  unicode-range: U+0400-04FF, U+0500-052F, U+2DE0-2DFF, U+A640-A69F;
+}
+@font-face {
+  font-family: "FiraSansCondensed";
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/FiraSansCondensedRU-700.woff2") format("woff2");
+  unicode-range: U+0400-04FF, U+0500-052F, U+2DE0-2DFF, U+A640-A69F;
+}
+
 /* ---- renk sistemi: TEK KAYNAK. Bileşenlerde hex yok; her şey bu değişkenlerden türer.
    (lib/palette.ts yalnızca JS/OG için aynı değerlerin aynası — tests/e2e/palette.mjs eşitliği denetler.) ---- */
 :root {
@@ -76,8 +131,11 @@
   --hero-black-rgb: 0, 0, 0;
   --edge: 20px;
 
-  --font-display: "Comico", "Arial Black", Impact, sans-serif;
-  --font-body: "Bonny", "Helvetica Neue", Arial, system-ui, sans-serif;
+  /* Kiril aileleri ARADA: Comico/Bonny önce gelir, yani Latin ve rakamlar hiç değişmez.
+     Kiril harfler Comico/Bonny'de olmadığı için tarayıcı sıradaki aileye geçer ve
+     SeymourOne/FiraSansCondensed'i kullanır (bu dosyalar zaten unicode-range ile Kiril'e kısıtlı). */
+  --font-display: "Comico", "SeymourOne", "Arial Black", Impact, sans-serif;
+  --font-body: "Bonny", "FiraSansCondensed", "Helvetica Neue", Arial, system-ui, sans-serif;
 }
 
 @theme inline {

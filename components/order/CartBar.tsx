@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useLocale, useT } from "@/components/LocaleProvider";
 import { cartCount, useCart } from "@/lib/cart";
-import { localePath } from "@/lib/i18n";
-import { computeTotals, formatPrice } from "@/lib/orders-shared";
+import { computeTotals } from "@/lib/orders-shared";
+import { formatPriceFor, localePath, priceParts } from "@/lib/i18n";
 
 /** Yapışkan sepet çubuğu: sepet doluyken altta fixed; belirirken yükselir, adet değişince rozet zıplar. */
 export default function CartBar() {
@@ -35,8 +35,8 @@ export default function CartBar() {
             {count} {t.order.itemsCount}
           </small>
           {/* cartFx tutarı sayı geçişiyle günceller: ham değer data-value'da, önek data-prefix'te */}
-          <span data-cart-total data-value={totals.subtotal} data-prefix="₺">
-            {formatPrice(totals.subtotal)}
+          <span data-cart-total data-value={totals.subtotal} {...priceParts(locale)}>
+            {formatPriceFor(locale, totals.subtotal)}
           </span>
         </span>
         <span className="cb-go">{t.order.goCart} →</span>
