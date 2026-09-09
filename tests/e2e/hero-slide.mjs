@@ -24,7 +24,8 @@ const frames = await p.evaluate(() => new Promise((done) => {
     const m = e.style.transform.match(/translate\(calc\(-50% \+ (-?[\d.]+)px\),\s*(-?[\d.]+)px\) rotate\([-\d.]+deg\) scale\(([\d.]+)\)/);
     return [e.dataset.k, m ? { x: +m[1], s: +m[3] } : null];
   })]);
-  document.querySelector("button.arrow.r").click();
+  /* eski 56 px daire buton kaldırıldı; yönlendirme artık .hnav chevron grubu */
+  document.querySelector("button.hnav.r").click();
   requestAnimationFrame(() => {
     const t0 = performance.now();
     const step = () => { rows.push(grab()); if (performance.now() - t0 < 900) requestAnimationFrame(step); else done(rows); };

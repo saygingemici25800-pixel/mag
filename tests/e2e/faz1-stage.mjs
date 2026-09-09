@@ -14,7 +14,7 @@ const title = async () => page.$eval("h1.hname", (el) => el.textContent.trim());
 console.log("hero title:", await title());
 
 // ok → sonraki ürün
-await page.click("button.arrow.r");
+await page.click("button.hnav.r");
 await page.waitForTimeout(700);
 console.log("after next arrow:", await title());
 // klavye ← → geri
@@ -25,8 +25,9 @@ console.log("after ArrowLeft:", await title());
 const ks = await page.$$eval(".item", (els) => els.map((e) => e.dataset.k));
 console.log("slots:", ks.join(","), "unique:", new Set(ks).size === ks.length);
 // ok konumu ve görünürlüğü
-const arrows = await page.$$eval("button.arrow", (els) =>
-  els.map((e) => ({ left: e.style.left, top: e.style.top, opacity: e.style.opacity, pe: e.style.pointerEvents })),
+/* .hnav: konum artık --arrowGap/--arrowY ile (çalışma zamanı), left/top yazılmıyor */
+const arrows = await page.$$eval("button.hnav", (els) =>
+  els.map((e) => ({ gap: e.style.getPropertyValue("--arrowGap"), y: e.style.getPropertyValue("--arrowY"), opacity: e.style.opacity, pe: e.style.pointerEvents })),
 );
 console.log("arrows:", JSON.stringify(arrows));
 

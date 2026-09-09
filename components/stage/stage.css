@@ -186,40 +186,117 @@
   transition: opacity 0.28s;
 }
 
-/* oklar: 56 px daire, kenarlarda */
-.nav {
+/* ---- Yan oklar: her yanda üç ince chevron (Ciao Energy dili) ----
+   Eski 56 px daire butonlar kaldırıldı; tek yönlendirme işareti var.
+   Konum ÇALIŞMA ZAMANINDAN: --arrowGap odaktaki ürünün sınır kutusundan türetilir
+   (stageMath arrows.gap), Stage.render her karede yazar. Sabit piksel yok.
+   Dikey: ürünün ortası. Kart alta yaslı (bottom 26vh) ve gövde yüksekliği ~33vh
+   olduğundan orta ≈ %48'e denk gelir; --arrowY ile ayarlanabilir. */
+.hnav {
+  --arrowGap: 220px;
+  --arrowY: 48%;
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 56px;
-  height: 56px;
+  top: var(--arrowY);
+  /* dokunma alanı 44 px; görsel işaret içeride küçük kalır */
+  width: 44px;
+  height: 44px;
   padding: 0;
-  border-radius: 50%;
-  border: 1px solid rgba(var(--hero-white-rgb), 0.22);
-  background: color-mix(in srgb, var(--mag-purple-deep) 45%, transparent);
-  color: var(--hero-white);
+  border: 0;
+  background: none;
+  color: var(--cream);
   cursor: pointer;
+  z-index: 30;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 30;
-  transition:
-    border-color 0.25s,
-    color 0.25s,
-    opacity 0.4s ease;
+  gap: 1px;
+  transition: opacity 0.4s ease;
 }
-.nav:hover {
-  border-color: var(--mag-lime);
-  color: var(--mag-lime);
+/* sol grup merkezden --arrowGap kadar SOLDA, sağ grup aynı kadar SAĞDA */
+.hnav.l {
+  left: 50%;
+  transform: translate(calc(-50% - var(--arrowGap)), -50%);
 }
-.nav.prev {
-  left: clamp(12px, 3vw, 48px);
+.hnav.r {
+  left: 50%;
+  transform: translate(calc(-50% + var(--arrowGap)), -50%);
 }
-.nav.next {
-  right: clamp(12px, 3vw, 48px);
-}
-.nav svg {
+/* dokunma hedefini 44 px'te tut, görseli büyütme */
+.hnav .chev {
   display: block;
+  /* dıştaki daha soluk: 0.55 → 0.30 → 0.15 (--k: 0,1,2) */
+  --base: calc(0.55 - var(--k) * 0.2);
+  /* dışa kayma yönü: sol grup sola, sağ grup sağa */
+  --out: 2px;
+  opacity: var(--base);
+  will-change: opacity, transform;
+  animation: chevWave 2.4s ease-in-out infinite;
+  /* içten dışa 120 ms gecikme */
+  animation-delay: calc(var(--k) * 120ms);
+}
+.hnav.l .chev {
+  --out: -2px;
+}
+/* Sol grupta "iç" olan SAĞDAKİ chevron: gecikme sırası ters çevrilir ki dalga
+   iki tarafta da İÇTEN DIŞA aksın. */
+.hnav.l .chev {
+  animation-delay: calc((2 - var(--k)) * 120ms);
+}
+.hnav:hover .chev,
+.hnav:focus-visible .chev {
+  --base: calc(0.8 - var(--k) * 0.2);
+}
+.hnav:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ---- Aşağı ok: kaydırma ipucu ---- */
+.shint {
+  position: absolute;
+  left: 50%;
+  /* ilerleme çubuğunun (bottom: clamp(20px,4vh,40px)) biraz üstünde */
+  bottom: calc(clamp(20px, 4vh, 40px) + 26px);
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  z-index: 20;
+  color: var(--cream);
+  pointer-events: none;
+}
+.shint .chev {
+  display: block;
+  --base: calc(0.5 - var(--k) * 0.13);
+  opacity: var(--base);
+  will-change: opacity, transform;
+  /* 4 sn döngü: dalga ~1 sn, kalanı bekleme (keyframe içinde) */
+  animation: shintWave 4s ease-in-out infinite;
+  animation-delay: calc(var(--k) * 140ms);
+}
+
+/* Hero görünmezken animasyon durur: kare maliyeti sıfır.
+   html.heroOn Stage.render'dan gelir (üst çubuk logosu da bunu kullanıyor). */
+html:not(.heroOn) .hnav .chev,
+html:not(.heroOn) .shint .chev {
+  animation-play-state: paused;
+}
+
+@media (max-width: 899px) {
+  /* mobilde ürüne daha yakın (stageMath ARROW_GAP_M) ve biraz daha küçük */
+  .hnav .chev {
+    transform: scale(0.85);
+  }
+}
+
+/* reduced-motion: hareket yok, oklar sabit ve soluk; TIKLAMA çalışmaya devam eder */
+@media (prefers-reduced-motion: reduce) {
+  .hnav .chev,
+  .shint .chev {
+    animation: none;
+  }
 }
 
 /* ilerleme çubuğu + sayaç */
@@ -258,7 +335,7 @@
 @media (prefers-reduced-motion: reduce) {
   .hname,
   .bar i,
-  .nav {
+  .hnav {
     transition: none !important;
   }
 }
