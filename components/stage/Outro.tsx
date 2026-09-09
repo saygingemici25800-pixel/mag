@@ -6,13 +6,14 @@ import { localePath, type Messages } from "@/lib/i18n";
 import { SITE } from "@/lib/site";
 import type { Bind } from "./Arc";
 import Faq from "./Faq";
+import Testimonials from "./Testimonials";
 
 interface Props {
   t: Messages;
   bind: Bind;
 }
 
-/** Manifesto (ATEŞ VE ET) · SSS paneli · BİZE KATIL + telif + sosyal bar. */
+/** Manifesto (ATEŞ VE ET) · SSS paneli (+ müşteri yorumları) · BİZE KATIL + telif + sosyal bar. */
 export default function Outro({ t, bind }: Props) {
   const locale = useLocale();
   return (
@@ -33,6 +34,10 @@ export default function Outro({ t, bind }: Props) {
           {t.faq.title[1]}
         </h2>
         <Faq items={t.faq.items} />
+        {/* MÜŞTERİ YORUMLARI — SSS'ten sonra, BİZE KATIL'dan önce. Ayrı bir panel değil:
+            sahne segment haritası (stageMath S_DESKTOP) ve döngü bozulmasın diye SSS panelinin
+            içinde akar, panelin mevcut geçiş animasyonuyla birlikte gelir. */}
+        <Testimonials t={t} />
         </div>
       </section>
 

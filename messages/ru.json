@@ -105,6 +105,15 @@
     ],
     "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek"
   },
+  "testimonials": {
+    "title": [
+      "ЧТО ГОВОРЯТ",
+      "ГОСТИ"
+    ],
+    "source": "Отзывы на Google Картах",
+    "sourceAria": "MAG Street Food на Google Картах",
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor. Yorum METİNLERİ çevrilmez, Türkçe kalır."
+  },
   "footer": {
     "title": [
       "ПРИСОЕДИНЯЙТЕСЬ",

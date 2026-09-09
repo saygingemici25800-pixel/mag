@@ -116,11 +116,14 @@ for (let i = 0; i < 4; i++) sc.push((await at(p, mid[i], 1500)).scale);
 const ratio = sc.map((v) => v / sc[0]);
 check("ölçek 1 → 1.03 → 1 (uçlar eşit, ortalar ~%3 büyük)", Math.abs(sc[3] / sc[0] - 1) < 0.04 && ratio[1] > 1.005 && ratio[1] < 1.06, sc.map((v) => v.toFixed(3)).join(" / "));
 
-/* akış sürekli: kademeli zıplama yok — c0→c3 arası 24 örnek, ardışık fark sınırlı */
+/* akış sürekli: kademeli zıplama yok — c0→c3 arası 24 örnek, ardışık fark sınırlı.
+   Bekleme 900 ms: sahne scroll'u rAF ile yumuşatıyor (kare başına 0.12 yaklaşma), 260 ms'de
+   kart hedefine varmadan ölçülüyordu ve test yükte rastgele patlıyordu. Ürün kusuru değildi:
+   aynı örnekleme uzun beklemeyle "ilk 367 → son -367, en büyük adım 179 px" veriyor. */
 const xs = [];
 for (let i = 0; i <= 24; i++) {
   const v = S.c0[0] + ((S.c3[1] - S.c0[0]) * i) / 24;
-  xs.push((await at(p, v, 260)).center);
+  xs.push((await at(p, v, 900)).center);
 }
 let maxStep = 0;
 for (let i = 1; i < xs.length; i++) maxStep = Math.max(maxStep, Math.abs(xs[i] - xs[i - 1]));
