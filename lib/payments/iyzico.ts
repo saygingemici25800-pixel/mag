@@ -33,7 +33,8 @@ export const iyzicoProvider: PaymentProvider = {
     const [first, ...rest] = order.name.split(" ");
     const address = order.address || SITE.address;
     const req = {
-      locale: order.locale === "en" ? Iyzipay.LOCALE.EN : Iyzipay.LOCALE.TR,
+      /* iyzico yalnızca TR/EN sunuyor: ru müşteri Türkçe yerine İngilizce ödeme ekranı görsün. */
+    locale: order.locale === "tr" ? Iyzipay.LOCALE.TR : Iyzipay.LOCALE.EN,
       conversationId: order.id,
       price: money(order.subtotal + order.fee),
       paidPrice: money(order.total),

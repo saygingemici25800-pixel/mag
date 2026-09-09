@@ -19,6 +19,16 @@
   text-transform: uppercase;
   font-weight: 900;
 }
+/* Rusça başlıklar tek parça ve uzun: "ОФОРМЛЕНИЕ" 390 px ekranda 470 px boyanıp
+   100 px dışarı taşıyordu (ölçüm). Kiril büyük harf Latin'den geniş olduğu için
+   yalnızca RU'da ölçek küçülür ve kelime gerekirse tireyle bölünür.
+   TR/EN görünümü değişmez — kural :lang(ru) ile sınırlı. */
+:lang(ru) .ord .big {
+  font-size: clamp(1.9rem, 6.2vw, 4.4rem);
+  letter-spacing: -0.02em;
+  hyphens: auto;
+  overflow-wrap: break-word;
+}
 .ord .big span {
   display: block;
   overflow: hidden;
@@ -145,6 +155,13 @@ select.ctl {
 .card.typo .tname {
   font-size: clamp(1.4rem, 2.6vw, 1.9rem);
   padding: 18px 0 6px;
+}
+/* Uzun tek parça Rusça adlar ("Дополнительный соус чеддер") 360 px'te 184 px'lik
+   kart sütununu taşırıyordu. Yalnızca RU'da kelime bölünebilir; ürün adları zaten
+   kısa olan TR/EN'de sarma davranışı değişmesin. */
+:lang(ru) .tname {
+  overflow-wrap: anywhere;
+  hyphens: auto;
 }
 .card .price {
   font-family: var(--font-display);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useT } from "@/components/LocaleProvider";
+import { ingName } from "@/lib/i18n";
 import type { Ingredient, MenuItem } from "@/lib/menu";
 
 interface Props {
@@ -19,6 +20,8 @@ interface Props {
  * - removable:false olanlar (ana protein + ekmek) pasif; yanında "çıkarılamaz" notu.
  * - Fiyat DEĞİŞMEZ; burada fiyata dair hiçbir şey yazılmaz.
  * - Ekran okuyucu: "karamelize soğan, çıkarıldı" (aria-label durum içerir).
+ * - Malzeme ADI çeviriden gelir (ingName), ama data-ing ve sepet anahtarı TÜRKÇE kalır:
+ *   satır kimliği ve sunucudaki beyaz liste Türkçe ada dayanıyor.
  */
 export default function IngredientPicker({ item, removed, onChange, onClose }: Props) {
   const t = useT();
@@ -43,7 +46,8 @@ export default function IngredientPicker({ item, removed, onChange, onClose }: P
       <ul className="inglist">
         {list.map((ing) => {
           const isOut = removed.includes(ing.name);
-          const label = ing.removable ? `${ing.name}, ${isOut ? o.removedState : o.includedState}` : `${ing.name}, ${o.notRemovable}`;
+          const shown = ingName(t, ing.name);
+          const label = ing.removable ? `${shown}, ${isOut ? o.removedState : o.includedState}` : `${shown}, ${o.notRemovable}`;
           return (
             <li key={ing.name}>
               <button
@@ -56,7 +60,7 @@ export default function IngredientPicker({ item, removed, onChange, onClose }: P
                 data-ing={ing.name}
                 data-removable={ing.removable}
               >
-                <span className="ingname">{ing.name}</span>
+                <span className="ingname">{shown}</span>
                 {ing.removable ? null : <small className="ingfixed">{o.notRemovable}</small>}
               </button>
             </li>

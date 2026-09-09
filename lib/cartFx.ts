@@ -202,7 +202,10 @@ function tweenTotal(gsap: GsapModule["gsap"], from: number, to: number) {
     duration: 0.5,
     ease: "power2.out",
     onUpdate: () => {
-      el.textContent = el.dataset.prefix ? `${el.dataset.prefix}${Math.round(box.v)}` : String(Math.round(box.v));
+      /* Simge dile göre önde (tr/en: ₺1.310) ya da arkada (ru: 1 310 ₺) durur; ikisi de
+         data-* ile geliyor, sayı biçimi de öyle (data-fmt: toLocaleString etiketi). */
+      const n = Math.round(box.v).toLocaleString(el.dataset.fmt || "tr-TR");
+      el.textContent = `${el.dataset.prefix ?? ""}${n}${el.dataset.suffix ?? ""}`;
     },
   });
 }

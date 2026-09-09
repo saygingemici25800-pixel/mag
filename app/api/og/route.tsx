@@ -30,7 +30,10 @@ export async function GET(req: Request) {
   const png = await readFile(path.join(process.cwd(), "assets/og", `${item.id as HeroId}.png`)).catch(() => null);
   const src = png ? `data:image/png;base64,${png.toString("base64")}` : null;
   const [l1, l2] = splitTitle(item.name);
-  const sub = locale === "en" ? "STREET FOOD · FETHIYE" : "STREET FOOD · FETHİYE";
+  /* Alt başlık Latin kalır (marka + şehir); yalnızca "İ" harfi dile göre değişir.
+     ru, en gibi noktasız I kullanır — eskiden ru Türkçe dalına düşüp "FETHİYE" alıyordu.
+     Kiril metin BASILMAZ, bu yüzden OG fontuna Kiril eklemek gerekmiyor. */
+  const sub = locale === "tr" ? "STREET FOOD · FETHİYE" : "STREET FOOD · FETHIYE";
 
   return new ImageResponse(
     (

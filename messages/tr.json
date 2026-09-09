@@ -16,10 +16,13 @@
     "lang": {
       "tr": "TR",
       "en": "EN",
+      "ru": "RU",
       "switchAria": "Dil"
     },
     "closedNow": "Şu an kapalıyız",
-    "closedNowShort": "Kapalıyız"
+    "closedNowShort": "Kapalıyız",
+    "menuShort": "Sipariş",
+    "contactShort": "İletişim"
   },
   "hero": {
     "sub": "patates kızartması dahil",
@@ -378,6 +381,7 @@
   },
   "menuDesc": {},
   "menuName": {},
+  "menuIng": {},
   "payment": {
     "status": {
       "awaiting_payment": "Ödeme bekleniyor",

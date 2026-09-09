@@ -66,7 +66,12 @@ check("--font-mono kalıntısı yok", !/--font-mono|font-mono\b/.test(allSrc + g
 check("Tailwind'de font-display / font-body tanımlı", /--font-display: var\(--font-display\)/.test(globals) && /--font-body: var\(--font-body\)/.test(globals));
 const menu = readFileSync(path.join(root, "lib/menu.ts"), "utf8");
 check("lib/menu.ts: ürün başına bg/accent yok", !/\bbg\??:|accent\??:/.test(menu));
-check("@font-face: Comico 400 + Bonny 100/300/400/500/700, hepsi swap", ["ComicoRegular", "BonnyThin", "BonnyLight", "BonnyRegular", "BonnyMedium", "BonnyBold"].every((n) => globals.includes(`/fonts/${n}.woff2`)) && (globals.match(/font-display: swap/g) ?? []).length === 6);
+const LATIN_FACES = ["ComicoRegular", "BonnyThin", "BonnyLight", "BonnyRegular", "BonnyMedium", "BonnyBold"];
+/* RU için Kiril yedekleri (Comico/Bonny'de Kiril yok). unicode-range ile SADECE Kiril'e
+   kısıtlı olduklarından TR/EN'de indirilmezler; bu yüzden 6 değil 10 @font-face bekleniyor. */
+const CYR_FACES = ["SeymourOneRU-400", "FiraSansCondensedRU-400", "FiraSansCondensedRU-500", "FiraSansCondensedRU-700"];
+check("@font-face: Comico 400 + Bonny 100/300/400/500/700, hepsi swap", LATIN_FACES.every((n) => globals.includes(`/fonts/${n}.woff2`)) && (globals.match(/font-display: swap/g) ?? []).length === LATIN_FACES.length + CYR_FACES.length);
+check("Kiril yedekleri tanımlı ve unicode-range ile sınırlı", CYR_FACES.every((n) => globals.includes(`/fonts/${n}.woff2`)) && (globals.match(/unicode-range:\s*U\+0400-04FF/g) ?? []).length === CYR_FACES.length);
 
 /* ---------- WCAG kontrast ---------- */
 const lum = (hex) => {

@@ -34,7 +34,7 @@ const XLEN = 17;
 
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-export default function ContactOverlay({ t }: { t: Messages["contact"] }) {
+export default function ContactOverlay({ t, label, labelShort }: { t: Messages["contact"]; label: string; labelShort: string }) {
   const [state, setState] = useState<State | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLButtonElement>(null);
@@ -161,8 +161,10 @@ export default function ContactOverlay({ t }: { t: Messages["contact"] }) {
   const minutes = t.minutes;
   return (
     <>
-      <button ref={openerRef} type="button" className="cta" data-contact-open onClick={() => setState((s) => s ?? "opening")} aria-haspopup="dialog" aria-expanded={state !== null}>
-        {t.open}
+      <button ref={openerRef} type="button" className="cta" data-contact-open onClick={() => setState((s) => s ?? "opening")} aria-haspopup="dialog" aria-expanded={state !== null} aria-label={label}>
+        {/* OrderCta ile aynı desen: dar ekranda kısa karşılık, ekran okuyucuda tam etiket. */}
+        <span className="cta-long" aria-hidden="true">{label}</span>
+        <span className="cta-short" aria-hidden="true">{labelShort}</span>
       </button>
       {state ? (
         <div ref={rootRef} className="contact" data-state={state} role="dialog" aria-modal="true" aria-labelledby="contact-title" onClick={onBackdrop} onKeyDown={onKeyDown}>

@@ -16,10 +16,13 @@
     "lang": {
       "tr": "TR",
       "en": "EN",
+      "ru": "RU",
       "switchAria": "Language"
     },
     "closedNow": "We're closed right now",
-    "closedNowShort": "Closed"
+    "closedNowShort": "Closed",
+    "menuShort": "Order",
+    "contactShort": "Contact"
   },
   "hero": {
     "sub": "fries included",
@@ -198,6 +201,7 @@
     "tavuklu-noodle": "Chicken",
     "karidesli-noodle": "Shrimp"
   },
+  "menuIng": {},
   "order": {
     "metaTitle": "Order",
     "metaDesc": "Pickup or delivery. Minimum basket by neighbourhood, cash or card on delivery.",

@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useT } from "@/components/LocaleProvider";
+import { useLocale, useT } from "@/components/LocaleProvider";
 import { cartAdd } from "@/lib/cart";
 import { flyToCart } from "@/lib/cartFx";
-import { itemDesc, itemName } from "@/lib/i18n";
-import { formatPrice, type MenuItem } from "@/lib/menu";
+import { formatPriceFor, itemDesc, itemName } from "@/lib/i18n";
+import type { MenuItem } from "@/lib/menu";
 import { findMenuItem } from "@/lib/orders-shared";
 import Ingredients from "./Ingredients";
 import ProductImage from "./ProductImage";
@@ -20,6 +20,7 @@ interface Props {
 /** Alttan gelen ürün sheet'i: büyük foto, tam içindekiler, adet, not, "Şununla iyi gider", Sepete ekle · ₺X */
 export default function ProductSheet({ item, onClose, onAdded }: Props) {
   const t = useT();
+  const locale = useLocale();
   const o = t.order;
   const [qty, setQty] = useState(1);
   const [note, setNote] = useState("");
@@ -67,7 +68,7 @@ export default function ProductSheet({ item, onClose, onAdded }: Props) {
             {itemName(t, item)}
           </h2>
           <span className="price" style={{ fontSize: "1rem" }}>
-            {formatPrice(item.price)}
+            {formatPriceFor(locale, item.price)}
           </span>
         </div>
         {itemDesc(t, item) ? (
@@ -110,9 +111,9 @@ export default function ProductSheet({ item, onClose, onAdded }: Props) {
             <div className="ord-label mb-2">{o.goodWith}</div>
             <div className="chips">
               {pairs.map((m) => (
-                <button key={m.id} type="button" className={"chip" + (addedPair.has(m.id) ? " on" : "")} onClick={() => addPair(m)} aria-label={`${itemName(t, m)} ${formatPrice(m.price)} +`}>
+                <button key={m.id} type="button" className={"chip" + (addedPair.has(m.id) ? " on" : "")} onClick={() => addPair(m)} aria-label={`${itemName(t, m)} ${formatPriceFor(locale, m.price)} +`}>
                   <span>{itemName(t, m)}</span>
-                  <small>{formatPrice(m.price)}</small>
+                  <small>{formatPriceFor(locale, m.price)}</small>
                   <b>{addedPair.has(m.id) ? "✓" : "+"}</b>
                 </button>
               ))}
@@ -136,7 +137,7 @@ export default function ProductSheet({ item, onClose, onAdded }: Props) {
             }
           }}
         >
-          {o.addToCart} · {formatPrice(item.price * qty)}
+          {o.addToCart} · {formatPriceFor(locale, item.price * qty)}
         </button>
       </div>
     </div>

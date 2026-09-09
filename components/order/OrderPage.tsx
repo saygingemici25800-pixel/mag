@@ -1,12 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useT } from "@/components/LocaleProvider";
+import { useLocale, useT } from "@/components/LocaleProvider";
 import { OPENS_AT_LABEL, isOpen } from "@/lib/hours";
 import { cartAdd, qtyOf, useCart } from "@/lib/cart";
 import { flyToCart, prefetchCartFx } from "@/lib/cartFx";
-import { itemDesc, itemName } from "@/lib/i18n";
-import { MENU, formatPrice, type Category, type MenuItem } from "@/lib/menu";
+import { formatPriceFor, itemDesc, itemName } from "@/lib/i18n";
+import { MENU, type Category, type MenuItem } from "@/lib/menu";
 import { useClockMinute } from "@/lib/useClock";
 import CartBar from "./CartBar";
 import Upsell from "./Upsell";
@@ -22,6 +22,7 @@ const fmt = (s: string, vars: Record<string, string | number>) => s.replace(/\{(
 /** /siparis — yapışkan kategori çipleri, büyük ürün kartları, ürün sheet'i, yapışkan sepet çubuğu (mobil öncelikli) */
 export default function OrderPage() {
   const t = useT();
+  const locale = useLocale();
   const o = t.order;
   const cart = useCart();
   const [sheet, setSheet] = useState<MenuItem | null>(null);
@@ -114,7 +115,7 @@ export default function OrderPage() {
                           </p>
                         ) : null}
                         <div className="prow">
-                          <span className="price">{formatPrice(m.price)}</span>
+                          <span className="price">{formatPriceFor(locale, m.price)}</span>
                           <button
                             type="button"
                             className="addbtn"

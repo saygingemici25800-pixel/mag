@@ -18,7 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: now,
       changeFrequency: freq,
       priority,
-      alternates: { languages: { tr: base + localePath("tr", path), en: base + localePath("en", path) } },
+      alternates: { languages: Object.fromEntries(LOCALES.map((x) => [x, base + localePath(x, path)])) },
     })),
   );
 }
