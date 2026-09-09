@@ -100,6 +100,15 @@
       }
     ]
   },
+  "testimonials": {
+    "title": [
+      "WHAT CUSTOMERS",
+      "SAY"
+    ],
+    "source": "Google Maps reviews",
+    "sourceAria": "MAG Street Food on Google Maps",
+    "_acik": "AÇIK: EN çevirisi onay bekliyor. Yorum METİNLERİ çevrilmez, Türkçe kalır."
+  },
   "footer": {
     "title": [
       "JOIN",

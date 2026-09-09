@@ -2,6 +2,8 @@ import Image from "next/image";
 import type { Messages } from "@/lib/i18n";
 import { HERO_ITEMS } from "@/lib/menu";
 import { SITE } from "@/lib/site";
+import { CONTACT } from "@/lib/contact";
+import { TESTIMONIALS } from "@/lib/testimonials";
 import { CUTOUTS } from "./cutouts";
 
 /** prefers-reduced-motion: scroll-driven sahne yerine statik kartlar (basit fallback). */
@@ -49,6 +51,38 @@ export default function StaticFallback({ t }: { t: Messages }) {
           ))}
         </ul>
       </section>
+
+      {/* MÜŞTERİLER NE DİYOR — reduced-motion: makara ve harf animasyonu YOK, yorumların
+          hepsi sabit ve tam metin olarak listelenir. Dizi boşsa bölüm hiç görünmez. */}
+      {TESTIMONIALS.length > 0 ? (
+        <section className="mt-24">
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <h2 className="font-display text-4xl uppercase leading-[.85] tracking-tight">
+              {t.testimonials.title[0]} {t.testimonials.title[1]}
+            </h2>
+            <a
+              className="font-body text-[.62rem] uppercase tracking-[.14em] text-dim underline underline-offset-4"
+              href={CONTACT.mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={t.testimonials.sourceAria}
+            >
+              {t.testimonials.source}
+            </a>
+          </div>
+          <ul className="mt-6 divide-y divide-cream/15 border-y border-cream/15">
+            {TESTIMONIALS.map((r, i) => (
+              <li key={r.author + i} className="py-4">
+                {/* Yorum metni her dilde TÜRKÇE kalır: gerçek kişinin sözünü çevirmiyoruz. */}
+                <blockquote className="m-0 text-sm leading-relaxed text-cream" lang="tr">
+                  {r.quote}
+                </blockquote>
+                <p className="m-0 mt-1 font-body text-[.62rem] uppercase tracking-[.14em] text-accent">{r.author}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <footer className="mt-24 flex flex-col items-center gap-4 text-center">
         <h2 className="font-display text-4xl uppercase leading-[.85] tracking-tight">

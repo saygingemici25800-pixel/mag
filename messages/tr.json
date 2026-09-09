@@ -100,6 +100,14 @@
       }
     ]
   },
+  "testimonials": {
+    "title": [
+      "MÜŞTERİLER",
+      "NE DİYOR"
+    ],
+    "source": "Google Haritalar yorumları",
+    "sourceAria": "MAG Street Food'un Google Haritalar profili"
+  },
   "footer": {
     "title": [
       "BİZE",
