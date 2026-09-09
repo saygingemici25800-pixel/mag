@@ -193,11 +193,14 @@ export default function Stage({ extra }: { extra?: ExtraCutouts }) {
         st(n, "--refl", f.items[i].refl ? "block" : "none");
       }
 
-      /* oklar kenarlarda sabit (CSS); yalnızca görünürlük */
+      /* Yan oklar: görünürlük + ÇALIŞMA ZAMANINDA konum. Yatay uzaklık odaktaki ürünün
+         sınır kutusundan gelir (stageMath: arrows.gap), dikeyde ürünün ortası (%48). */
       const pe = f.arrows.opacity > 0.5 ? "auto" : "none";
       for (const a of ["arrowL", "arrowR"]) {
         st(a, "opacity", f.arrows.opacity);
         st(a, "pointer-events", pe);
+        st(a, "--arrowGap", `${f.arrows.gap.toFixed(1)}px`);
+        st(a, "--arrowY", `${f.arrows.cy.toFixed(1)}px`);
       }
       /* ışık konisi: opaklık + kaynak konumu (LightRays her karede --rayY okur) */
       st("rays", "opacity", f.rays);
@@ -354,7 +357,7 @@ export default function Stage({ extra }: { extra?: ExtraCutouts }) {
         <div className="panelVeil" ref={bind("panelVeil")} aria-hidden="true" />
         <Arc active={active} bind={bind} extra={extra} />
 
-        <Hero bind={bind} l1={l1} l2={l2} k={it.id} index={shown} count={count} onPrev={() => go(-1)} onNext={() => go(1)} prevAria={t.hero.prevAria} nextAria={t.hero.nextAria} />
+        <Hero bind={bind} l1={l1} l2={l2} k={it.id} index={shown} count={count} onPrev={() => go(-1)} onNext={() => go(1)} prevAria={t.hero.prevAria} nextAria={t.hero.nextAria} scrollHint={t.hero.hint} />
 
         <Claims
           item={it}

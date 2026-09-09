@@ -247,3 +247,33 @@ h3,
     transform: translateY(0);
   }
 }
+
+/* ---- Hero ok dalgaları ----
+   Yalnızca opacity + transform (filter YOK): kare maliyeti düşük kalsın.
+   Yan ok: 2.4 sn'de bir parlayıp söner, 2 px dışa kayar.
+   Aşağı ok: 4 sn'lik döngünün ilk ~%25'inde dalga geçer, kalanı bekleme. */
+@keyframes chevWave {
+  0%,
+  62%,
+  100% {
+    opacity: var(--base);
+    transform: translateX(0);
+  }
+  22% {
+    /* kendi taban opaklığının ~2.2 katına çıkar, 1'i geçmez */
+    opacity: min(1, calc(var(--base) * 2.2));
+    transform: translateX(var(--out));
+  }
+}
+@keyframes shintWave {
+  0%,
+  22%,
+  100% {
+    opacity: var(--base);
+    transform: translateY(0);
+  }
+  8% {
+    opacity: min(1, calc(var(--base) * 2.4));
+    transform: translateY(2px);
+  }
+}

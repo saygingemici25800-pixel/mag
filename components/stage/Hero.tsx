@@ -44,13 +44,36 @@ export function HeroName({ l1, l2, k, bind }: { l1: string; l2: string; k: strin
   );
 }
 
-/* ---- Oklar: 56 px daire, kenarlarda clamp(12px,3vw,48px) ---- */
+/* ---- Yan oklar: her yanda ÜÇ ince chevron (Ciao Energy dili) ----
+   Eski 56 px daire butonlar KALDIRILDI: tek yönlendirme işareti kalsın.
+
+   Konum: dikeyde odaktaki ürünün ortası (--arrowY), yatayda ürünün sınır kutusunun hemen
+   dışında (--arrowGap). İkisi de Stage.render'dan her karede yazılır — sabit piksel yok,
+   ürün/ekran boyutu değişince ok da kayar (stageMath: arrows.gap).
+
+   Dokunma alanı 44 px (::before ile büyütülür), görsel işaret ~10 px kalır.
+   Dalga: 2.4 sn'de bir içten dışa, her chevron 120 ms gecikmeli (CSS animation-delay).
+   Yalnızca opacity + transform — filter YOK (kare maliyeti). */
+function Chevrons({ dir }: { dir: -1 | 1 }) {
+  /* d: sola bakan "‹", sağa bakan "›" — ince çizgi, küçük kutu */
+  const d = dir < 0 ? "M7 2L3 6l4 4" : "M3 2l4 4-4 4";
+  return (
+    <>
+      {[0, 1, 2].map((k) => (
+        <svg key={k} className="chev" style={{ "--k": k } as React.CSSProperties} width="10" height="12" viewBox="0 0 10 12" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d={d} />
+        </svg>
+      ))}
+    </>
+  );
+}
+
 export function HeroNav({ bind, onPrev, onNext, prevAria, nextAria }: { bind: Bind; onPrev: () => void; onNext: () => void; prevAria: string; nextAria: string }) {
   return (
     <>
       <button
         type="button"
-        className="nav arrow l prev"
+        className="hnav l"
         ref={bind("arrowL")}
         aria-label={prevAria}
         onClick={(e) => {
@@ -58,13 +81,11 @@ export function HeroNav({ bind, onPrev, onNext, prevAria, nextAria }: { bind: Bi
           onPrev();
         }}
       >
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M15 5l-7 7 7 7" />
-        </svg>
+        <Chevrons dir={-1} />
       </button>
       <button
         type="button"
-        className="nav arrow r next"
+        className="hnav r"
         ref={bind("arrowR")}
         aria-label={nextAria}
         onClick={(e) => {
@@ -72,11 +93,40 @@ export function HeroNav({ bind, onPrev, onNext, prevAria, nextAria }: { bind: Bi
           onNext();
         }}
       >
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M9 5l7 7-7 7" />
-        </svg>
+        <Chevrons dir={1} />
       </button>
     </>
+  );
+}
+
+/* ---- Aşağı ok: kaydırma ipucu ----
+   Üç chevron alt alta, 4 sn'de bir yukarıdan aşağıya dalga (dalga ~1 sn, kalanı bekleme).
+   Kullanıcı ilk kez kaydırınca KAYBOLUR ve bir daha görünmez. */
+export function ScrollHint({ label }: { label: string }) {
+  const [gone, setGone] = useState(false);
+  useEffect(() => {
+    if (window.scrollY > 4) {
+      setGone(true);
+      return;
+    }
+    const on = () => {
+      if (window.scrollY > 4) {
+        setGone(true);
+        window.removeEventListener("scroll", on);
+      }
+    };
+    window.addEventListener("scroll", on, { passive: true });
+    return () => window.removeEventListener("scroll", on);
+  }, []);
+  if (gone) return null;
+  return (
+    <div className="shint" aria-hidden="true" title={label}>
+      {[0, 1, 2].map((k) => (
+        <svg key={k} className="chev" style={{ "--k": k } as React.CSSProperties} width="12" height="8" viewBox="0 0 12 8" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M2 2l4 4 4-4" />
+        </svg>
+      ))}
+    </div>
   );
 }
 
@@ -130,12 +180,13 @@ export function Card({ id, name, focus, slot, ar, extra, bind, hasImg, alt }: { 
   );
 }
 
-export default function Hero({ bind, l1, l2, k, index, count, onPrev, onNext, prevAria, nextAria }: { bind: Bind; l1: string; l2: string; k: string; index: number; count: number; onPrev: () => void; onNext: () => void; prevAria: string; nextAria: string }) {
+export default function Hero({ bind, l1, l2, k, index, count, onPrev, onNext, prevAria, nextAria, scrollHint }: { bind: Bind; l1: string; l2: string; k: string; index: number; count: number; onPrev: () => void; onNext: () => void; prevAria: string; nextAria: string; scrollHint: string }) {
   return (
     <>
       <HeroName l1={l1} l2={l2} k={k} bind={bind} />
       <HeroNav bind={bind} onPrev={onPrev} onNext={onNext} prevAria={prevAria} nextAria={nextAria} />
       <HeroBar index={index} count={count} bind={bind} />
+      <ScrollHint label={scrollHint} />
     </>
   );
 }

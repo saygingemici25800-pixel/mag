@@ -164,7 +164,9 @@ export interface Frame {
   bright: number;
   lm: boolean;
   items: ItemStyle[];
-  arrows: { opacity: number };
+  /** Yan oklar: opaklık + odaktaki ürünün sınır kutusuna göre YATAY konum (çalışma zamanı). */
+  /** Yan oklar: opaklık + odaktaki ürünün sınır kutusundan türeyen yatay/dikey konum. */
+  arrows: { opacity: number; gap: number; cy: number };
   /** hüzme + havuz + armatür opaklığı: hero'da 1, dalışa doğru söner, kapanışta burgerle geri gelir */
   aura: number;
   hero: number;
@@ -208,6 +210,13 @@ export function heroBaseY(vh: number): number {
 export const HERO_MOBILE_MAX = 760; // referans: innerWidth <= 760
 export const HERO_SIDE_BRIGHT = 0.07;
 export const HERO_REFL_OPACITY = 0.18;
+/** Yan ok: ürün sınır kutusuyla ok arası boşluk (masaüstü / mobil — mobilde ürüne daha yakın) */
+export const ARROW_GAP = 28;
+export const ARROW_GAP_M = 16;
+/** Ok ekran kenarına bundan fazla yaklaşmaz */
+export const ARROW_EDGE_MIN = 40;
+/** Dokunma kutusu (a11y target-size); konum hesabı merkeze göre yapılır */
+export const ARROW_HIT = 44;
 export const DEFAULT_ASPECT_MATH = 1.5;
 export interface HeroCard {
   mobile: boolean;
@@ -579,6 +588,32 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   const track = tOut > 0 ? clamp((tOut2 - 0.3) / 0.5) : 1 - upT;
   const arrowsO = Math.max(heroOut, clamp((tOut2 - 0.55) / 0.4));
 
+  /* YAN OK KONUMU — sabit piksel YOK: odaktaki ürünün sınır kutusundan türetilir.
+     Kart alta yaslı ve odakta ölçek 1, dolayısıyla görselin genişliği = hc × ar.
+     Ok, kutunun hemen dışında ARROW_GAP kadar boşlukla durur; ekran kenarına
+     ARROW_EDGE_MIN'den fazla yaklaşamaz (dar ekranda ürünün üstüne binmesin diye
+     kutuya doğru geri itilir). Sonuç merkezden uzaklık (px). */
+  const arAtFocus = slotAr(CENTER);
+  /* Görselin GERÇEK genişliği: object-fit contain, yani kart kutusuna sığar.
+     Yükseklikten türetilen genişlik kartı aşarsa kart genişliği sınırdır (mobilde oluyor). */
+  const arrowHc = contentHeight(card, arAtFocus);
+  const focusW = Math.min(arrowHc * arAtFocus, card.w);
+  const gapPx = card.mobile ? ARROW_GAP_M : ARROW_GAP;
+  /* İstenen: ürünün yarı genişliği + boşluk. Ekran kenarı sınırı BAĞLAYICIDIR — mobilde
+     burger tüm genişliği kapladığı için istenen konum ekran dışına düşüyordu; o durumda ok
+     ürünün üstüne biner ama ekranda kalır (kenardan ARROW_EDGE_MIN kadar içeride).
+     Ok merkezi hesaplanır: --arrowGap dokunma kutusunun MERKEZİNE kadar olan uzaklık. */
+  const wanted = focusW / 2 + gapPx + ARROW_HIT / 2;
+  const maxOut = vw / 2 - ARROW_EDGE_MIN - ARROW_HIT / 2;
+  const arrowGap = Math.min(wanted, maxOut);
+  /* Dikey: ürünün GERÇEK ortası — sabit yüzde DEĞİL.
+     Kart kutusu alta yaslı (alt kenar = vh − card.bottom) ve yüksekliği card.h; görsel
+     bu kutunun içinde object-fit:contain ile DİKEY ORTALI, yani üstte ve altta
+     (card.h − arrowHc)/2 kadar boşluk kalıyor. Doğrulandı: masaüstü 432, mobil 469 —
+     ikisi de ölçülen çizilen-kutu merkezine birebir oturuyor.
+     (%48 sabiti masaüstünde tesadüfen tutuyordu, mobilde 64 px yukarı kaçıyordu.) */
+  const arrowCy = vh - card.bottom - (card.h - arrowHc) / 2 - arrowHc / 2;
+
   /* Koni kaynağı: odaktaki burgerin ÜST kenarının biraz üstü. Kart alta yaslı (bottom = card.bottom),
      görsel yüksekliği hc·heroScale(0) = hc; üst kenar = vh − card.bottom − hc. Oradan gövdenin
      %25'i kadar yukarı çıkılır (eski davranışla aynı oran). */
@@ -597,7 +632,7 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
     bright,
     lm,
     items,
-    arrows: { opacity: arrowsO },
+    arrows: { opacity: arrowsO, gap: arrowGap, cy: arrowCy },
     aura,
     hero,
     dive,
