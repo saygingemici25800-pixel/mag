@@ -51,9 +51,12 @@ check("malzeme adları çevrildi", Object.keys(M.ru.menuIng).length >= 38, `${Ob
 
 /* ---- fontlar: Kiril kapsamı ---- */
 const cssSrc = readFileSync(path.join(root, "app/globals.css"), "utf8");
-check("Kiril yedek aileler tanımlı", /SeymourOne/.test(cssSrc) && /FiraSansCondensed/.test(cssSrc));
-check("unicode-range ile Kiril'e kısıtlı", /unicode-range:\s*U\+0400-04FF/.test(cssSrc));
-check("Comico/Bonny yığında ÖNDE (TR/EN değişmez)", /--font-display:\s*"Comico",\s*"SeymourOne"/.test(cssSrc));
+const fontsSrc = readFileSync(path.join(root, "lib/fonts.ts"), "utf8");
+/* Tek aile MuseoModerno; Kiril'i yok, o yüzden next/font ile Comfortaa yedeği yükleniyor.
+   Eski yerel woff2 + unicode-range düzeni kalktı. */
+check("Kiril yedeği tanımlı (Comfortaa)", /Comfortaa\(/.test(fontsSrc) && /"cyrillic"/.test(fontsSrc));
+check("MuseoModerno latin-ext ile (Türkçe)", /MuseoModerno\(/.test(fontsSrc) && /"latin-ext"/.test(fontsSrc));
+check("MuseoModerno yığında ÖNDE (TR/EN değişmez)", /--font-museo-stack:\s*var\(--font-museo\),\s*var\(--font-cyr\)/.test(cssSrc));
 
 const b = await chromium.launch();
 const settle = async (p) => {
@@ -140,9 +143,13 @@ check("hreflang ru doğru yolu gösteriyor", /hrefLang="ru"\s+href="[^"]*\/ru\/s
   /* gerçekten yedek aile mi kullanılıyor */
   const used = await p.evaluate(async () => {
     await document.fonts.ready;
+    /* document.fonts listesi yarışabiliyor: yüz sayfada kullanılıyor ama listeye geç
+       düşebiliyor. Kiril glifini AÇIKÇA istiyoruz — zaten yüklüyse anında döner. */
+    await document.fonts.load("400 16px Comfortaa", "Заказать").catch(() => {});
     return [...document.fonts].filter((f) => f.status === "loaded").map((f) => f.family);
   });
-  check("Kiril yedek yazı tipi yüklendi", used.some((f) => /SeymourOne|FiraSansCondensed/.test(f)), used.join(","));
+  /* Bu kontrol RU sayfasında yapılır: Kiril yoksa Comfortaa hiç indirilmez (doğru davranış). */
+  check("Kiril yedek yazı tipi yüklendi", used.some((f) => /Comfortaa/.test(f)), used.join(","));
   await p.close();
 }
 

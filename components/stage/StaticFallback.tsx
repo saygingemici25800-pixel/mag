@@ -16,11 +16,11 @@ export default function StaticFallback({ t }: { t: Messages }) {
             {CUTOUTS[m.id] ? (
               <Image src={CUTOUTS[m.id]!} alt={`${m.name} burger`} className="h-44 w-auto self-center object-contain" sizes="(max-width: 640px) 80vw, 320px" />
             ) : (
-              <div className="grid h-44 place-items-center self-center rounded-2xl border border-cream/10 px-6 font-display text-3xl uppercase text-cream/30">{m.name}</div>
+              <div className="grid h-44 place-items-center self-center rounded-2xl border border-cream/10 px-6 font-bold text-3xl uppercase text-cream/30">{m.name}</div>
             )}
-            <h2 className="font-display text-3xl uppercase leading-[.85] tracking-tight">{m.name}</h2>
+            <h2 className="font-bold text-3xl uppercase leading-[.85] tracking-tight">{m.name}</h2>
             <p className="text-sm leading-relaxed text-dim">{m.desc}.</p>
-            <p className="font-body text-[.62rem] uppercase tracking-[.2em] text-dim">{t.hero.sub}</p>
+            <p className="font-medium text-[.62rem] uppercase tracking-[.2em] text-dim">{t.hero.sub}</p>
           </article>
         ))}
       </section>
@@ -28,8 +28,8 @@ export default function StaticFallback({ t }: { t: Messages }) {
       <section className="mt-24 grid gap-8 sm:grid-cols-2">
         {t.claims.map((c) => (
           <article key={c.l1} className="flex flex-col gap-2">
-            <span className="font-body text-[.6rem] uppercase tracking-[.1em] line-through text-dim">{c.no}</span>
-            <h2 className="font-display text-3xl uppercase leading-[.85] tracking-tight">
+            <span className="font-medium text-[.6rem] uppercase tracking-[.1em] line-through text-dim">{c.no}</span>
+            <h2 className="font-bold text-3xl uppercase leading-[.85] tracking-tight">
               {c.l1} {c.l2}
             </h2>
             <p className="text-sm leading-relaxed text-dim">{c.d}</p>
@@ -38,7 +38,7 @@ export default function StaticFallback({ t }: { t: Messages }) {
       </section>
 
       <section className="mt-24">
-        <h2 className="font-display text-4xl uppercase leading-[.85] tracking-tight">
+        <h2 className="font-bold text-4xl uppercase leading-[.85] tracking-tight">
           {t.faq.title[0]} {t.faq.title[1]}
         </h2>
         <ul className="mt-6 divide-y divide-cream/15 border-y border-cream/15">
@@ -57,11 +57,11 @@ export default function StaticFallback({ t }: { t: Messages }) {
       {TESTIMONIALS.length > 0 ? (
         <section className="mt-24">
           <div className="flex flex-wrap items-baseline justify-between gap-3">
-            <h2 className="font-display text-4xl uppercase leading-[.85] tracking-tight">
+            <h2 className="font-bold text-4xl uppercase leading-[.85] tracking-tight">
               {t.testimonials.title[0]} {t.testimonials.title[1]}
             </h2>
             <a
-              className="font-body text-[.62rem] uppercase tracking-[.14em] text-dim underline underline-offset-4"
+              className="font-medium text-[.62rem] uppercase tracking-[.14em] text-dim underline underline-offset-4"
               href={CONTACT.mapsUrl}
               target="_blank"
               rel="noopener noreferrer"
@@ -77,7 +77,7 @@ export default function StaticFallback({ t }: { t: Messages }) {
                 <blockquote className="m-0 text-sm leading-relaxed text-cream" lang="tr">
                   {r.quote}
                 </blockquote>
-                <p className="m-0 mt-1 font-body text-[.62rem] uppercase tracking-[.14em] text-accent">{r.author}</p>
+                <p className="m-0 mt-1 font-medium text-[.62rem] uppercase tracking-[.14em] text-accent">{r.author}</p>
               </li>
             ))}
           </ul>
@@ -85,12 +85,12 @@ export default function StaticFallback({ t }: { t: Messages }) {
       ) : null}
 
       <footer className="mt-24 flex flex-col items-center gap-4 text-center">
-        <h2 className="font-display text-4xl uppercase leading-[.85] tracking-tight">
+        <h2 className="font-bold text-4xl uppercase leading-[.85] tracking-tight">
           {t.footer.title[0]} {t.footer.title[1]}
         </h2>
         <p className="text-dim">{t.footer.lead}</p>
-        <p className="font-body text-[.6rem] uppercase tracking-[.14em] text-dim">{t.footer.copy}</p>
-        <nav className="flex gap-6 font-body text-[.62rem] uppercase tracking-[.16em] text-dim">
+        <p className="font-medium text-[.6rem] uppercase tracking-[.14em] text-dim">{t.footer.copy}</p>
+        <nav className="flex gap-6 font-medium text-[.62rem] uppercase tracking-[.16em] text-dim">
           <a href={SITE.social.tiktok}>{t.footer.tiktok}</a>
           <a href={SITE.social.instagram}>{t.footer.instagram}</a>
         </nav>

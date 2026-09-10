@@ -135,10 +135,10 @@ export default function OrderTrack({ initial }: { initial: Order }) {
                   </div>
                   {it.note ? <div className="text-xs text-dim">{it.note}</div> : null}
                 </div>
-                <span className="font-display text-sm">{formatPriceFor(locale, it.price * it.qty)}</span>
+                <span className="font-bold text-sm">{formatPriceFor(locale, it.price * it.qty)}</span>
               </div>
             ))}
-            <div className="mt-3 flex justify-between font-display text-base">
+            <div className="mt-3 flex justify-between font-bold text-base">
               <span>{t.order.total}</span>
               <span>{formatPriceFor(locale, order.total)}</span>
             </div>
