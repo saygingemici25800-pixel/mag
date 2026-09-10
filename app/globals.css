@@ -186,3 +186,85 @@ h3,
     transform: translateY(2px);
   }
 }
+
+/* ---- Köşe okları: sırayla yanma + toplu flaş ----
+   Döngü 1540 ms, üç AYRI keyframe (tek keyframe + gecikme İŞE YARAMIYOR: gecikme toplu
+   flaşı da kaydırıyor ve üçü hiçbir anda birlikte yanmıyor — ölçüldü).
+     0–180 ms   üstteki yanar
+     180–360    ortadaki yanar (üstteki sönmüş)
+     360–540    alttaki yanar (ortadaki sönmüş)
+     540–760    ÜÇÜ BİRDEN flaş (220 ms)
+     760–1540   bekleme (780 ms)
+   Yanma 0.15 → 0.9, geçişler yumuşak (ease-in-out). Yalnızca opacity; transform/filter YOK. */
+@keyframes cornerSeq1 {
+  0.0% {
+    opacity: 0.15;
+  }
+  5.84% {
+    opacity: 0.9;
+  }
+  11.69% {
+    opacity: 0.15;
+  }
+  35.06% {
+    opacity: 0.15;
+  }
+  42.21% {
+    opacity: 0.9;
+  }
+  49.35% {
+    opacity: 0.15;
+  }
+  100.0% {
+    opacity: 0.15;
+  }
+}
+@keyframes cornerSeq2 {
+  0.0% {
+    opacity: 0.15;
+  }
+  11.69% {
+    opacity: 0.15;
+  }
+  17.53% {
+    opacity: 0.9;
+  }
+  23.38% {
+    opacity: 0.15;
+  }
+  35.06% {
+    opacity: 0.15;
+  }
+  42.21% {
+    opacity: 0.9;
+  }
+  49.35% {
+    opacity: 0.15;
+  }
+  100.0% {
+    opacity: 0.15;
+  }
+}
+@keyframes cornerSeq3 {
+  0.0% {
+    opacity: 0.15;
+  }
+  23.38% {
+    opacity: 0.15;
+  }
+  29.22% {
+    opacity: 0.9;
+  }
+  35.06% {
+    opacity: 0.15;
+  }
+  42.21% {
+    opacity: 0.9;
+  }
+  49.35% {
+    opacity: 0.15;
+  }
+  100.0% {
+    opacity: 0.15;
+  }
+}

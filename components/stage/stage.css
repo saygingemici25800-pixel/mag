@@ -253,6 +253,84 @@
   border-radius: 8px;
 }
 
+/* ---- Köşe okları: sol alt ve sağ alt, dikey üçlü ----
+   Dekoratif; .hnav gezinme oklarından ayrı ve onlara dokunulmuyor.
+   Konum: dikeyde %80, yatayda kenardan %5 içeride — ama clamp ile sınırlı ki küçük
+   ekranda kenara yapışmasın. Ortadaki ok grubun merkezinde olduğu için üstteki %80'in
+   biraz üstünde, alttaki biraz altında kalır. */
+.cnr {
+  position: absolute;
+  top: 80%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* grup toplamı ~150 px: 3 × 80 px ok, negatif boşlukla sıkıştırılmış */
+  gap: -0px;
+  color: var(--accent);
+  pointer-events: none;
+  z-index: 22;
+}
+.cnr.l {
+  left: clamp(14px, 5vw, 96px);
+}
+.cnr.r {
+  right: clamp(14px, 5vw, 96px);
+}
+.cchev {
+  display: block;
+  width: 40px;
+  height: 80px;
+  /* Üç ok ~150 px'e sığsın diye biner ama ÇOK binince tek bir zikzak gibi görünüyordu;
+     adım 35 → 46 px, chevron'lar birbirinden ayırt edilir kalıyor (3×80 − 2×34 = 172 px). */
+  margin-top: -34px;
+  /* çizgi ince ama zeminde okunur: 2 px ile sönük kalıyordu */
+  stroke-width: 2.4px;
+  opacity: 0.15;
+  will-change: opacity;
+  /* Her okun KENDİ keyframe'i var: gecikme kullanılmıyor, çünkü gecikme toplu flaşı da
+     kaydırıp senkronu bozuyordu. Sol ve sağ grup aynı anda başlar. */
+  animation: cornerSeq1 1.54s ease-in-out infinite;
+}
+.cchev:nth-child(2) {
+  animation-name: cornerSeq2;
+}
+.cchev:nth-child(3) {
+  animation-name: cornerSeq3;
+}
+.cchev:first-child {
+  margin-top: 0;
+}
+/* Hero görünmezken animasyon durur (html.heroOn Stage.render'dan gelir) */
+html:not(.heroOn) .cchev {
+  animation-play-state: paused;
+}
+@media (max-width: 899px) {
+  .cnr {
+    /* mobilde kenara daha yakın ve küçük */
+    top: 78%;
+  }
+  .cnr.l {
+    left: clamp(8px, 3.5vw, 20px);
+  }
+  .cnr.r {
+    right: clamp(8px, 3.5vw, 20px);
+  }
+  .cchev {
+    width: 28px;
+    height: 55px;
+    margin-top: -23px;
+    stroke-width: 2.2px;
+  }
+}
+/* reduced-motion: animasyon yok, üç ok SABİT ve orta opaklıkta */
+@media (prefers-reduced-motion: reduce) {
+  .cchev {
+    animation: none;
+    opacity: 0.45;
+  }
+}
+
 /* ---- Aşağı ok: kaydırma ipucu ---- */
 .shint {
   position: absolute;

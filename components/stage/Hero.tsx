@@ -130,6 +130,29 @@ export function ScrollHint({ label }: { label: string }) {
   );
 }
 
+/* ---- Köşe okları: sol alt ve sağ alt, dikey üçlü chevron ----
+   TAMAMEN DEKORATİF: tıklanamaz, aria-hidden. Burgerin yanındaki gezinme okları (.hnav)
+   bunlardan ayrı ve olduğu gibi duruyor.
+
+   Animasyon döngüsü (CSS, cornerSeq): üstteki yanar → ortadaki yanarken üstteki söner →
+   alttaki yanarken ortadaki söner → üçü birden tek flaş → 700 ms bekleme → baştan.
+   Her adım 180 ms, toplu flaş 220 ms; toplam ~1,5 sn. Yalnızca opacity; filter yok. */
+export function CornerArrows() {
+  return (
+    <>
+      {[-1, 1].map((dir) => (
+        <div key={dir} className={"cnr " + (dir < 0 ? "l" : "r")} aria-hidden="true">
+          {[0, 1, 2].map((k) => (
+            <svg key={k} className="cchev" style={{ "--k": k } as React.CSSProperties} viewBox="0 0 24 48" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d={dir < 0 ? "M17 4L5 24l12 20" : "M7 4l12 20-12 20"} />
+            </svg>
+          ))}
+        </div>
+      ))}
+    </>
+  );
+}
+
 /* ---- İlerleme çubuğu + sayaç: dolgu genişliği 100/N %, sol (i/N)·100 %, .48 s ease ---- */
 export function HeroBar({ index, count, bind }: { index: number; count: number; bind: Bind }) {
   return (
@@ -186,6 +209,7 @@ export default function Hero({ bind, l1, l2, k, index, count, onPrev, onNext, pr
       <HeroName l1={l1} l2={l2} k={k} bind={bind} />
       <HeroNav bind={bind} onPrev={onPrev} onNext={onNext} prevAria={prevAria} nextAria={nextAria} />
       <HeroBar index={index} count={count} bind={bind} />
+      <CornerArrows />
       <ScrollHint label={scrollHint} />
     </>
   );

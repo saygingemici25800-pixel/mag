@@ -177,6 +177,77 @@ for (const [w, h, label] of [[1440, 900, "masaüstü"], [390, 844, "mobil"]]) {
   await p.close();
 }
 
+
+/* ---- KÖŞE OKLARI (dekoratif) ----
+   Gezinme okları (.hnav) ile karışmasın: ikisi ayrı ve .hnav'a dokunulmadı. */
+{
+  const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+  await p.goto(base + "/", { waitUntil: "networkidle" });
+  await settle(p);
+  const g = await p.evaluate(() => {
+    const L = document.querySelector(".cnr.l"), R = document.querySelector(".cnr.r");
+    if (!L || !R) return null;
+    const lb = L.getBoundingClientRect(), rb = R.getBoundingClientRect();
+    const cs = [...L.querySelectorAll(".cchev")].map((c) => Math.round(c.getBoundingClientRect().height));
+    const bar = document.querySelector(".bar").getBoundingClientRect();
+    const cnt = document.querySelector(".counter").getBoundingClientRect();
+    const ov = (a, b2) => !(a.right <= b2.left || b2.right <= a.left || a.bottom <= b2.top || b2.bottom <= a.top);
+    const st = getComputedStyle(L.querySelector(".cchev"));
+    return {
+      okSayısı: cs.length, okYük: cs, grupYük: Math.round(lb.height),
+      dikeyYüzde: Math.round((lb.top + lb.height / 2) / innerHeight * 100),
+      solKenar: Math.round(lb.left), sağKenar: Math.round(innerWidth - rb.right),
+      çubukÇakışma: ov(lb, bar) || ov(rb, bar), sayaçÇakışma: ov(lb, cnt) || ov(rb, cnt),
+      ekranİçinde: lb.left >= 0 && rb.right <= innerWidth,
+      ariaHidden: L.getAttribute("aria-hidden"), pe: getComputedStyle(L).pointerEvents,
+      filtre: st.filter, fill: st.fill, cap: st.strokeLinecap,
+      hnavVar: !!document.querySelector(".hnav.l") && !!document.querySelector(".hnav.r"),
+    };
+  });
+  check("köşe okları var (iki grup)", !!g);
+  check("her grupta 3 ok", g.okSayısı === 3, String(g.okSayısı));
+  check("ok ~80 px, grup ~150-175 px", g.okYük.every((h) => h >= 70 && h <= 90) && g.grupYük >= 140 && g.grupYük <= 180, `ok ${g.okYük[0]} · grup ${g.grupYük}`);
+  check("dikeyde ~%80", Math.abs(g.dikeyYüzde - 80) <= 3, `%${g.dikeyYüzde}`);
+  check("kenardan içeride, taşma yok", g.ekranİçinde && g.solKenar >= 12 && g.sağKenar >= 12, `sol ${g.solKenar} sağ ${g.sağKenar}`);
+  check("ilerleme çubuğunu kapatmıyor", !g.çubukÇakışma);
+  check("sayacı kapatmıyor", !g.sayaçÇakışma);
+  check("dekoratif: aria-hidden + tıklanamaz", g.ariaHidden === "true" && g.pe === "none");
+  check("filter yok", g.filtre === "none", g.filtre);
+  check("dolgu yok, uçlar yuvarlak", g.fill === "none" && g.cap === "round", `${g.fill} / ${g.cap}`);
+  check("gezinme okları (.hnav) DURUYOR", g.hnavVar);
+
+  /* SIRA: üst → orta → alt → toplu flaş → bekleme. Web Animations API ile ölçülür;
+     CSS animationDelay ile "duraklat + faz ver" yöntemi yarışıyordu. */
+  const seq = await p.evaluate(() => {
+    const cs = [...document.querySelectorAll(".cnr.r .cchev")];
+    const anims = cs.map((c) => c.getAnimations()[0]);
+    if (anims.some((a) => !a)) return null;
+    anims.forEach((a) => a.pause());
+    const at = (t) => { anims.forEach((a) => { a.currentTime = t; }); return cs.map((c) => parseFloat(getComputedStyle(c).opacity)); };
+    return { ust: at(70), orta: at(280), alt: at(420), toplu: at(630), bekleme: at(1100) };
+  });
+  check("faz 1: yalnızca ÜSTTEKİ yanık", seq.ust[0] > 0.6 && seq.ust[1] < 0.3 && seq.ust[2] < 0.3, seq.ust.map((v) => v.toFixed(2)).join(" "));
+  check("faz 2: yalnızca ORTADAKİ yanık", seq.orta[1] > 0.6 && seq.orta[0] < 0.3 && seq.orta[2] < 0.3, seq.orta.map((v) => v.toFixed(2)).join(" "));
+  check("faz 3: yalnızca ALTTAKİ yanık", seq.alt[2] > 0.6 && seq.alt[0] < 0.3 && seq.alt[1] < 0.3, seq.alt.map((v) => v.toFixed(2)).join(" "));
+  check("faz 4: ÜÇÜ BİRDEN yanık (senkron)", seq.toplu.every((v) => v > 0.6), seq.toplu.map((v) => v.toFixed(2)).join(" "));
+  check("faz 5: bekleme (hepsi sönük)", seq.bekleme.every((v) => v < 0.3), seq.bekleme.map((v) => v.toFixed(2)).join(" "));
+  check("yanma aralığı 0.15 → ~0.9", Math.abs(Math.min(...seq.bekleme) - 0.15) < 0.02 && Math.max(...seq.toplu) > 0.75);
+  await p.close();
+}
+
+/* hero görünmezken animasyon durur */
+{
+  const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+  await p.goto(base + "/", { waitUntil: "networkidle" });
+  await settle(p);
+  const play = () => p.evaluate(() => getComputedStyle(document.querySelector(".cchev")).animationPlayState);
+  check("köşe okları hero'da çalışıyor", (await play()) === "running");
+  await p.evaluate((v) => { const m = document.documentElement.scrollHeight - innerHeight; window.scrollTo(0, Math.round(v * m)); }, mapP(0.5, false));
+  await p.waitForTimeout(1500);
+  check("hero görünmezken köşe okları DURUYOR", (await play()) === "paused");
+  await p.close();
+}
+
 /* ---- prefers-reduced-motion ---- */
 {
   const ctx = await b.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
@@ -192,6 +263,8 @@ for (const [w, h, label] of [[1440, 900, "masaüstü"], [390, 844, "mobil"]]) {
   check("reduced-motion: statik sürüm (tüm ürünler listede)", !r.sahne && r.statik >= 5, `${r.statik} ürün kartı`);
   /* CSS kuralı yine de dursun: sahne sürümü açılırsa hareket olmasın */
   check("reduced-motion CSS kuralı var", /prefers-reduced-motion[^}]*\}[\s\S]{0,400}\.hnav \.chev/.test(cssSrc) || /\.hnav \.chev,\s*\.shint \.chev \{\s*animation: none/.test(cssSrc));
+  /* köşe okları: reduced-motion'da animasyon yok, SABİT orta opaklık */
+  check("reduced-motion: köşe okları sabit", /@media \(prefers-reduced-motion: reduce\) \{\s*\.cchev \{\s*animation: none;\s*opacity: 0\.45;/.test(cssSrc));
   await ctx.close();
 }
 
