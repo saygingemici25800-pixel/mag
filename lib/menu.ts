@@ -52,16 +52,16 @@ export const MENU: Record<Category, MenuItem[]> = {
     {
       id: "brisket",
       pairs: ["jalapeno-sos", "mag-sos", "zencefilli-gazoz"],
-      /* AD DEĞİŞTİ (10 Eyl 2026): bu kayıt artık TRUFFLE MUSHROOM. id KORUNDU —
-         sepet anahtarları, dilim dosyaları ve mevcut siparişler id'ye bağlı.
-         Fotoğrafı değişmedi (public/urun/truffle.webp: eski brisket.webp).
-         AÇIK: aşağıdaki desc ve ingredients HÂLÂ ESKİ (tiftik etli) — trüflü ürüne ait
-         değil, işletmeden gelecek. Bilerek dokunulmadı. */
-      name: "Truffle Mushroom",
+      /* AD DEĞİŞTİ (10 Eyl 2026): bu kayıt artık TRUFFLE. id KORUNDU — sepet anahtarları,
+         dilim dosyaları ve mevcut siparişler id'ye bağlı.
+         Fotoğrafı değişmedi (public/urun/brisket.webp).
+         İçerik 11 Eyl 2026'da işletmeden onaylı listeyle güncellendi.
+         Fiyat DEĞİŞMEDİ: işletmeden gelmedi. */
+      name: "Truffle",
       price: 600,
       hero: true,
-      desc: "Ağır ateşte pişmiş tiftik et, karamelize soğan, cheddar, tütsü biberli aioli, soğan turşusu",
-      ingredients: [{ name: "brioche ekmek", removable: false }, { name: "Ağır ateşte pişmiş tiftik et", removable: false }, { name: "karamelize soğan", removable: true }, { name: "cheddar", removable: true }, { name: "tütsü biberli aioli", removable: true }, { name: "soğan turşusu", removable: true }],
+      desc: "130 gr burger köftesi, trüf mayonez, gravyer peyniri, karamelize mantar, roka",
+      ingredients: [{ name: "brioche ekmek", removable: false }, { name: "130 gr burger köftesi", removable: false }, { name: "trüf mayonez", removable: true }, { name: "gravyer peyniri", removable: true }, { name: "karamelize mantar", removable: true }, { name: "roka", removable: true }],
     },
     {
       id: "berry",

@@ -481,11 +481,13 @@
     "tütsü biberli aioli": "айоли с копчёным перцем",
     "zencefil": "имбирь",
     "çıtır soğan": "хрустящий лук",
+    "trüf mayonez": "трюфельный майонез",
+    "karamelize mantar": "карамелизованные грибы",
     "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek"
   },
   "menuDesc": {
     "smooky": "Котлета 130 г, копчёные рёбрышки, карамелизованный лук, чеддер, салат айсберг, айоли с копчёным перцем",
-    "brisket": "Томлёная говядина, карамелизованный лук, чеддер, айоли с копчёным перцем, маринованный лук",
+    "brisket": "Котлета 130 г, трюфельный майонез, сыр грюйер, карамелизованные грибы, руккола",
     "berry": "Карамелизованная вишня, сыр грюйер, котлета 130 г",
     "jalapeno": "Соус халапеньо, чеддер, хрустящий лук, котлета 130 г, руккола",
     "caesar": "Соус MAG, салат, грюйер, курица в панировке",
@@ -515,7 +517,7 @@
     "limonata": "Лимонад",
     "jalapeno-sos": "Халапеньо",
     "sweet-chili": "Sweet & chili",
-    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek · açıklamalar menuIng haritasından türetildi (ikinci liste yok)"
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek · açıklamalar menuIng haritasından türetildi (ikinci liste yok) · TRUFFLE açıklaması 11 Eyl 2026'da güncellendi — AÇIK: Rusça çeviri onay bekliyor"
   },
   "payment": {
     "status": {
