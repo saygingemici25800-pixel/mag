@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { FontPreload } from "@/components/layout/FontPreload";
+import { comfortaa, museo } from "@/lib/fonts";
 import "@/app/globals.css";
 
 export const metadata: Metadata = {
@@ -13,10 +13,7 @@ export { viewport } from "@/lib/seo";
 /** Panel kök layout'u — chrome yok, TR. */
 export default function PanelLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="tr">
-      <head>
-        <FontPreload />
-      </head>
+    <html lang="tr" className={`${museo.variable} ${comfortaa.variable}`}>
       <body>{children}</body>
     </html>
   );

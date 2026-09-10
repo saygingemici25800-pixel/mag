@@ -7,7 +7,7 @@
  * Çalıştırma: node tests/e2e/palette.mjs  (sunucu: PANEL_KEY=test1234 … -p 3112)
  */
 import { chromium } from "playwright";
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { mapP } from "./_segments.mjs";
 
@@ -60,18 +60,26 @@ check(":root --mag-purple #422057", cssVar("mag-purple") === "#422057");
 check(":root --mag-lime #ffd662", cssVar("mag-lime") === "#ffd662");
 
 const allSrc = files.map((f) => readFileSync(f, "utf8")).join("\n") + readFileSync(path.join(root, "lib/menu.ts"), "utf8");
-check("next/font kullanılmıyor", !/next\/font/.test(allSrc));
+/* Artık next/font KULLANILIYOR (tek aile MuseoModerno). Kritik olan çalışma zamanında
+   harici istek olmaması; onu aşağıdaki "harici istek yok" kontrolü ölçüyor. */
+check("next/font ile tek aile yükleniyor", /next\/font\/google/.test(readFileSync(path.join(root, "lib/fonts.ts"), "utf8")));
 check("Google Fonts bağlantısı yok", !/fonts\.googleapis|fonts\.gstatic/.test(allSrc + globals));
 check("--font-mono kalıntısı yok", !/--font-mono|font-mono\b/.test(allSrc + globals));
-check("Tailwind'de font-display / font-body tanımlı", /--font-display: var\(--font-display\)/.test(globals) && /--font-body: var\(--font-body\)/.test(globals));
+/* TEK AİLE: Tailwind'de font-display/font-body diye İKİ AYRI aile TANIMLANMAZ. */
+check("Tailwind'de tek aile (font-sans), iki aile yok", /--font-sans: var\(--font-museo-stack\)/.test(globals) && !/--font-display:/.test(globals) && !/--font-body:/.test(globals));
 const menu = readFileSync(path.join(root, "lib/menu.ts"), "utf8");
 check("lib/menu.ts: ürün başına bg/accent yok", !/\bbg\??:|accent\??:/.test(menu));
-const LATIN_FACES = ["ComicoRegular", "BonnyThin", "BonnyLight", "BonnyRegular", "BonnyMedium", "BonnyBold"];
-/* RU için Kiril yedekleri (Comico/Bonny'de Kiril yok). unicode-range ile SADECE Kiril'e
-   kısıtlı olduklarından TR/EN'de indirilmezler; bu yüzden 6 değil 10 @font-face bekleniyor. */
-const CYR_FACES = ["SeymourOneRU-400", "FiraSansCondensedRU-400", "FiraSansCondensedRU-500", "FiraSansCondensedRU-700"];
-check("@font-face: Comico 400 + Bonny 100/300/400/500/700, hepsi swap", LATIN_FACES.every((n) => globals.includes(`/fonts/${n}.woff2`)) && (globals.match(/font-display: swap/g) ?? []).length === LATIN_FACES.length + CYR_FACES.length);
-check("Kiril yedekleri tanımlı ve unicode-range ile sınırlı", CYR_FACES.every((n) => globals.includes(`/fonts/${n}.woff2`)) && (globals.match(/unicode-range:\s*U\+0400-04FF/g) ?? []).length === CYR_FACES.length);
+/* Comico ve Bonny KALDIRILDI: @font-face bloğu, woff2 dosyaları ve preload bağlantıları
+   tamamen gitti. Yüzler artık next/font ile derleme sırasında geliyor. */
+const fontsTs = readFileSync(path.join(root, "lib/fonts.ts"), "utf8");
+/* lib/fonts.ts hariç: orada "Comico ve Bonny kaldırıldı" AÇIKLAMASI var, kod değil. */
+check("Comico/Bonny kalıntısı yok", !/Comico|Bonny|SeymourOne|FiraSansCondensed/.test(globals + allSrc));
+/* Yorumları çıkar: globals'ta "@font-face bloğu yok" AÇIKLAMASI var, kural değil. */
+check("@font-face bloğu kalmadı", !/@font-face/.test(globals.replace(/\/\*[\s\S]*?\*\//g, "")));
+check("public/fonts klasörü boş/yok", !existsSync(path.join(root, "public/fonts")) || readdirSync(path.join(root, "public/fonts")).length === 0);
+check("MuseoModerno + Kiril yedeği Comfortaa tanımlı", /MuseoModerno\(/.test(fontsTs) && /Comfortaa\(/.test(fontsTs));
+check("latin-ext alt kümesi var (Türkçe için şart)", /"latin-ext"/.test(fontsTs));
+check("display: swap", /display: "swap"/.test(fontsTs));
 
 /* ---------- WCAG kontrast ---------- */
 const lum = (hex) => {
@@ -112,7 +120,8 @@ const page = await ctx.newPage();
 await page.addInitScript(() => localStorage.setItem("mag:sound", "0"));
 await page.goto(base + "/", { waitUntil: "load" });
 const pre = await page.$$eval('link[rel="preload"][as="font"]', (ls) => ls.map((l) => [l.getAttribute("href"), l.getAttribute("crossorigin") !== null]));
-check("2 kritik font preload (Comico + Bonny Regular, crossorigin)", pre.length === 2 && pre.every((p) => p[1]) && pre.some((p) => p[0].includes("Comico")) && pre.some((p) => p[0].includes("BonnyRegular")), JSON.stringify(pre));
+/* next/font kendi preload'unu yazar (yüz başına bir tane), hepsi crossorigin olmalı. */
+check("next/font preload'ları crossorigin", pre.length > 0 && pre.every((p) => p[1]) && pre.every((p) => p[0].includes("/_next/static/media/")), `${pre.length} yüz`);
 await page.waitForFunction(() => !document.querySelector(".pre"), null, { timeout: 20000 });
 await page.waitForTimeout(500);
 const rt = await page.evaluate(async () => {
@@ -135,9 +144,10 @@ const rt = await page.evaluate(async () => {
   };
 });
 check("harici istek yok (font dahil)", ext.length === 0, ext.slice(0, 3).join(" "));
-check("Comico + Bonny yüklendi", rt.loaded.some((f) => f.startsWith("Comico")) && rt.loaded.some((f) => f.startsWith("Bonny")), rt.loaded.join(" "));
-check("h1 / .cta / .mark / .badge b → Comico", [rt.h1, rt.cta, rt.mark, rt.badge].every((f) => f === "Comico"), JSON.stringify([rt.h1, rt.cta, rt.mark, rt.badge]));
-check("body / .left p / .counter → Bonny", [rt.body, rt.p, rt.hint].every((f) => f === "Bonny"), JSON.stringify([rt.body, rt.p, rt.hint]));
+check("MuseoModerno + Comfortaa yüklendi", rt.loaded.some((f) => f.startsWith("MuseoModerno")) && rt.loaded.some((f) => f.startsWith("Comfortaa")), rt.loaded.join(" "));
+check("h1 / .cta / .mark / .badge b → MuseoModerno", [rt.h1, rt.cta, rt.mark, rt.badge].every((f) => f === "MuseoModerno"), JSON.stringify([rt.h1, rt.cta, rt.mark, rt.badge]));
+/* TEK AİLE: gövde de başlık da MuseoModerno; ayrım kalınlıkta (aşağıda ölçülüyor). */
+check("body / .left p / .counter → MuseoModerno", [rt.body, rt.p, rt.hint].every((f) => f === "MuseoModerno"), JSON.stringify([rt.body, rt.p, rt.hint]));
 check("font-synthesis: none (sahte kalın/italik yok)", rt.synth === "none", rt.synth);
 check("--accent = limon", rt.accent.toLowerCase() === rt.lime.toLowerCase(), rt.accent);
 check("sahne zemini: mor-derin → mor dikey gradyan", /linear-gradient/.test(rt.stageBg) && /rgb\(26, 12, 34\)/.test(rt.stageBg) && /rgb\(66, 32, 87\)/.test(rt.stageBg), rt.stageBg.slice(0, 80));
@@ -175,8 +185,8 @@ const ord = await page.evaluate(() => {
   const fam = (el) => (el ? getComputedStyle(el).fontFamily.split(",")[0].replace(/"/g, "") : "-");
   return { price: fam(document.querySelector(".prow .price")), tname: fam(document.querySelector(".pbody .tname")), desc: fam(document.querySelector(".pdesc")), add: fam(document.querySelector(".addbtn")), chip: fam(document.querySelector(".catchip")) };
 });
-check("/siparis: fiyat + ürün adı + SEPETE EKLE → Comico", ord.price === "Comico" && ord.tname === "Comico" && ord.add === "Comico", JSON.stringify(ord));
-check("/siparis: açıklama + kategori çipi → Bonny", ord.desc === "Bonny" && ord.chip === "Bonny", JSON.stringify(ord));
+check("/siparis: fiyat + ürün adı + SEPETE EKLE → MuseoModerno", ord.price === "MuseoModerno" && ord.tname === "MuseoModerno" && ord.add === "MuseoModerno", JSON.stringify(ord));
+check("/siparis: açıklama + kategori çipi → MuseoModerno", ord.desc === "MuseoModerno" && ord.chip === "MuseoModerno", JSON.stringify(ord));
 
 /* panel: yazılar Bonny, marka Comico, harici istek yok */
 await page.goto(base + "/panel", { waitUntil: "load" });
@@ -185,7 +195,7 @@ const pnl = await page.evaluate(() => {
   const fam = (el) => (el ? getComputedStyle(el).fontFamily.split(",")[0].replace(/"/g, "") : "-");
   return { input: fam(document.querySelector("input[type=password]")), mark: fam(document.querySelector(".pnl-mark")), pre: document.querySelectorAll('link[rel="preload"][as="font"]').length };
 });
-check("/panel: girdi Bonny, marka Comico, 2 preload", pnl.input === "Bonny" && pnl.mark === "Comico" && pnl.pre === 2, JSON.stringify(pnl));
+check("/panel: tek aile + next/font preload", pnl.input === "MuseoModerno" && pnl.mark === "MuseoModerno" && pnl.pre > 0, JSON.stringify(pnl));
 check("harici istek yok (tüm sayfalar)", ext.length === 0, ext.slice(0, 3).join(" "));
 
 await browser.close();

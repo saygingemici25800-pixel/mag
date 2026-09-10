@@ -7,7 +7,7 @@ import type { Bind } from "./Arc";
 
 /**
  * Hero görsel katmanı — docs/ref/hero/hero.html'in birebir React karşılığı.
- * Sayılar, gradyanlar ve SVG referanstan; tipografi sitenin Comico/Bonny'si.
+ * Sayılar, gradyanlar ve SVG referanstan; tipografi sitenin MuseoModerno'su.
  * Kartların konumu Stage.render'dan (stageMath: hero pozu = referans carousel matematiği, offset'li tween);
  * burada yalnızca yapı ve durum (isim solup gelme, çubuk/sayaç).
  * Işık katmanı kontrol paneli (Armatür/Hüzme/Havuz/Yansıma anahtarları) bilerek yok.

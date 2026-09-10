@@ -13,7 +13,7 @@
   margin-bottom: 20px;
 }
 .pnl-mark {
-  font-family: var(--font-display);
+  font-family: var(--font-museo-stack);
   font-weight: 900;
   font-size: 1.6rem;
   letter-spacing: -0.055em;
@@ -38,7 +38,8 @@
   border: 1px solid color-mix(in srgb, var(--cream) 25%, transparent);
   background: color-mix(in srgb, var(--cream) 4%, transparent);
   color: var(--cream);
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
+  font-weight: 400;
   font-size: 0.7rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -101,7 +102,7 @@
 }
 .tabs b {
   margin-left: 8px;
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
   font-weight: 400;
   font-size: 0.7rem;
 }
@@ -154,7 +155,8 @@
   flex-wrap: wrap;
 }
 .oid {
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
+  font-weight: 400;
   font-size: 0.72rem;
   letter-spacing: 0.16em;
   color: var(--dim);
@@ -165,7 +167,8 @@
   gap: 6px;
   padding: 6px 10px;
   border-radius: 6px;
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
+  font-weight: 400;
   font-size: 0.62rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -178,7 +181,7 @@
   font-weight: 700;
 }
 .oname {
-  font-family: var(--font-display);
+  font-family: var(--font-museo-stack);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: -0.02em;
@@ -198,7 +201,7 @@
   align-items: baseline;
 }
 .oitems b {
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
   font-weight: 500;
   color: var(--accent);
 }
@@ -286,8 +289,8 @@
   color: var(--cream);
 }
 .total {
-  font-family: var(--font-display);
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
+  font-family: var(--font-museo-stack);
   font-size: 1.1rem;
   font-weight: 500;
 }
@@ -329,7 +332,8 @@
   gap: 12px;
 }
 .pnl-h {
-  font-family: var(--font-display);
+  font-family: var(--font-museo-stack);
+  font-weight: 700;
   font-size: 1.05rem;
   margin: 0;
 }
@@ -392,7 +396,8 @@
 }
 .sumgrid dd {
   margin: 2px 0 0;
-  font-family: var(--font-display);
+  font-family: var(--font-museo-stack);
+  font-weight: 700;
   font-size: 1.15rem;
   color: var(--cream);
 }

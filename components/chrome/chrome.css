@@ -20,7 +20,8 @@
   padding: 0;
   cursor: pointer;
   transition: opacity 0.3s ease;
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
+  font-weight: 400;
   font-size: 0.62rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -70,7 +71,7 @@
   }
 }
 .mark {
-  font-family: var(--font-display);
+  font-family: var(--font-museo-stack);
   position: absolute;
   left: 50%;
   translate: -50% 0;
@@ -97,7 +98,8 @@
    ve kural "SİPARİŞ ve İLETİŞİM her koşulda görünür kalsın" idi. Galeri mobilde
    kaybolmuyor; sipariş sayfasına giden yol dururken galeriye ana sayfadan ulaşılıyor. */
 .gnav {
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
+  font-weight: 400;
   font-size: 0.62rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -130,7 +132,7 @@ html.lm .gnav:focus-visible {
    Ayrım yalnızca dolgudan: SİPARİŞ limon dolgu (birincil eylem), İLETİŞİM çerçeveli (ikincil).
    Yükseklik min-height ile SABİT: link ve button farklı satır kutusu üretir, yoksa 1-2 px kayarlar. */
 .cta {
-  font-family: var(--font-display);
+  font-family: var(--font-museo-stack);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -327,7 +329,8 @@ html.lm .bracket {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
+  font-weight: 400;
   font-size: 0.62rem;
   letter-spacing: 0.16em;
 }
@@ -431,7 +434,7 @@ html.lm .lang a[aria-current="page"] {
   letter-spacing: -0.045em;
   text-transform: uppercase;
   font-weight: 900;
-  padding:  0.18em 0 0.12em; /* Comico: İ noktası ve üst uzantılar maskeden taşmasın */
+  padding:  0.18em 0 0.12em; /* İ noktası ve üst uzantılar maskeden taşmasın */
 }
 .cRows {
   display: flex;
@@ -448,7 +451,7 @@ html.lm .lang a[aria-current="page"] {
   padding: 2px 0;
 }
 .cRow b {
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
   font-weight: 400;
   font-size: 0.62rem;
   letter-spacing: 0.2em;
@@ -483,7 +486,7 @@ html.lm .lang a[aria-current="page"] {
 }
 /* yürüme mesafesi */
 .cWalk h3 > span {
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
   font-weight: 400;
   font-size: 0.62rem;
   letter-spacing: 0.24em;
@@ -514,7 +517,8 @@ html.lm .lang a[aria-current="page"] {
 }
 .cWalk li em {
   font-style: normal;
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
+  font-weight: 400;
   font-size: 0.8rem;
   letter-spacing: 0.08em;
   color: var(--cream);
@@ -525,7 +529,7 @@ html.lm .lang a[aria-current="page"] {
   padding: 6px 0;
 }
 .cMaps {
-  font-family: var(--font-display);
+  font-family: var(--font-museo-stack);
   display: inline-flex;
   align-items: center;
   gap: 12px;

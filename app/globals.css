@@ -1,105 +1,12 @@
 @import "tailwindcss"; /* @import CSS'te her kuraldan önce gelmek zorunda; font tanımları hemen ardından */
 
 /* ---- yazı tipleri: yalnızca yerel woff2 (public/fonts), harici bağlantı yok ----
-   Comico (400, tek ağırlık, büyük harf) → başlıklar, vurgular, buton yazıları, fiyatlar.
-   Bonny (100/300/400/500/700) → geri kalan her şey. */
-@font-face {
-  font-family: "Comico";
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-  src: url("/fonts/ComicoRegular.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Bonny";
-  font-weight: 100;
-  font-style: normal;
-  font-display: swap;
-  src: url("/fonts/BonnyThin.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Bonny";
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-  src: url("/fonts/BonnyLight.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Bonny";
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-  src: url("/fonts/BonnyRegular.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Bonny";
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-  src: url("/fonts/BonnyMedium.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Bonny";
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-  src: url("/fonts/BonnyBold.woff2") format("woff2");
-}
-
-/* ---- KİRİL (RU) ----
-   Comico ve Bonny'de Kiril YOK (ölçüldü: her ikisinde de 0/66 harf), bu yüzden Rusça metin
-   kutu (tofu) çıkardı. Çözüm: yalnızca Kiril aralığı için yedek aile tanımlamak.
-
-   unicode-range SAYESİNDE Türkçe ve İngilizce'nin görünümü DEĞİŞMEZ: tarayıcı bu dosyaları
-   sadece sayfada Kiril harf varsa indirir ve yalnızca o harfler için kullanır. Latin harfler,
-   rakamlar ve ₺ simgesi Comico/Bonny'de kalır (₺ bu dosyalarda yok, aileye geri düşer).
-
-   NEDEN BU İKİSİ:
-    - Seymour One ← Comico: Comico kalın, yuvarlak uçlu, elle çizilmiş, hep büyük harf bir
-      başlık yazı tipi. Denenenler arasında (Neucha, Marmelad, Amatic SC, Caveat, Russo One)
-      bu ağırlığı ve yuvarlaklığı taşıyan tek aile Seymour One. Neucha karakteri yakalıyor ama
-      başlık için fazla ince; Russo One mekanik; Caveat italik el yazısı.
-      Ölçü: x-yükseklik 0.501 (Comico 0.500), cap 0.715 (Comico 0.700) — neredeyse birebir.
-    - Fira Sans Condensed ← Bonny: Bonny dar, sıkışık bir gövde yazı tipi. PT Sans Narrow ve
-      Roboto Condensed'a göre Fira'nın daralması ve harf sonlandırmaları Bonny'ye daha yakın;
-      ayrıca 400/500/700 üç kalınlıkta Kiril veriyor (Bonny'nin kullandığı kalınlıklar).
-      Ölçü: x-yükseklik 0.526 (Bonny 0.515), cap 0.688 (Bonny 0.725).
-
-   Dosyalar Latin+Kiril alt kümelerinin BİRLEŞİMİ (scripts/ru-fonts.mjs): salt Kiril alt kümesinde
-   rakam yok, fiyatlar ("1 310 ₺") bozulurdu. Yerelden sunulur, harici istek yok.
-   İkisi de OFL-1.1. */
-@font-face {
-  font-family: "SeymourOne";
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-  src: url("/fonts/SeymourOneRU-400.woff2") format("woff2");
-  unicode-range: U+0400-04FF, U+0500-052F, U+2DE0-2DFF, U+A640-A69F;
-}
-@font-face {
-  font-family: "FiraSansCondensed";
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-  src: url("/fonts/FiraSansCondensedRU-400.woff2") format("woff2");
-  unicode-range: U+0400-04FF, U+0500-052F, U+2DE0-2DFF, U+A640-A69F;
-}
-@font-face {
-  font-family: "FiraSansCondensed";
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-  src: url("/fonts/FiraSansCondensedRU-500.woff2") format("woff2");
-  unicode-range: U+0400-04FF, U+0500-052F, U+2DE0-2DFF, U+A640-A69F;
-}
-@font-face {
-  font-family: "FiraSansCondensed";
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-  src: url("/fonts/FiraSansCondensedRU-700.woff2") format("woff2");
-  unicode-range: U+0400-04FF, U+0500-052F, U+2DE0-2DFF, U+A640-A69F;
-}
+   MuseoModerno (değişken) → TEK AİLE; hiyerarşi kalınlıkla:
+   700/800 başlık ve vurgu · 500 arayüz · 300/400 gövde. */
+/* Yazı tipi: TEK AİLE — MuseoModerno (next/font/google, değişken, latin + latin-ext).
+   Eski iki aile KALDIRILDI; @font-face bloğu yok, yüzler next/font ile derleme
+   sırasında indirilip kendi sunucumuzdan servis ediliyor (lib/fonts.ts).
+   Ayrım aile ile değil KALINLIK ile: 700/800 başlık · 500 arayüz · 300/400 gövde. */
 
 /* ---- renk sistemi: TEK KAYNAK. Bileşenlerde hex yok; her şey bu değişkenlerden türer.
    (lib/palette.ts yalnızca JS/OG için aynı değerlerin aynası — tests/e2e/palette.mjs eşitliği denetler.) ---- */
@@ -131,11 +38,11 @@
   --hero-black-rgb: 0, 0, 0;
   --edge: 20px;
 
-  /* Kiril aileleri ARADA: Comico/Bonny önce gelir, yani Latin ve rakamlar hiç değişmez.
-     Kiril harfler Comico/Bonny'de olmadığı için tarayıcı sıradaki aileye geçer ve
-     SeymourOne/FiraSansCondensed'i kullanır (bu dosyalar zaten unicode-range ile Kiril'e kısıtlı). */
-  --font-display: "Comico", "SeymourOne", "Arial Black", Impact, sans-serif;
-  --font-body: "Bonny", "FiraSansCondensed", "Helvetica Neue", Arial, system-ui, sans-serif;
+  /* TEK YIĞIN: MuseoModerno önce, Kiril yedeği (Comfortaa) arkasında. Latin harfler
+     MuseoModerno'dan çizilir; tarayıcı yalnızca onda OLMAYAN Kiril harfler için
+     Comfortaa'ya düşer, bu yüzden TR/EN görünümü değişmez.
+     Hiyerarşi font-weight ile kuruluyor; ayrı --font-display/--font-body değişkeni YOK. */
+  --font-museo-stack: var(--font-museo), var(--font-cyr), system-ui, sans-serif;
 }
 
 @theme inline {
@@ -154,8 +61,9 @@
   --color-transparent: transparent;
   --color-current: currentColor;
   --font-*: initial;
-  --font-display: var(--font-display);
-  --font-body: var(--font-body);
+  /* TEK AİLE: Tailwind'de font-display/font-body diye İKİ AYRI aile tanımlanmıyor.
+     Yalnızca font-sans var; hiyerarşi font-weight (font-bold/font-medium) ile kurulur. */
+  --font-sans: var(--font-museo-stack);
 }
 
 *,
@@ -168,7 +76,7 @@ html {
   scrollbar-width: none;
   background: var(--char);
   color-scheme: dark;
-  /* Comico tek ağırlık/tek stil: sahte kalın/italik üretilmesin */
+  /* Değişken yüz gerçek ağırlıkları taşır: sahte kalın/italik üretilmesin */
   font-synthesis: none;
 }
 html::-webkit-scrollbar {
@@ -180,31 +88,32 @@ body {
   min-height: 100dvh;
   background: var(--page-bg);
   color: var(--cream);
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
+  /* gövde varsayılanı: 400 (açıklama, SSS cevabı, footer, yasal metin) */
+  font-weight: 400;
   line-height: normal; /* preflight 1.5 verir; prototip tarayıcı varsayılanını kullanır */
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
 
-/* başlık ve vurgu ailesi: bileşenlerde doğrudan font adı yazılmaz, bu iki sınıf/tokendan gelir */
-.font-display,
+/* HİYERARŞİ KALINLIKLA: 700/800 başlık · 500 arayüz · 300/400 gövde.
+   Bileşenlerde artık Tailwind'in font-bold / font-medium sınıfları kullanılıyor. */
 h1,
 h2,
 h3,
 .big,
 .price {
-  font-family: var(--font-display);
-  font-weight: 400;
+  font-family: var(--font-museo-stack);
+  font-weight: 700;
   font-style: normal;
+  /* MuseoModerno geometrik ve yuvarlak: büyük başlıklarda harf aralığı sıkılaşır */
+  letter-spacing: -0.02em;
 }
-.font-body {
-  font-family: var(--font-body);
-}
-
-/* HUD etiketleri (eski mono): gövde ailesinde, orta ağırlık */
+/* Küçük + BÜYÜK HARF etiketler (eski mono/HUD): aralık AÇILIR, orta kalınlık */
 .mono {
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
   font-weight: 500;
+  letter-spacing: 0.12em;
 }
 
 /* ---- MÜŞTERİ YORUMLARI: karakter yükselme + makara kayması ----

@@ -83,7 +83,7 @@ for (const w of [390, 430, 768]) {
   check(`${w}px: aynı yükseklik`, o.h === c.h, `${o.h} vs ${c.h}`);
   check(`${w}px: aynı üst kenar`, o.y === c.y, `${o.y} vs ${c.y}`);
   check(`${w}px: aynı yazı boyutu`, o.fs === c.fs, `${o.fs} vs ${c.fs}`);
-  check(`${w}px: aynı tipografi (Comico)`, o.ff === c.ff && /comico/i.test(o.ff), o.ff.split(",")[0]);
+  check(`${w}px: aynı tipografi (MuseoModerno)`, o.ff === c.ff && /museomoderno/i.test(o.ff), o.ff.split(",")[0]);
 
   /* kesilme / taşma / çakışma */
   const env = await p.evaluate(() => ({

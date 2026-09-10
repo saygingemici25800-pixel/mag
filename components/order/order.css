@@ -11,7 +11,7 @@
 }
 /* iki satırlı italik display başlık (stage.css'e bağımlı olmasın) */
 .ord .big {
-  font-family: var(--font-display);
+  font-family: var(--font-museo-stack);
   margin: 0;
   font-size: clamp(2.6rem, 8vw, 5.4rem);
   line-height: 0.8;
@@ -32,21 +32,22 @@
 .ord .big span {
   display: block;
   overflow: hidden;
-  padding: 0.16em 0 0.12em; /* Comico: Ö/İ noktaları maskeden taşmasın */
+  padding: 0.16em 0 0.12em; /* Ö/İ noktaları maskeden taşmasın */
   margin: -0.16em 0 -0.12em;
 }
 .ord .big span i {
   display: block;
 }
 .ord-label {
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
+  font-weight: 400;
   font-size: 0.62rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--dim);
 }
 .ord-h {
-  font-family: var(--font-display);
+  font-family: var(--font-museo-stack);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: -0.03em;
@@ -115,7 +116,8 @@ select.ctl {
   border-color: var(--accent);
 }
 .err {
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
+  font-weight: 400;
   font-size: 0.6rem;
   letter-spacing: 0.08em;
   color: var(--accent);
@@ -145,7 +147,7 @@ select.ctl {
   filter: drop-shadow(0 14px 18px color-mix(in srgb, var(--mag-ink) 60%, transparent));
 }
 .card .tname {
-  font-family: var(--font-display);
+  font-family: var(--font-museo-stack);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: -0.02em;
@@ -164,8 +166,10 @@ select.ctl {
   hyphens: auto;
 }
 .card .price {
-  font-family: var(--font-display);
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
+  font-weight: 700;
+  font-family: var(--font-museo-stack);
+  font-weight: 400;
   font-size: 0.8rem;
   color: var(--cream);
 }
@@ -198,11 +202,12 @@ select.ctl {
 .qty b {
   min-width: 28px;
   text-align: center;
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
+  font-weight: 400;
   font-size: 0.85rem;
 }
 .addbtn {
-  font-family: var(--font-display);
+  font-family: var(--font-museo-stack);
   border: 1px solid color-mix(in srgb, var(--cream) 30%, transparent);
   background: transparent;
   color: var(--cream);
@@ -290,13 +295,14 @@ select.ctl {
   color: var(--accent);
   border-radius: 8px;
   padding: 10px 12px;
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
+  font-weight: 400;
   font-size: 0.62rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 .submit {
-  font-family: var(--font-display);
+  font-family: var(--font-museo-stack);
   width: 100%;
   background: var(--cream);
   color: var(--char);
@@ -362,7 +368,7 @@ select.ctl {
   text-align: left;
 }
 .modal th {
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
   font-weight: 400;
   font-size: 0.6rem;
   letter-spacing: 0.18em;
@@ -374,17 +380,20 @@ select.ctl {
 .modal td:nth-child(2),
 .modal th:nth-child(2) {
   text-align: right;
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
+  font-weight: 400;
 }
 .ibtn {
-  font-family: var(--font-display);
+  font-family: var(--font-museo-stack);
+  font-weight: 700;
   width: 30px;
   height: 30px;
   border-radius: 50%;
   border: 1px solid color-mix(in srgb, var(--cream) 30%, transparent);
   background: transparent;
   color: var(--cream);
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
+  font-weight: 400;
   font-size: 0.8rem;
   cursor: pointer;
   flex: none;
@@ -415,7 +424,8 @@ select.ctl {
   display: grid;
   place-items: center;
   font-style: normal;
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
+  font-weight: 400;
   font-size: 0.65rem;
 }
 .step.done {
@@ -467,7 +477,8 @@ select.ctl {
   border: 1px solid color-mix(in srgb, var(--cream) 22%, transparent);
   color: var(--dim);
   text-decoration: none;
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
+  font-weight: 400;
   font-size: 0.66rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -539,7 +550,7 @@ select.ctl {
   padding-top: 6px;
 }
 .prow .price {
-  font-family: var(--font-display);
+  font-family: var(--font-museo-stack);
   font-size: 0.95rem;
   font-weight: 500;
 }
@@ -569,7 +580,7 @@ select.ctl {
   background: linear-gradient(160deg, var(--surface), var(--char));
 }
 .pimg.typo span {
-  font-family: var(--font-display);
+  font-family: var(--font-museo-stack);
   font-weight: 900;
   font-size: 2.4rem;
   color: var(--accent);
@@ -671,12 +682,13 @@ select.ctl {
   cursor: pointer;
 }
 .chip small {
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
+  font-weight: 400;
   color: var(--dim);
   font-size: 0.72rem;
 }
 .chip b {
-  font-family: var(--font-display);
+  font-family: var(--font-museo-stack);
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -734,7 +746,8 @@ select.ctl {
   place-items: center;
 }
 .cb-badge {
-  font-family: var(--font-display);
+  font-family: var(--font-museo-stack);
+  font-weight: 700;
   position: absolute;
   top: -4px;
   right: -6px;
@@ -744,7 +757,8 @@ select.ctl {
   border-radius: 999px;
   background: var(--accent);
   color: var(--char);
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
+  font-weight: 400;
   font-size: 0.72rem;
   display: grid;
   place-items: center;
@@ -762,10 +776,12 @@ select.ctl {
   }
 }
 .cb-total {
-  font-family: var(--font-display);
+  font-family: var(--font-museo-stack);
+  font-weight: 700;
   display: flex;
   flex-direction: column;
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
+  font-weight: 400;
   font-size: 1rem;
 }
 .cb-total small {
@@ -775,7 +791,7 @@ select.ctl {
   color: var(--dim);
 }
 .cb-go {
-  font-family: var(--font-display);
+  font-family: var(--font-museo-stack);
   background: var(--cream);
   color: var(--char);
   border-radius: 999px;
@@ -798,13 +814,15 @@ select.ctl {
 }
 
 .badge2 {
-  font-family: var(--font-display);
+  font-family: var(--font-museo-stack);
+  font-weight: 700;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 6px 10px;
   border-radius: 6px;
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
+  font-weight: 400;
   font-size: 0.62rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -829,7 +847,8 @@ select.ctl {
 /* tutar sayı geçişinde zıplamasın */
 .cb-total [data-cart-total] {
   font-variant-numeric: tabular-nums;
-  font-family: var(--font-body);
+  font-family: var(--font-museo-stack);
+  font-weight: 400;
 }
 @media (prefers-reduced-motion: reduce) {
   .cartfx-copy {
@@ -856,7 +875,8 @@ select.ctl {
   background: color-mix(in srgb, var(--surface) 96%, transparent);
 }
 .upsell-h {
-  font-family: var(--font-display);
+  font-family: var(--font-museo-stack);
+  font-weight: 700;
   font-size: 1rem;
   letter-spacing: 0.04em;
   color: var(--cream);
@@ -901,7 +921,8 @@ select.ctl {
   color: var(--cream);
 }
 .upsell-price {
-  font-family: var(--font-display);
+  font-family: var(--font-museo-stack);
+  font-weight: 700;
   font-size: 0.9rem;
   color: var(--accent);
 }
@@ -958,7 +979,8 @@ select.ctl {
   margin-bottom: 10px;
 }
 .ingpick-title {
-  font-family: var(--font-display);
+  font-family: var(--font-museo-stack);
+  font-weight: 700;
   font-size: 0.82rem;
   letter-spacing: 0.04em;
   color: var(--cream);

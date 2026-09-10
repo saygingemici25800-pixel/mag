@@ -145,7 +145,7 @@ export default function CheckoutPage() {
                       +
                     </button>
                   </span>
-                  <span className="min-w-14 text-right font-display text-sm">{formatPriceFor(locale, m.price * it.qty)}</span>
+                  <span className="min-w-14 text-right font-bold text-sm">{formatPriceFor(locale, m.price * it.qty)}</span>
                 </div>
                 {pickerKey === it.key ? (
                   <div className="w-full">
@@ -157,7 +157,7 @@ export default function CheckoutPage() {
           })}
         </div>
       )}
-      <div className="flex flex-col gap-1 font-display text-sm" data-cart-totals>
+      <div className="flex flex-col gap-1 font-bold text-sm" data-cart-totals>
         <div className="flex justify-between text-dim">
           <span>{o.subtotal}</span>
           <span>{formatPriceFor(locale, totals.subtotal)}</span>
