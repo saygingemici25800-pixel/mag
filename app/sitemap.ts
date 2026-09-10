@@ -6,6 +6,7 @@ import { siteUrl } from "@/lib/site";
 const PATHS: { path: string; priority: number; freq: MetadataRoute.Sitemap[number]["changeFrequency"] }[] = [
   { path: "/", priority: 1, freq: "weekly" },
   { path: "/siparis", priority: 0.9, freq: "weekly" },
+  { path: "/galeri", priority: 0.6, freq: "monthly" },
   ...LEGAL_SLUGS.map((s) => ({ path: `/yasal/${s}`, priority: 0.2, freq: "yearly" as const })),
 ];
 

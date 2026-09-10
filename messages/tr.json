@@ -108,6 +108,20 @@
     "source": "Google Haritalar yorumları",
     "sourceAria": "MAG Street Food'un Google Haritalar profili"
   },
+  "gallery": {
+    "metaTitle": "Galeri",
+    "metaDesc": "MAG Street Food Fethiye — burger, taco ve noodle fotoğrafları. Sürükleyerek gezin.",
+    "title": [
+      "FOTO",
+      "DUVARI"
+    ],
+    "lead": "Sürükleyerek gezin",
+    "back": "Ana sayfa",
+    "nav": "GALERİ",
+    "altFallback": "MAG Street Food ürün fotoğrafı",
+    "altOf": "{name} — MAG Street Food",
+    "wallAria": "Fotoğraf duvarı — ok tuşlarıyla gezinin"
+  },
   "footer": {
     "title": [
       "BİZE",
