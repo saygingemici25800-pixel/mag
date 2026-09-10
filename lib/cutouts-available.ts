@@ -1,5 +1,5 @@
 /**
- * Yalnızca sunucu/build: public/assets/cut/<id>.webp (ve cut-m) taranır. Statik import'u olmayan hero ürünler
+ * Yalnızca sunucu/build: public/urun/<id>.webp (ve cut-m) taranır. Statik import'u olmayan hero ürünler
  * için dosya gelince otomatik kullanılır; kod değişmez (statik sayfa → yeni build).
  */
 import { existsSync } from "node:fs";
@@ -12,9 +12,9 @@ export function extraCutouts(): ExtraCutouts {
   const out: ExtraCutouts = {};
   for (const m of HERO_ITEMS) {
     if (CUTOUTS[m.id]) continue;
-    const full = `/assets/cut/${m.id}.webp`;
+    const full = `/urun/${m.id}.webp`;
     if (!existsSync(path.join(process.cwd(), "public", full))) continue;
-    const mob = `/assets/cut-m/${m.id}.webp`;
+    const mob = `/urun/mobil/${m.id}.webp`;
     out[m.id] = { src: full, srcM: existsSync(path.join(process.cwd(), "public", mob)) ? mob : undefined };
   }
   return out;

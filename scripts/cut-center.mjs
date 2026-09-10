@@ -10,7 +10,7 @@ import sharp from "sharp";
 import { readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-const SRC = "public/assets/cut";
+const SRC = "public/urun";
 const OUT = "lib/cutCenters.json";
 const ALPHA = 16;
 const COVER = 0.5;

@@ -1,11 +1,11 @@
 /**
  * Galeri duvarı — görsel listesi TEK KAYNAK. Bileşene gömülü liste yok.
  *
- * DURUM (10 Eyl 2026): elde 5 ham ürün fotoğrafı var, hedef 20-24. Duvar 5 görselle
+ * DURUM (10 Eyl 2026): elde 7 ham ürün fotoğrafı var, hedef 20-24. Duvar 5 görselle
  * çalışır kuruldu; foto geldikçe yalnızca bu dizi büyür, bileşen değişmez.
  *
  * Not: bu dosyadaki fotoğraflar "tabak/masa" çekimi değil, turuncu ışık zeminine
- * yerleştirilmiş ürün çekimleri (hero ile aynı kaynak). Saydam kesimler (assets/cut)
+ * yerleştirilmiş ürün çekimleri (hero ile aynı kaynak). Saydam kesimler (public/urun)
  * BİLEREK kullanılmıyor: mor zeminde havada duruyormuş gibi görünüyorlar.
  *
  * ALT METİN: fotoğrafın içeriği tahmin EDİLMEZ. Hangi ürün olduğu dosya adından kesin
@@ -23,11 +23,15 @@ export interface GalleryPhoto {
 }
 
 export const GALLERY: GalleryPhoto[] = [
-  { src: "/assets/hero/1-smooky.jpg", w: 1536, h: 1024, item: "smooky" },
-  { src: "/assets/hero/2-brisket.jpg", w: 1536, h: 1024, item: "brisket" },
-  { src: "/assets/hero/3-berry.jpg", w: 1536, h: 1024, item: "berry" },
-  { src: "/assets/hero/4-jalapeno.jpg", w: 1536, h: 1024, item: "jalapeno" },
-  { src: "/assets/hero/5-caesar.jpg", w: 1536, h: 1024, item: "caesar" },
+  { src: "/urun/ham/smooky.jpg", w: 1536, h: 1024, item: "smooky" },
+  { src: "/urun/ham/brisket.jpg", w: 1536, h: 1024, item: "brisket" },
+  { src: "/urun/ham/berry.jpg", w: 1536, h: 1024, item: "berry" },
+  { src: "/urun/ham/jalapeno.jpg", w: 1536, h: 1024, item: "jalapeno" },
+  { src: "/urun/ham/caesar.jpg", w: 1536, h: 1024, item: "caesar" },
+  /* 10 Eyl 2026: yeni gelen iki foto. Bunlar TABAK/MASA çekimi (diğer beşi turuncu
+     ışık zeminine yerleştirilmiş ürün çekimi) — galeride ikisi de sorun değil. */
+  { src: "/urun/ham/truffle.jpg", w: 1536, h: 1024, item: "truffle" },
+  { src: "/urun/ham/orjinal.jpg", w: 1536, h: 1024, item: "orjinal" },
 ];
 
 /** Izgara TABANI: gerçek sütun/satır sayısı çalışma zamanında ekrana göre büyütülür

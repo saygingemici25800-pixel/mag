@@ -2,7 +2,7 @@
 import sharp from "sharp";
 import { readdir, mkdir } from "node:fs/promises";
 import path from "node:path";
-const SRC = "public/assets/cut", OUT = "assets/og"; // public dışı: yalnızca /api/og fs ile okur
+const SRC = "public/urun", OUT = "assets/og"; // public dışı: yalnızca /api/og fs ile okur
 await mkdir(OUT, { recursive: true });
 for (const f of (await readdir(SRC)).filter((n) => n.endsWith(".webp"))) {
   const out = path.join(OUT, f.replace(".webp", ".png"));

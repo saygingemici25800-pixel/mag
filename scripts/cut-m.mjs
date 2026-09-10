@@ -1,10 +1,10 @@
-// public/assets/cut/*.webp → public/assets/cut-m/<aynı-ad>.webp (300px yükseklik, kalite 72) — <900px'te kullanılır.
+// public/urun/*.webp → public/urun/mobil/<aynı-ad>.webp (300px yükseklik, kalite 72) — <900px'te kullanılır.
 import sharp from "sharp";
 import { readdir, mkdir } from "node:fs/promises";
 import path from "node:path";
 
-const SRC = "public/assets/cut";
-const OUT = "public/assets/cut-m";
+const SRC = "public/urun";
+const OUT = "public/urun/mobil";
 const HEIGHT = 300;
 const QUALITY = 72;
 
