@@ -114,6 +114,21 @@
     "sourceAria": "MAG Street Food на Google Картах",
     "_acik": "AÇIK: Rusça çeviri onay bekliyor. Yorum METİNLERİ çevrilmez, Türkçe kalır."
   },
+  "gallery": {
+    "metaTitle": "Галерея",
+    "metaDesc": "MAG Street Food Фетхие — фото бургеров, тако и лапши. Перетаскивайте, чтобы смотреть.",
+    "title": [
+      "ФОТО",
+      "СТЕНА"
+    ],
+    "lead": "Перетаскивайте",
+    "back": "На главную",
+    "nav": "ГАЛЕРЕЯ",
+    "altFallback": "Фото продукта MAG Street Food",
+    "altOf": "{name} — MAG Street Food",
+    "wallAria": "Фотостена — используйте стрелки для навигации",
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor"
+  },
   "footer": {
     "title": [
       "ПРИСОЕДИНЯЙТЕСЬ",

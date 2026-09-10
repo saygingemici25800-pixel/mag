@@ -109,6 +109,21 @@
     "sourceAria": "MAG Street Food on Google Maps",
     "_acik": "AÇIK: EN çevirisi onay bekliyor. Yorum METİNLERİ çevrilmez, Türkçe kalır."
   },
+  "gallery": {
+    "metaTitle": "Gallery",
+    "metaDesc": "MAG Street Food Fethiye — burger, taco and noodle photos. Drag to explore.",
+    "title": [
+      "PHOTO",
+      "WALL"
+    ],
+    "lead": "Drag to explore",
+    "back": "Home",
+    "nav": "GALLERY",
+    "altFallback": "MAG Street Food product photo",
+    "altOf": "{name} — MAG Street Food",
+    "wallAria": "Photo wall — use arrow keys to navigate",
+    "_acik": "AÇIK: EN çevirisi onay bekliyor"
+  },
   "footer": {
     "title": [
       "JOIN",

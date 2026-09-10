@@ -19,9 +19,34 @@ export function getMessages(locale: Locale = DEFAULT_LOCALE): Messages {
   if (locale === "ru") return ru as unknown as Messages;
   return tr;
 }
-/** "/siparis" → tr: "/siparis", en: "/en/siparis", ru: "/ru/siparis" */
+/**
+ * Dile göre değişen yol parçaları. Sitenin geri kalanı tek slug kullanıyor
+ * (/siparis, /en/siparis) ama galeri için dil karşılığı istendi.
+ * Anahtar = TR slug'ı; localePath ve stripLocale bu haritayı çevirir.
+ */
+const SLUGS: Record<string, Partial<Record<Locale, string>>> = {
+  galeri: { en: "gallery", ru: "galereya" },
+};
+/** TR slug → o dildeki karşılığı */
+function toSlug(locale: Locale, path: string): string {
+  const seg = path.replace(/^\//, "");
+  const alt = SLUGS[seg]?.[locale];
+  return alt ? `/${alt}` : path;
+}
+/** o dildeki slug → TR slug (dil değiştirirken yol korunsun) */
+function fromSlug(path: string): string {
+  const seg = path.replace(/^\//, "");
+  for (const [tr, m] of Object.entries(SLUGS)) {
+    if (seg === tr) return `/${tr}`;
+    if (Object.values(m).includes(seg)) return `/${tr}`;
+  }
+  return path;
+}
+
+/** "/siparis" → tr: "/siparis", en: "/en/siparis" · "/galeri" → en: "/en/gallery" */
 export function localePath(locale: Locale, path: string): string {
-  const p = path.startsWith("/") ? path : "/" + path;
+  const raw = path.startsWith("/") ? path : "/" + path;
+  const p = toSlug(locale, raw);
   if (locale === DEFAULT_LOCALE) return p;
   return p === "/" ? `/${locale}` : `/${locale}${p}`;
 }
@@ -29,9 +54,9 @@ export function localePath(locale: Locale, path: string): string {
 export function stripLocale(pathname: string): string {
   for (const l of PREFIXED) {
     if (pathname === `/${l}`) return "/";
-    if (pathname.startsWith(`/${l}/`)) return pathname.slice(l.length + 1);
+    if (pathname.startsWith(`/${l}/`)) return fromSlug(pathname.slice(l.length + 1));
   }
-  return pathname;
+  return fromSlug(pathname);
 }
 /** Yoldaki dil (yoksa varsayılan) — çerez/hatırlama ve hreflang için. */
 export function localeFromPath(pathname: string): Locale {

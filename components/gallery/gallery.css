@@ -1,0 +1,215 @@
+/* Galeri — tam ekran foto duvarı. Renkler globals.css tokenlarından; HAM HEX YOK. */
+
+.gpage {
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--char);
+  color: var(--cream);
+}
+
+/* Sürükleme alanı: tüm ekran. touch-action burada da yazılır ama asıl koruma
+   Draggable'ın eksen ayarında (allowNativeTouchScrolling: false) — kütüphane satır içi
+   stille bunu ezebiliyor, o yüzden CSS'e güvenilmiyor. */
+.gwall-view {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  outline: none;
+}
+.gwall-view:active {
+  cursor: grabbing;
+}
+/* Klavye odağı GÖRÜNÜR olsun (ok tuşlarıyla geziliyor) */
+.gwall-view:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -4px;
+}
+
+/* Duvar: 2×2 kopya. Genişlik/yükseklik iki kopya kadar; sarmalama bunun yarısına göre. */
+.gwall {
+  display: grid;
+  grid-template-columns: repeat(2, max-content);
+  width: max-content;
+  will-change: transform;
+}
+.gwall-copy {
+  display: grid;
+  /* --gcols bileşenden gelir (ekrana göre hesaplanır) */
+  grid-template-columns: repeat(var(--gcols), var(--gtile));
+  grid-auto-rows: var(--gtile);
+  gap: var(--ggap);
+  padding: calc(var(--ggap) / 2);
+}
+
+/* Karo: KARE (1:1). Set tek yönlü (hepsi 3:2 yatay) ama 1:1 ızgarada satır/sütun hizası
+   temiz, sarmalama matematiği basit ve mobilde en dengeli; cover ile yanlardan kırpılır,
+   burger ortada olduğu için kayıp az. */
+.gtile {
+  margin: 0;
+  width: var(--gtile);
+  height: var(--gtile);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--cream) 8%, transparent);
+  opacity: 0;
+  transform: translateY(10px);
+}
+/* Giriş: deterministik stagger (gecikme bileşenden), toplam ≤0,8 sn */
+.gwall-view.ready .gtile {
+  animation: gTileIn 0.3s ease-out forwards;
+}
+.gimg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Üst perde: TEK RENKTEN aşağı sönen yumuşak geçiş (gradyan yığını değil) —
+   header ve başlık parlak karelerin üstünde okunsun. */
+/* Üst perde: TEK RENKTEN (--char) aşağı sönen yumuşak geçiş. Üstte TAM opak olmalı,
+   yoksa parlak karolar üstünde başlık ve üst bar okunmuyor (ilk denemede öyleydi).
+   Sönme eğrisi yumuşatıldı: %0-35 tam, sonra kademeli şeffaf. */
+.gveil {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: clamp(240px, 38vh, 380px);
+  background: linear-gradient(
+    180deg,
+    var(--char) 0%,
+    var(--char) 34%,
+    color-mix(in srgb, var(--char) 72%, transparent) 58%,
+    color-mix(in srgb, var(--char) 34%, transparent) 78%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Başlık bloğu */
+.ghead {
+  position: absolute;
+  top: clamp(84px, 12vh, 120px);
+  left: var(--edge);
+  z-index: 6;
+  pointer-events: none;
+}
+.ghead h1 {
+  font-family: var(--font-display);
+  margin: 0;
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: clamp(2rem, 6vw, 4rem);
+  line-height: 0.85;
+  letter-spacing: -0.04em;
+  color: var(--cream);
+}
+.ghead p {
+  margin: 10px 0 0;
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  /* --dim perdenin sönmeye başladığı yerde parlak karo üstüne denk gelip okunmuyordu;
+     krem tonuna çıkarıldı. */
+  color: color-mix(in srgb, var(--cream) 72%, transparent);
+}
+/* Ana sayfaya dönüş — perdenin üstünde, tıklanabilir */
+.gback {
+  position: absolute;
+  top: clamp(84px, 12vh, 120px);
+  right: var(--edge);
+  z-index: 7;
+  font-family: var(--font-body);
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dim);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--cream) 24%, transparent);
+  padding-bottom: 3px;
+}
+.gback:hover,
+.gback:focus-visible {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  outline: none;
+}
+
+/* Mobilde yapışkan SİPARİŞ düğmesi */
+.gorder {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+  transform: translateX(-50%);
+  z-index: 8;
+  font-family: var(--font-display);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 26px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--ink);
+  font-weight: 800;
+  font-size: 0.84rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  box-shadow: 0 0 30px color-mix(in srgb, var(--accent) 26%, transparent);
+}
+.gorder:focus-visible {
+  outline: 2px solid var(--cream);
+  outline-offset: 3px;
+}
+@media (min-width: 900px) {
+  /* masaüstünde üst bardaki SİPARİŞ zaten var; ikinci düğme gereksiz */
+  .gorder {
+    display: none;
+  }
+}
+
+/* Karo ölçüsü: ekrana göre. Kareler EŞİT ve hizalı; boşluklar eşit. */
+/* Karo ölçüsü: ekranda daha çok kare görünsün diye küçük tutuldu. Büyük karoda
+   ekrana 12 karo sığıyordu ve 5 fotoğrafın tekrarı göze batıyordu. */
+.gpage {
+  --gcols: 5;
+  --gtile: clamp(120px, 13vw, 180px);
+  --ggap: 10px;
+}
+@media (max-width: 899px) {
+  .gpage {
+    --gcols: 5;
+    --gtile: clamp(96px, 27vw, 140px);
+    --ggap: 8px;
+  }
+}
+
+@keyframes gTileIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* prefers-reduced-motion: giriş animasyonu yok (momentum bileşende kapatılıyor);
+   duvar yine sürüklenebilir ve klavyeyle gezilebilir. */
+@media (prefers-reduced-motion: reduce) {
+  .gtile {
+    opacity: 1;
+    transform: none;
+  }
+  .gwall-view.ready .gtile {
+    animation: none;
+  }
+}

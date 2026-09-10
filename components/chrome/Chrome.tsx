@@ -6,7 +6,7 @@ import OrderCta from "./OrderCta";
 import SoundToggle from "./SoundToggle";
 import "./chrome.css";
 
-/** Topbar (ses anahtarı · mag. · TR|EN · SİPARİŞ · İLETİŞİM) ve dört köşe braketi. */
+/** Topbar (ses anahtarı · mag. · TR|EN|RU · GALERİ · SİPARİŞ · İLETİŞİM) ve dört köşe braketi. */
 export default function Chrome({ locale }: { locale: Locale }) {
   const t = getMessages(locale);
   const c = t.chrome;
@@ -22,6 +22,10 @@ export default function Chrome({ locale }: { locale: Locale }) {
           <i>.</i>
         </Link>
         <nav className="navR">
+          {/* GALERİ — sipariş çiftinden önce, ikincil bağlantı olarak */}
+          <Link href={localePath(locale, "/galeri")} className="gnav" prefetch={false}>
+            {t.gallery.nav}
+          </Link>
           <OrderCta locale={locale} label={c.menu} labelShort={c.menuShort} closedLabel={c.closedNow} closedShort={c.closedNowShort} />
           <ContactOverlay t={t.contact} label={c.contact} labelShort={c.contactShort} />
         </nav>
