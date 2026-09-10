@@ -5,17 +5,22 @@ import brisket from "@/public/assets/cut/brisket.webp";
 import berry from "@/public/assets/cut/berry.webp";
 import jalapeno from "@/public/assets/cut/jalapeno.webp";
 import caesar from "@/public/assets/cut/caesar.webp";
+import orjinal from "@/public/assets/cut/orjinal.webp";
+import truffle from "@/public/assets/cut/truffle.webp";
 import smookyM from "@/public/assets/cut-m/smooky.webp";
 import brisketM from "@/public/assets/cut-m/brisket.webp";
 import berryM from "@/public/assets/cut-m/berry.webp";
 import jalapenoM from "@/public/assets/cut-m/jalapeno.webp";
 import caesarM from "@/public/assets/cut-m/caesar.webp";
+import orjinalM from "@/public/assets/cut-m/orjinal.webp";
+import truffleM from "@/public/assets/cut-m/truffle.webp";
 
-/** Fondan kesilmiş cutout'lar (WebP, 480px). Eksik ürünler (orjinal, truffle, citir): dosya gelince build'de bulunur → lib/cutouts-available.ts */
-export const CUTOUTS: Partial<Record<HeroId, StaticImageData>> = { smooky, brisket, berry, jalapeno, caesar };
+/** Fondan kesilmiş cutout'lar (WebP, 480px). Dosya adı = ürün id'si.
+    Eksik ürün (citir): dosya gelince build'de bulunur → lib/cutouts-available.ts */
+export const CUTOUTS: Partial<Record<HeroId, StaticImageData>> = { smooky, brisket, berry, jalapeno, caesar, orjinal, truffle };
 
 /** Mobil kopyalar (300px, kalite 72) — `pnpm assets:cut-m`. */
-export const CUTOUTS_M: Partial<Record<HeroId, StaticImageData>> = { smooky: smookyM, brisket: brisketM, berry: berryM, jalapeno: jalapenoM, caesar: caesarM };
+export const CUTOUTS_M: Partial<Record<HeroId, StaticImageData>> = { smooky: smookyM, brisket: brisketM, berry: berryM, jalapeno: jalapenoM, caesar: caesarM, orjinal: orjinalM, truffle: truffleM };
 
 /** Build'de dosya sisteminde bulunan ek cutout'lar (statik import'suz) */
 export interface ExtraCutout {
