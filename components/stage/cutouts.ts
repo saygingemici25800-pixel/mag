@@ -1,19 +1,19 @@
 import type { StaticImageData } from "next/image";
 import { HERO_ITEMS, type HeroId, type HeroItem } from "@/lib/menu";
-import smooky from "@/public/assets/cut/smooky.webp";
-import brisket from "@/public/assets/cut/brisket.webp";
-import berry from "@/public/assets/cut/berry.webp";
-import jalapeno from "@/public/assets/cut/jalapeno.webp";
-import caesar from "@/public/assets/cut/caesar.webp";
-import orjinal from "@/public/assets/cut/orjinal.webp";
-import truffle from "@/public/assets/cut/truffle.webp";
-import smookyM from "@/public/assets/cut-m/smooky.webp";
-import brisketM from "@/public/assets/cut-m/brisket.webp";
-import berryM from "@/public/assets/cut-m/berry.webp";
-import jalapenoM from "@/public/assets/cut-m/jalapeno.webp";
-import caesarM from "@/public/assets/cut-m/caesar.webp";
-import orjinalM from "@/public/assets/cut-m/orjinal.webp";
-import truffleM from "@/public/assets/cut-m/truffle.webp";
+import smooky from "@/public/urun/smooky.webp";
+import brisket from "@/public/urun/brisket.webp";
+import berry from "@/public/urun/berry.webp";
+import jalapeno from "@/public/urun/jalapeno.webp";
+import caesar from "@/public/urun/caesar.webp";
+import orjinal from "@/public/urun/orjinal.webp";
+import truffle from "@/public/urun/truffle.webp";
+import smookyM from "@/public/urun/mobil/smooky.webp";
+import brisketM from "@/public/urun/mobil/brisket.webp";
+import berryM from "@/public/urun/mobil/berry.webp";
+import jalapenoM from "@/public/urun/mobil/jalapeno.webp";
+import caesarM from "@/public/urun/mobil/caesar.webp";
+import orjinalM from "@/public/urun/mobil/orjinal.webp";
+import truffleM from "@/public/urun/mobil/truffle.webp";
 
 /** Fondan kesilmiş cutout'lar (WebP, 480px). Dosya adı = ürün id'si.
     Eksik ürün (citir): dosya gelince build'de bulunur → lib/cutouts-available.ts */

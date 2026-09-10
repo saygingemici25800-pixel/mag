@@ -107,7 +107,7 @@ function TestimonialsInner({ t }: { t: Messages }) {
                         {/* öne çıkan karo: kendi ürün fotoğrafımız */}
                         {(k + col) % 3 !== 1 ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={`/assets/cut-m/${id}.webp`} alt="" width={34} height={34} loading="lazy" decoding="async" />
+                          <img src={`/urun/mobil/${id}.webp`} alt="" width={34} height={34} loading="lazy" decoding="async" />
                         ) : (
                           /* dolgu hücresi: referanstaki gibi bulanık, içerik taşımaz */
                           <span className="tst-blur" />

@@ -70,6 +70,41 @@ assets/ · promptlar/      # kaynak görseller ve ChatGPT promptları (spec pake
 Testler (Playwright, scratchpad): Faz 3 uçtan uca akış `faz3-test.sh` — üretimde PANEL_KEY yokken 401, PANEL_KEY ile giriş,
 SSE canlı kart, durum → müşteri, push mock. Deploy Faz 3 sonrası, Supabase bağlıyken (stub ile deploy yok).
 
+## Varlık düzeni
+
+Görseller tek bir kurala göre durur: **dosya adı = ürün id'si** (`lib/menu.ts`).
+Türkçe karakter, boşluk ve büyük harf yok; hepsi küçük harf ve tire.
+
+```
+public/
+  urun/<id>.webp         hero kesimi, saydam, 480 px
+  urun/mobil/<id>.webp   aynı kesimin mobil kopyası, 300 px
+  urun/ham/<id>.jpg      ham fotoğraf (galeri), 1536 px
+  brand/                 logo ve marka varlıkları
+  sounds/                ses dosyaları
+_arsiv/                  referanssız dosyalar — SİLİNMEDİ, karar bekliyor
+                         (public DIŞINDA: public altında olsaydı internete açılırdı)
+assets/                  SUNUCU tarafı, public'e çıkmaz
+  og/<id>.png            OG görseli üretimi (app/api/og)
+  fonts/                 Satori için TTF (woff2 okumuyor)
+```
+
+Galeri görselleri ayrı bir klasörde değil: `urun/ham/` altındaki ham fotoğraflar
+kullanılıyor (liste `lib/gallery.ts`). Ayrı `public/galeri/` açmadım çünkü aynı
+fotoğraflar hem galeride hem ileride başka yerde kullanılacak; iki kopya tutmak
+senkron sorunu doğurur.
+
+### Yeni ürün fotoğrafı gelince
+
+1. Ham fotoğrafı `public/urun/ham/<id>.jpg` olarak koy (1536 px yeter).
+2. Kesim üret: arka planı sil, alfa kutusuna kırp, 480 px yüksekliğe indir →
+   `public/urun/<id>.webp`. Mobil kopyası 300 px → `public/urun/mobil/<id>.webp`.
+3. `components/stage/cutouts.ts` içine iki `import` ve iki kayıt ekle.
+4. Galeride görünsün istiyorsan `lib/gallery.ts` dizisine bir satır ekle.
+
+Kesim dosyası olmayan ürün hero'da tipografik kutu olarak görünür; kod değişikliği
+gerekmez (`lib/cutouts-available.ts` dosyayı build sırasında bulur).
+
 ## Diller
 
 TR kök (`/`), EN `/en` altında aynı ağaç. Tüm metinler `messages/tr.json` ve `messages/en.json`; ürün adları `lib/menu.ts`'te,

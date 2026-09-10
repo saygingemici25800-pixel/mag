@@ -54,7 +54,7 @@ export const MENU: Record<Category, MenuItem[]> = {
       pairs: ["jalapeno-sos", "mag-sos", "zencefilli-gazoz"],
       /* AD DEĞİŞTİ (10 Eyl 2026): bu kayıt artık TRUFFLE MUSHROOM. id KORUNDU —
          sepet anahtarları, dilim dosyaları ve mevcut siparişler id'ye bağlı.
-         Fotoğrafı değişmedi (public/assets/cut/truffle.webp: eski brisket.webp).
+         Fotoğrafı değişmedi (public/urun/truffle.webp: eski brisket.webp).
          AÇIK: aşağıdaki desc ve ingredients HÂLÂ ESKİ (tiftik etli) — trüflü ürüne ait
          değil, işletmeden gelecek. Bilerek dokunulmadı. */
       name: "Truffle Mushroom",
@@ -90,7 +90,7 @@ export const MENU: Record<Category, MenuItem[]> = {
       desc: "Mag sos, marul, gravyer, panelenmiş tavuk",
       ingredients: [{ name: "brioche ekmek", removable: false }, { name: "Mag sos", removable: true }, { name: "marul", removable: true }, { name: "gravyer", removable: true }, { name: "panelenmiş tavuk", removable: false }],
     },
-    // foto yok → hero'da tipografik kutu; assets/cut/<id>.webp gelince otomatik cutout (lib/cutouts-available.ts)
+    // foto yok → hero'da tipografik kutu; public/urun/<id>.webp gelince otomatik cutout (lib/cutouts-available.ts)
     {
       id: "orjinal",
       pairs: ["jalapeno-sos", "mag-sos", "ayran"],
@@ -104,7 +104,7 @@ export const MENU: Record<Category, MenuItem[]> = {
       id: "truffle",
       pairs: ["truflu-mayonez", "zencefilli-gazoz"],
       /* AD DEĞİŞTİ (10 Eyl 2026): bu kayıt artık BRISKET, yeni fotoğrafıyla
-         (public/assets/cut/brisket.webp). id KORUNDU.
+         (public/urun/brisket.webp). id KORUNDU.
          AÇIK: desc ve ingredients hâlâ eski (trüflü/mantarlı) — brisket'e ait değil,
          işletmeden gelecek. */
       name: "Brisket",

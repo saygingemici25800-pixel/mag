@@ -1,5 +1,5 @@
 /**
- * Hero kesimlerini yatayda ortalar (public/assets/cut + cut-m).
+ * Hero kesimlerini yatayda ortalar (public/urun + cut-m).
  *
  * NEDEN: `background-size: contain` / `object-fit: contain` TUVALİ ortalar, ürünü değil.
  * Kesimin bir yanında boş alan varsa (ör. smooky: 819 px tuval, ürün 655 px'te bitiyor →
@@ -17,7 +17,7 @@ import path from "node:path";
 import sharp from "sharp";
 
 const ROOT = process.cwd();
-const DIRS = ["public/assets/cut", "public/assets/cut-m"];
+const DIRS = ["public/urun", "public/urun/mobil"];
 /** Sınır kutusunun iki yanında bırakılan pay */
 const PAD = 4;
 /** Bu eşiğin altındaki kaçıklık dokunulmadan bırakılır */
@@ -25,7 +25,7 @@ const TOLERANCE = 4;
 /** Alfa bu değerin altındaysa piksel "boş" sayılır (kesim kenarlarındaki yumuşak geçiş) */
 const ALPHA_MIN = 8;
 /** WebP kalitesi — mevcut dosyalarla aynı seviyede kalsın (cut-m.mjs 72 kullanıyor) */
-const QUALITY = { "public/assets/cut": 92, "public/assets/cut-m": 72 };
+const QUALITY = { "public/urun": 92, "public/urun/mobil": 72 };
 
 const dry = process.argv.includes("--dry");
 

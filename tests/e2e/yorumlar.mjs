@@ -118,7 +118,8 @@ for (const [w, h, label] of [[1440, 900, "masaüstü"], [390, 844, "mobil"]]) {
     /* uzun yorum kırpılmasın: görünen harf sayısı toplamla aynı olmalı */
     check(`yorum ${i + 1} TAM görünüyor (kırpılmıyor)`, s.görünen === s.toplam, `${s.görünen}/${s.toplam} harf`);
   });
-  check("makarada yalnızca kendi ürün fotoğraflarımız", r.imgs.length > 0 && r.imgs.every((s) => /\/assets\/cut/.test(s)), r.imgs.slice(0, 2).join(" "));
+  /* Varlık düzeni değişti: /assets/cut → /urun (dosya adı = ürün id'si). */
+  check("makarada yalnızca kendi ürün fotoğraflarımız", r.imgs.length > 0 && r.imgs.every((s) => /^\/urun\//.test(s)), r.imgs.slice(0, 2).join(" "));
   check("portre/avatar yok", !r.imgs.some((s) => /avatar|face|person|portrait|unsplash|pravatar/i.test(s)));
   check("kaynak bağlantısı Google Haritalar", /google\.com\/maps/.test(r.srcHref ?? ""), (r.srcHref ?? "").slice(0, 42));
   await p.close();
