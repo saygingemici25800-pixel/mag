@@ -52,7 +52,12 @@ export const MENU: Record<Category, MenuItem[]> = {
     {
       id: "brisket",
       pairs: ["jalapeno-sos", "mag-sos", "zencefilli-gazoz"],
-      name: "Brisket",
+      /* AD DEĞİŞTİ (10 Eyl 2026): bu kayıt artık TRUFFLE MUSHROOM. id KORUNDU —
+         sepet anahtarları, dilim dosyaları ve mevcut siparişler id'ye bağlı.
+         Fotoğrafı değişmedi (public/assets/cut/truffle.webp: eski brisket.webp).
+         AÇIK: aşağıdaki desc ve ingredients HÂLÂ ESKİ (tiftik etli) — trüflü ürüne ait
+         değil, işletmeden gelecek. Bilerek dokunulmadı. */
+      name: "Truffle Mushroom",
       price: 600,
       hero: true,
       desc: "Ağır ateşte pişmiş tiftik et, karamelize soğan, cheddar, tütsü biberli aioli, soğan turşusu",
@@ -98,7 +103,11 @@ export const MENU: Record<Category, MenuItem[]> = {
     {
       id: "truffle",
       pairs: ["truflu-mayonez", "zencefilli-gazoz"],
-      name: "Truffle & Mush",
+      /* AD DEĞİŞTİ (10 Eyl 2026): bu kayıt artık BRISKET, yeni fotoğrafıyla
+         (public/assets/cut/brisket.webp). id KORUNDU.
+         AÇIK: desc ve ingredients hâlâ eski (trüflü/mantarlı) — brisket'e ait değil,
+         işletmeden gelecek. */
+      name: "Brisket",
       price: 550,
       hero: true,
       desc: "130 gr burger köftesi, mantar düxelles, trüflü mayonez, cheddar, soğan turşusu",
