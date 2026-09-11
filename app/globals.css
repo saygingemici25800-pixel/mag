@@ -188,31 +188,32 @@ h3,
 }
 
 /* ---- Köşe okları: sırayla yanma + toplu flaş ----
-   Döngü 1540 ms, üç AYRI keyframe (tek keyframe + gecikme İŞE YARAMIYOR: gecikme toplu
+   Döngü 2160 ms, üç AYRI keyframe (tek keyframe + gecikme İŞE YARAMIYOR: gecikme toplu
    flaşı da kaydırıyor ve üçü hiçbir anda birlikte yanmıyor — ölçüldü).
      0–180 ms   üstteki yanar
-     180–360    ortadaki yanar (üstteki sönmüş)
-     360–540    alttaki yanar (ortadaki sönmüş)
+     180–360    ortadaki yanar
+     360–540    alttaki yanar
      540–760    ÜÇÜ BİRDEN flaş (220 ms)
-     760–1540   bekleme (780 ms)
-   Yanma 0.15 → 0.9, geçişler yumuşak (ease-in-out). Yalnızca opacity; transform/filter YOK. */
+     760–2160   bekleme (1400 ms — 11 Eyl 2026'da 700'den iki katına çıkarıldı)
+   Adım süreleri DEĞİŞMEDİ; yalnızca döngü sonundaki bekleme uzadı.
+   Yanma 0.15 → 0.9, ease-in-out. Yalnızca opacity; transform/filter YOK. */
 @keyframes cornerSeq1 {
   0.0% {
     opacity: 0.15;
   }
-  5.84% {
+  4.17% {
     opacity: 0.9;
   }
-  11.69% {
+  8.33% {
     opacity: 0.15;
   }
-  35.06% {
+  25.0% {
     opacity: 0.15;
   }
-  42.21% {
+  30.09% {
     opacity: 0.9;
   }
-  49.35% {
+  35.19% {
     opacity: 0.15;
   }
   100.0% {
@@ -223,22 +224,22 @@ h3,
   0.0% {
     opacity: 0.15;
   }
-  11.69% {
+  8.33% {
     opacity: 0.15;
   }
-  17.53% {
+  12.5% {
     opacity: 0.9;
   }
-  23.38% {
+  16.67% {
     opacity: 0.15;
   }
-  35.06% {
+  25.0% {
     opacity: 0.15;
   }
-  42.21% {
+  30.09% {
     opacity: 0.9;
   }
-  49.35% {
+  35.19% {
     opacity: 0.15;
   }
   100.0% {
@@ -249,19 +250,19 @@ h3,
   0.0% {
     opacity: 0.15;
   }
-  23.38% {
+  16.67% {
     opacity: 0.15;
   }
-  29.22% {
+  20.83% {
     opacity: 0.9;
   }
-  35.06% {
+  25.0% {
     opacity: 0.15;
   }
-  42.21% {
+  30.09% {
     opacity: 0.9;
   }
-  49.35% {
+  35.19% {
     opacity: 0.15;
   }
   100.0% {

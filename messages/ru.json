@@ -24,8 +24,8 @@
     "closedNow": "Сейчас мы закрыты",
     "closedNowShort": "Закрыто",
     "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek · menuShort/contactShort yalnızca dar ekranda kullanılır",
-    "menuShort": "Заказ",
-    "contactShort": "Контакт"
+    "menuShort": "ЗАКАЗ",
+    "contactShort": "КОНТАКТ"
   },
   "hero": {
     "sub": "картофель включён",
@@ -124,6 +124,7 @@
     "lead": "Перетаскивайте",
     "back": "На главную",
     "nav": "ГАЛЕРЕЯ",
+    "navShort": "ФОТО",
     "altFallback": "Фото продукта MAG Street Food",
     "altOf": "{name} — MAG Street Food",
     "wallAria": "Фотостена — используйте стрелки для навигации",

@@ -21,8 +21,8 @@
     },
     "closedNow": "Şu an kapalıyız",
     "closedNowShort": "Kapalıyız",
-    "menuShort": "Sipariş",
-    "contactShort": "İletişim"
+    "menuShort": "SİPARİŞ",
+    "contactShort": "İLETİŞİM"
   },
   "hero": {
     "sub": "patates kızartması dahil",
@@ -118,6 +118,7 @@
     "lead": "Sürükleyerek gezin",
     "back": "Ana sayfa",
     "nav": "GALERİ",
+    "navShort": "GALERİ",
     "altFallback": "MAG Street Food ürün fotoğrafı",
     "altOf": "{name} — MAG Street Food",
     "wallAria": "Fotoğraf duvarı — ok tuşlarıyla gezinin"

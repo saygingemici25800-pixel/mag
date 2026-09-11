@@ -143,8 +143,10 @@ export function CornerArrows() {
       {[-1, 1].map((dir) => (
         <div key={dir} className={"cnr " + (dir < 0 ? "l" : "r")} aria-hidden="true">
           {[0, 1, 2].map((k) => (
-            <svg key={k} className="cchev" style={{ "--k": k } as React.CSSProperties} viewBox="0 0 24 48" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d={dir < 0 ? "M17 4L5 24l12 20" : "M7 4l12 20-12 20"} />
+            /* Yön AŞAĞI (11 Eyl 2026): iki grup da aynı yöne bakar. Kutu artık yatay
+               (48×24): aşağı bakan chevron geniş ve alçaktır. Konum/boyut değişmedi. */
+            <svg key={k} className="cchev" style={{ "--k": k } as React.CSSProperties} viewBox="0 0 48 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 7l20 12L44 7" />
             </svg>
           ))}
         </div>
