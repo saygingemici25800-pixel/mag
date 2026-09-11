@@ -194,7 +194,7 @@ for (const [w, h, label] of [[1440, 900, "masaüstü"], [390, 844, "mobil"]]) {
     const ov = (a, b2) => !(a.right <= b2.left || b2.right <= a.left || a.bottom <= b2.top || b2.bottom <= a.top);
     const st = getComputedStyle(L.querySelector(".cchev"));
     return {
-      okSayısı: cs.length, okYük: cs, grupYük: Math.round(lb.height),
+      okSayısı: cs.length, okYük: cs, okGen: Math.round(L.querySelector('.cchev').getBoundingClientRect().width), grupYük: Math.round(lb.height),
       dikeyYüzde: Math.round((lb.top + lb.height / 2) / innerHeight * 100),
       solKenar: Math.round(lb.left), sağKenar: Math.round(innerWidth - rb.right),
       çubukÇakışma: ov(lb, bar) || ov(rb, bar), sayaçÇakışma: ov(lb, cnt) || ov(rb, cnt),
@@ -206,7 +206,9 @@ for (const [w, h, label] of [[1440, 900, "masaüstü"], [390, 844, "mobil"]]) {
   });
   check("köşe okları var (iki grup)", !!g);
   check("her grupta 3 ok", g.okSayısı === 3, String(g.okSayısı));
-  check("ok ~80 px, grup ~150-175 px", g.okYük.every((h) => h >= 70 && h <= 90) && g.grupYük >= 140 && g.grupYük <= 180, `ok ${g.okYük[0]} · grup ${g.grupYük}`);
+  /* 11 Eyl 2026: oklar AŞAĞI baktığı için kutu döndü — ok 80×40 (önce 40×80).
+     Ölçüt okun UZUN kenarı (~80 px) ve grup yüksekliği (~164 px). */
+  check("ok ~80 px (uzun kenar), grup ~150-175 px", g.okGen >= 70 && g.okGen <= 90 && g.grupYük >= 140 && g.grupYük <= 180, `ok ${g.okGen}×${g.okYük[0]} · grup ${g.grupYük}`);
   check("dikeyde ~%80", Math.abs(g.dikeyYüzde - 80) <= 3, `%${g.dikeyYüzde}`);
   check("kenardan içeride, taşma yok", g.ekranİçinde && g.solKenar >= 12 && g.sağKenar >= 12, `sol ${g.solKenar} sağ ${g.sağKenar}`);
   check("ilerleme çubuğunu kapatmıyor", !g.çubukÇakışma);

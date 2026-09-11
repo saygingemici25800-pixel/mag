@@ -72,7 +72,9 @@ for (const w of [390, 430, 768]) {
   check(`${w}px: SİPARİŞ DOM'da`, !!o);
   check(`${w}px: SİPARİŞ görünür (0×0 değil)`, !!o && o.w > 0 && o.h > 0, o ? `${o.w}×${o.h}` : "yok");
   check(`${w}px: SİPARİŞ gizlenmemiş`, !!o && o.display !== "none" && o.visibility !== "hidden" && o.opacity !== "0");
-  check(`${w}px: metin 'Sipariş'`, o?.text === "Sipariş", o?.text);
+  /* 11 Eyl 2026: dar ekranda kısa etiket BÜYÜK HARF ("SİPARİŞ") — GALERİ üst bara
+     eklenince yer açmak için. Geniş ekranda "Sipariş" olarak kalıyor. */
+  check(`${w}px: metin Sipariş`, (o?.text ?? "").toLocaleUpperCase("tr-TR") === "SİPARİŞ", o?.text);
   check(`${w}px: İLETİŞİM görünür`, !!c && c.w > 0 && c.h > 0, c ? `${c.w}×${c.h}` : "yok");
 
   /* dokunma hedefi */
@@ -137,6 +139,67 @@ for (const [w, url, want, label] of [[390, "/", "/siparis", "mobil TR"], [1440, 
   check(`${label}: tıklayınca ${want} açıldı`, new URL(p.url()).pathname === want, new URL(p.url()).pathname);
   /* sipariş sayfası gerçekten yüklendi mi */
   check(`${label}: sipariş sayfası yüklendi`, (await p.locator("[data-menu-item], .ord").count()) > 0);
+  await p.close();
+}
+
+
+/* ---- GALERİ bağlantısı MOBİLDE de görünür ----
+   Gerileme koruması: bu bağlantı bir kez `display:none` ile mobilde gizlenmişti. */
+for (const [w, h] of [[360, 640], [390, 844], [430, 932], [1440, 900]]) {
+  const p = await b.newPage({ viewport: { width: w, height: h } });
+  await p.goto(base + "/", { waitUntil: "networkidle" });
+  await settle(p);
+  const g = await p.evaluate(() => {
+    const a = document.querySelector(".gnav");
+    if (!a) return null;
+    const b2 = a.getBoundingClientRect();
+    const vis = [...a.querySelectorAll("span")].filter((s) => getComputedStyle(s).display !== "none").map((s) => s.textContent.trim());
+    const o = document.querySelector("[data-order-cta]").getBoundingClientRect();
+    const c = document.querySelector("[data-contact-open]").getBoundingClientRect();
+    const ov = (x, y) => !(x.right <= y.left || y.right <= x.left);
+    return {
+      x: Math.round(b2.left), r: Math.round(b2.right), w: Math.round(b2.width), h: Math.round(b2.height),
+      txt: vis.join(""), href: a.getAttribute("href"), aria: a.getAttribute("aria-label"),
+      disp: getComputedStyle(a).display, vw: innerWidth,
+      contactR: Math.round(c.right), gO: ov(b2, o), oC: ov(o, c),
+      scrollW: document.documentElement.scrollWidth,
+      hit: (() => { const t = document.elementFromPoint(b2.left + b2.width / 2, b2.top + b2.height / 2); return a === t || a.contains(t) ? "OK" : `${t?.tagName}.${t?.className}`; })(),
+    };
+  });
+  check(`${w}px: GALERİ DOM'da`, !!g);
+  check(`${w}px: GALERİ görünür (gizlenmemiş)`, g.disp !== "none" && g.w > 0 && g.h > 0, `${g.disp} ${g.w}×${g.h}`);
+  check(`${w}px: GALERİ dokunma alanı ≥44 px`, g.h >= 44, `${g.h} px`);
+  check(`${w}px: GALERİ /galeri'ye gidiyor`, g.href === "/galeri", String(g.href));
+  check(`${w}px: GALERİ ekran içinde, kesilmiyor`, g.x >= 0 && g.r <= g.vw, `${g.x}–${g.r}/${g.vw}`);
+  check(`${w}px: GALERİ çifti taşırmıyor`, g.contactR <= g.vw, `İLETİŞİM sağ ${g.contactR}/${g.vw}`);
+  check(`${w}px: üçü üst üste binmiyor`, !g.gO && !g.oC);
+  check(`${w}px: yatay taşma yok`, g.scrollW <= g.vw, `${g.scrollW}/${g.vw}`);
+  check(`${w}px: GALERİ tıklanabilir (üstünde katman yok)`, g.hit === "OK", g.hit);
+  check(`${w}px: ekran okuyucu tam adı duyuyor`, !!g.aria && g.aria.length > 0, g.aria);
+  await p.close();
+}
+
+/* ---- TR · EN · RU aynı hizada ---- */
+for (const [w, h] of [[360, 640], [390, 844], [430, 932]]) {
+  const p = await b.newPage({ viewport: { width: w, height: h } });
+  await p.goto(base + "/", { waitUntil: "networkidle" });
+  await settle(p);
+  const r = await p.evaluate(() => {
+    const as = [...document.querySelectorAll(".lang a")].map((a) => {
+      const b2 = a.getBoundingClientRect();
+      return { txt: a.textContent.trim(), top: +b2.top.toFixed(1), h: +b2.height.toFixed(1), x: +b2.left.toFixed(1) };
+    });
+    const is = [...document.querySelectorAll(".lang i")].map((i) => +i.getBoundingClientRect().top.toFixed(1));
+    return { as, is };
+  });
+  const tops = r.as.map((a) => a.top);
+  const hs = r.as.map((a) => a.h);
+  check(`${w}px: TR/EN/RU aynı temel çizgide`, Math.max(...tops) - Math.min(...tops) < 0.6, `üst farkı ${(Math.max(...tops) - Math.min(...tops)).toFixed(1)} px`);
+  check(`${w}px: üçü aynı boyutta`, Math.max(...hs) - Math.min(...hs) < 0.6, hs.join("/"));
+  /* eşit aralık: x farkları birbirine eşit */
+  const gaps = r.as.slice(1).map((a, i) => +(a.x - r.as[i].x).toFixed(1));
+  check(`${w}px: eşit aralıklı`, Math.max(...gaps) - Math.min(...gaps) < 0.6, gaps.join("/"));
+  check(`${w}px: ayırıcılar aynı hizada`, r.is.length < 2 || Math.max(...r.is) - Math.min(...r.is) < 0.6, r.is.join("/"));
   await p.close();
 }
 

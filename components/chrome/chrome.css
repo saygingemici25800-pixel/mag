@@ -121,9 +121,35 @@ html.lm .gnav:hover,
 html.lm .gnav:focus-visible {
   color: var(--char);
 }
+/* Mobilde GİZLENMEZ. (Önceki hâlinde display:none idi — üst bar sıkışık diye gizlenmişti;
+   artık kısa etiketle SİPARİŞ çiftinin SOLUNDA duruyor.) Dokunma alanı 44 px. */
+.gnav {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+/* uzun/kısa etiket: ikisi de DOM'da, seçim CSS'te (kapalı düğmedeki desenle aynı) */
+.gnav-short {
+  display: none;
+}
 @media (max-width: 820px) {
   .gnav {
+    /* dar ekranda daha sıkı: yazı küçülür, aralık daralır — ama GÖRÜNÜR kalır */
+    font-size: 0.56rem;
+    letter-spacing: 0.08em;
+    padding: 4px 0;
+  }
+  .gnav-long {
     display: none;
+  }
+  .gnav-short {
+    display: inline;
+  }
+}
+@media (max-width: 380px) {
+  .gnav {
+    font-size: 0.52rem;
+    letter-spacing: 0.04em;
   }
 }
 
@@ -187,12 +213,21 @@ html.lm .gnav:focus-visible {
     font-size: 0.8rem;
     letter-spacing: 0.06em;
   }
-  /* Kiril büyük harfler Latin'den geniş: aynı kelime Rusça'da ~1.5× yer tutuyor
-     (ölçüm: "İLETİŞİM" 91 px, "КОНТАКТ" 137 px). Yalnızca RU'da harf aralığı ve
-     dolgu kısılır; TR/EN görünümü DEĞİŞMEZ çünkü kural :lang(ru) ile sınırlı. */
+  /* GALERİ üst bara eklenince (11 Eyl 2026) üçü birden sığmıyordu: 390 px'te İLETİŞİM
+     435'e kadar gidip ekrandan taşıyordu. Çift daraltıldı, ölçüyle ayarlandı. */
+  .cta {
+    padding: 0 10px;
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+  }
+  .navR {
+    gap: 6px;
+  }
+  /* Kiril büyük harfler Latin'den geniş: aynı kelime Rusça'da ~1.5× yer tutuyor.
+     Yalnızca RU'da daha sıkı; TR/EN kuralı yukarıdaki genel mobil kural. */
   :lang(ru) .cta {
-    padding: 0 11px;
-    letter-spacing: 0.01em;
+    padding: 0 7px;
+    letter-spacing: 0;
   }
   /* "Şu an kapalıyız" mobilde çok geniş: 390 px'te TR|EN ayıracının üstüne biniyordu.
      Kısa etiket devreye girer; ekran okuyucu aria-label'dan tam cümleyi duymaya devam eder. */
@@ -228,16 +263,21 @@ html.lm .gnav:focus-visible {
     display: none;
   }
 }
-/* Çok dar ekran (≤380 px): ortadaki mag. logosu çifte çarpmasın diye TR|EN daha da sıkışır.
-   SİPARİŞ ve İLETİŞİM hiçbir koşulda gizlenmez. */
-@media (max-width: 380px) {
+/* Dar ekran (≤400 px): GALERİ + SİPARİŞ + İLETİŞİM üçü birden sığsın diye çift daha da
+   sıkışır. Sınır 380 değil 400: TR'de 390 px'te İLETİŞİM 395'e gidip 5 px taşıyordu.
+   Üçü de hiçbir koşulda gizlenmez. */
+@media (max-width: 400px) {
   .cta {
-    padding: 0 12px;
-    font-size: 0.74rem;
+    padding: 0 7px;
+    font-size: 0.64rem;
+    letter-spacing: 0;
   }
+  /* Kiril daha geniş: 360 px'te İLETİŞİM 1 px taşıyordu (361/360).
+     TEK kural — daha önce burada iki ayrı :lang(ru) bloğu vardı ve sonraki (9 px)
+     öncekini eziyordu. */
   :lang(ru) .cta {
-    padding: 0 9px;
-    font-size: 0.7rem;
+    padding: 0 5px;
+    font-size: 0.6rem;
     letter-spacing: 0;
   }
   .navR {
@@ -325,14 +365,26 @@ html.lm .bracket {
 }
 
 /* ---- TR | EN ---- */
+/* TR · EN · RU tek satırda ve AYNI HİZADA.
+   ÖNCEKİ HATA: her dil bir <span> içinde "ayırıcı + bağlantı" taşıyordu ve bu span'lerin
+   display kuralı yoktu. Dar ekranda (360/390 px) span'ler satır içi kutu gibi davranıp
+   sarmalanıyordu: TR'nin span'i 36 px, EN ve RU'nunki 51 px oluyor, TR 7.5 px yukarı
+   kayıyordu (ölçüldü). Span'ler de flex yapıldı, artık üçü aynı temel çizgide. */
 .lang {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: nowrap;
   font-family: var(--font-museo-stack);
   font-weight: 400;
   font-size: 0.62rem;
   letter-spacing: 0.16em;
+}
+/* sarmalayıcı span: ayırıcı + bağlantı yan yana, dikeyde ortalı */
+.lang > span {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
 }
 .lang a {
   display: inline-flex;
@@ -351,6 +403,10 @@ html.lm .bracket {
   color: color-mix(in srgb, var(--cream) 25%, transparent);
   font-style: normal;
   margin: 0 4px;
+  /* ayırıcılar da bağlantılarla aynı hizada: satır içi hizalama yerine flex ortalama */
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
 }
 html.lm .lang a {
   color: color-mix(in srgb, var(--char) 50%, transparent);

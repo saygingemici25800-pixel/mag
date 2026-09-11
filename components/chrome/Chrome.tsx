@@ -23,8 +23,11 @@ export default function Chrome({ locale }: { locale: Locale }) {
         </Link>
         <nav className="navR">
           {/* GALERİ — sipariş çiftinden önce, ikincil bağlantı olarak */}
-          <Link href={localePath(locale, "/galeri")} className="gnav" prefetch={false}>
-            {t.gallery.nav}
+          {/* GALERİ — mobilde de GÖRÜNÜR. Dar ekranda kısa etiket (RU "ГАЛЕРЕЯ" uzun),
+              ekran okuyucu her koşulda tam adı duyar. */}
+          <Link href={localePath(locale, "/galeri")} className="gnav" prefetch={false} aria-label={t.gallery.nav}>
+            <span className="gnav-long" aria-hidden="true">{t.gallery.nav}</span>
+            <span className="gnav-short" aria-hidden="true">{t.gallery.navShort}</span>
           </Link>
           <OrderCta locale={locale} label={c.menu} labelShort={c.menuShort} closedLabel={c.closedNow} closedShort={c.closedNowShort} />
           <ContactOverlay t={t.contact} label={c.contact} labelShort={c.contactShort} />

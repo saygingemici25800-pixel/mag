@@ -279,18 +279,20 @@
 }
 .cchev {
   display: block;
-  width: 40px;
-  height: 80px;
+  /* Aşağı bakan chevron: kutu yatay (80×40). Grup yüksekliği eskisiyle aynı kalsın diye
+     adım da buna göre ayarlandı. */
+  width: 80px;
+  height: 40px;
   /* Üç ok ~150 px'e sığsın diye biner ama ÇOK binince tek bir zikzak gibi görünüyordu;
      adım 35 → 46 px, chevron'lar birbirinden ayırt edilir kalıyor (3×80 − 2×34 = 172 px). */
-  margin-top: -34px;
+  margin-top: 22px;
   /* çizgi ince ama zeminde okunur: 2 px ile sönük kalıyordu */
   stroke-width: 2.4px;
   opacity: 0.15;
   will-change: opacity;
   /* Her okun KENDİ keyframe'i var: gecikme kullanılmıyor, çünkü gecikme toplu flaşı da
      kaydırıp senkronu bozuyordu. Sol ve sağ grup aynı anda başlar. */
-  animation: cornerSeq1 1.54s ease-in-out infinite;
+  animation: cornerSeq1 2.16s ease-in-out infinite;
 }
 .cchev:nth-child(2) {
   animation-name: cornerSeq2;
@@ -317,9 +319,9 @@ html:not(.heroOn) .cchev {
     right: clamp(8px, 3.5vw, 20px);
   }
   .cchev {
-    width: 28px;
-    height: 55px;
-    margin-top: -23px;
+    width: 55px;
+    height: 28px;
+    margin-top: 15px;
     stroke-width: 2.2px;
   }
 }

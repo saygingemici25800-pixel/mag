@@ -21,8 +21,8 @@
     },
     "closedNow": "We're closed right now",
     "closedNowShort": "Closed",
-    "menuShort": "Order",
-    "contactShort": "Contact"
+    "menuShort": "ORDER",
+    "contactShort": "CONTACT"
   },
   "hero": {
     "sub": "fries included",
@@ -119,6 +119,7 @@
     "lead": "Drag to explore",
     "back": "Home",
     "nav": "GALLERY",
+    "navShort": "GALLERY",
     "altFallback": "MAG Street Food product photo",
     "altOf": "{name} — MAG Street Food",
     "wallAria": "Photo wall — use arrow keys to navigate",
