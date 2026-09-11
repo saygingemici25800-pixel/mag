@@ -50,12 +50,15 @@ export const MENU: Record<Category, MenuItem[]> = {
       layers: ["ust-ekmek", "aioli", "iceberg", "cheddar", "fume-kaburga", "karamelize-sogan", "kofte", "alt-ekmek"],
     },
     {
-      id: "brisket",
+      id: "truffle",
       pairs: ["jalapeno-sos", "mag-sos", "zencefilli-gazoz"],
-      /* AD DEĞİŞTİ (10 Eyl 2026): bu kayıt artık TRUFFLE. id KORUNDU — sepet anahtarları,
-         dilim dosyaları ve mevcut siparişler id'ye bağlı.
-         Fotoğrafı değişmedi (public/urun/brisket.webp).
-         İçerik 11 Eyl 2026'da işletmeden onaylı listeyle güncellendi.
+      /* ID DÜZELTİLDİ (11 Eyl 2026): id ile görünen ad ters duruyordu — TRUFFLE'ın id'si
+         "brisket"ti. orders tablosu (82 satır, hepsi e2e test kaydı) boşaltıldıktan sonra
+         takas edildi; sipariş akmaya başlayınca bu düzeltme yapılamazdı.
+
+         İŞLETME ONAYI BEKLİYOR: aşağıdaki desc ve ingredients işletmeden ONAYLI DEĞİL.
+         Kullanıcının örnek olarak yazdığı metin (11 Eyl 2026). Gerçek liste gelince
+         değişecek — o zamana kadar menüde bu görünüyor.
          Fiyat DEĞİŞMEDİ: işletmeden gelmedi. */
       name: "Truffle",
       price: 600,
@@ -101,12 +104,11 @@ export const MENU: Record<Category, MenuItem[]> = {
       ingredients: [{ name: "brioche ekmek", removable: false }, { name: "Mag sos", removable: true }, { name: "kıtır soğan", removable: true }, { name: "cheddar", removable: true }, { name: "130 gr burger köftesi", removable: false }],
     },
     {
-      id: "truffle",
+      id: "brisket",
       pairs: ["truflu-mayonez", "zencefilli-gazoz"],
-      /* AD DEĞİŞTİ (10 Eyl 2026): bu kayıt artık BRISKET, yeni fotoğrafıyla
-         (public/urun/brisket.webp). id KORUNDU.
-         AÇIK: desc ve ingredients hâlâ eski (trüflü/mantarlı) — brisket'e ait değil,
-         işletmeden gelecek. */
+      /* ID DÜZELTİLDİ (11 Eyl 2026): id ile görünen ad ters duruyordu.
+         AÇIK: desc ve ingredients hâlâ ESKİ (trüflü/mantarlı) — BRISKET'e ait değil,
+         işletmeden gelecek. Bilerek dokunulmadı. */
       name: "Brisket",
       price: 550,
       hero: true,

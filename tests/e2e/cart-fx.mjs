@@ -164,7 +164,7 @@ for (const v of VIEWS) {
   const p = await b.newPage({ viewport: { width: v.width, height: v.height } });
   await p.addInitScript(() => {
     localStorage.setItem("mag:sound", "0");
-    localStorage.setItem("mag:cart", JSON.stringify({ v: 1, lines: { smooky: { qty: 2, note: "" }, brisket: { qty: 1, note: "" } } }));
+    localStorage.setItem("mag:cart", JSON.stringify({ v: 1, lines: { smooky: { qty: 2, note: "" }, truffle: { qty: 1, note: "" } } }));
   });
   await p.goto(base + "/siparis/odeme", { waitUntil: "load" });
   await p.waitForTimeout(120);

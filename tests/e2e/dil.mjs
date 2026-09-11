@@ -45,7 +45,9 @@ check("ru.json başında toplu AÇIK notu", typeof M.ru._acik === "string" && /A
 check("panel Türkçe kaldı", JSON.stringify(M.ru.panel) === JSON.stringify(M.tr.panel));
 
 /* ürün adları çevrilmedi (marka), Türkçe SÖZCÜK olanlar çevrildi */
-check("SMOOKY/BRISKET çevrilmedi", !M.ru.menuName.smooky && !M.ru.menuName.brisket);
+/* Marka adları çevrilmez. (11 Eyl 2026: id'ler düzeltildi — truffle/brisket artık
+   görünen adlarıyla eşleşiyor; ikisi de menuName'de override edilmiyor.) */
+check("SMOOKY/BRISKET/TRUFFLE çevrilmedi", !M.ru.menuName.smooky && !M.ru.menuName.brisket && !M.ru.menuName.truffle);
 check("Türkçe sözcük olan adlar çevrildi", /[А-Яа-я]/.test(M.ru.menuName["tavuk-taco"] ?? ""), M.ru.menuName["tavuk-taco"]);
 check("malzeme adları çevrildi", Object.keys(M.ru.menuIng).length >= 38, `${Object.keys(M.ru.menuIng).length} malzeme`);
 
@@ -154,10 +156,13 @@ check("hreflang ru doğru yolu gösteriyor", /hrefLang="ru"\s+href="[^"]*\/ru\/s
 }
 
 /* ---- 5) FİYAT BİÇİMİ ---- */
+/* 11 Eyl 2026: id'ler düzeltildi (TRUFFLE→truffle, BRISKET→brisket). Bu test ₺600'lük
+   ürünü kullanıyordu; o ürün artık "truffle" id'sinde. */
+
 for (const [loc, want, label] of [["", /₺3\.060/, "tr ₺3.060"], ["/en", /₺3\.060/, "en ₺3.060"], ["/ru", /3 060 ₺/, "ru 3 060 ₺"]]) {
   const p = await b.newPage({ viewport: { width: 390, height: 844 } });
   await p.goto(base + loc + "/siparis", { waitUntil: "networkidle" });
-  await p.evaluate(() => localStorage.setItem("mag:cart", JSON.stringify({ v: 1, lines: { smooky: { qty: 3, note: "" }, brisket: { qty: 2, note: "" } } })));
+  await p.evaluate(() => localStorage.setItem("mag:cart", JSON.stringify({ v: 1, lines: { smooky: { qty: 3, note: "" }, truffle: { qty: 2, note: "" } } })));
   await p.goto(base + loc + "/siparis/odeme", { waitUntil: "networkidle" });
   await p.waitForTimeout(900);
   const txt = await p.evaluate(() => document.body.innerText);
@@ -174,7 +179,7 @@ const overflowIn = async (url, w) => {
   const p = await b.newPage({ viewport: { width: w, height: 844 } });
   const home = new URL(url).pathname.replace(/\/siparis.*$/, "") || "/";
   await p.goto(base + (home === "/" ? "/siparis" : home + "/siparis"), { waitUntil: "networkidle" }).catch(() => {});
-  await p.evaluate(() => localStorage.setItem("mag:cart", JSON.stringify({ v: 1, lines: { smooky: { qty: 3, note: "" }, brisket: { qty: 2, note: "" } } })));
+  await p.evaluate(() => localStorage.setItem("mag:cart", JSON.stringify({ v: 1, lines: { smooky: { qty: 3, note: "" }, truffle: { qty: 2, note: "" } } })));
   await p.goto(url, { waitUntil: "networkidle" });
   await settle(p);
   const r = await p.evaluate(() => {
