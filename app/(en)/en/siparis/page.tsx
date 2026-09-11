@@ -3,7 +3,7 @@ import { getMessages } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
 const t = getMessages("en");
-export const metadata = pageMetadata({ locale: "en", path: "/siparis", title: t.order.metaTitle, description: t.order.metaDesc, ogItem: "brisket" });
+export const metadata = pageMetadata({ locale: "en", path: "/siparis", title: t.order.metaTitle, description: t.order.metaDesc, ogItem: "truffle" });
 
 export default function OrderPageEn() {
   return <OrderPage />;

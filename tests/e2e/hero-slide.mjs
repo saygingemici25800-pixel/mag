@@ -33,8 +33,9 @@ const frames = await p.evaluate(() => new Promise((done) => {
   });
 }));
 
-// yeni odak (brisket) ve eski odak (smooky) sürekliliği
-for (const id of ["brisket", "smooky"]) {
+// yeni odak (truffle) ve eski odak (smooky) sürekliliği
+// 11 Eyl 2026: hero sırasında ikinci ürünün id'si brisket → truffle oldu
+for (const id of ["truffle", "smooky"]) {
   const rows = frames.filter((f) => f[id]);
   const seq = rows.map((f) => f[id]);
   /* Hız (px/ms) üzerinden bak: 480 ms'de ~403 px yol var, ease başta hızlı → ~4 px/ms tepe.
@@ -48,12 +49,12 @@ for (const id of ["brisket", "smooky"]) {
   check(`${id}: hareket sürekli (hız sınırlı)`, maxRate < 6 && maxDsRate < 0.006, `maxHız=${maxRate.toFixed(2)}px/ms maxÖlçekHızı=${maxDsRate.toFixed(4)}/ms`);
 }
 // yeni odak ölçeği tek yönlü büyür
-const bs = frames.map((f) => f.brisket?.s).filter(Boolean);
+const bs = frames.map((f) => f.truffle?.s).filter(Boolean);
 const back = bs.filter((v, i) => i > 0 && v < bs[i - 1] - 0.002).length;
 check("yeni odak ölçeği tek yönlü büyür", back === 0, `${bs[0].toFixed(3)} → ${bs[bs.length - 1].toFixed(3)}, geri dönüş ${back}`);
 // bitişte doğru poz
 const last = frames[frames.length - 1];
 // hero'da ağırlık merkezi düzeltmesi yok (referans carousel birebir): x = 0, odak ölçeği 1
-check("bitişte odak ortada (x=0), scale=1 (referans)", Math.abs(last.brisket.x) < 1 && Math.abs(last.brisket.s - 1) < 0.005, JSON.stringify(last.brisket));
+check("bitişte odak ortada (x=0), scale=1 (referans)", Math.abs(last.truffle.x) < 1 && Math.abs(last.truffle.s - 1) < 0.005, JSON.stringify(last.truffle));
 await b.close();
 process.exit(fail ? 1 : 0);
