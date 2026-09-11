@@ -171,7 +171,9 @@ for (const [w, h] of [[360, 640], [390, 844], [430, 932], [1440, 900]]) {
   check(`${w}px: GALERİ dokunma alanı ≥44 px`, g.h >= 44, `${g.h} px`);
   check(`${w}px: GALERİ /galeri'ye gidiyor`, g.href === "/galeri", String(g.href));
   check(`${w}px: GALERİ ekran içinde, kesilmiyor`, g.x >= 0 && g.r <= g.vw, `${g.x}–${g.r}/${g.vw}`);
-  check(`${w}px: GALERİ çifti taşırmıyor`, g.contactR <= g.vw, `İLETİŞİM sağ ${g.contactR}/${g.vw}`);
+  /* SAĞ GÜVENLİK PAYI: 1 px pay yetmez — font render farkı ya da metin değişikliği taşırır.
+     En az 12 px istenir; üst barın kenar dolgusu 20 px olduğu için hedef odur. */
+  check(`${w}px: sağdan ≥12 px güvenlik payı`, g.vw - g.contactR >= 12, `pay ${g.vw - g.contactR} px (İLETİŞİM sağ ${g.contactR}/${g.vw})`);
   check(`${w}px: üçü üst üste binmiyor`, !g.gO && !g.oC);
   check(`${w}px: yatay taşma yok`, g.scrollW <= g.vw, `${g.scrollW}/${g.vw}`);
   check(`${w}px: GALERİ tıklanabilir (üstünde katman yok)`, g.hit === "OK", g.hit);

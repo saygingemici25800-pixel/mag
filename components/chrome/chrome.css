@@ -251,7 +251,10 @@ html.lm .gnav:focus-visible {
   .navR {
     gap: 8px;
   }
-  .lang a {
+  /* ÖZGÜLLÜK NOTU: temel `.lang a` kuralı bu medya sorgusundan SONRA geldiği için
+     eşit özgüllükte kaynak sırası kazanıyordu (36 px uygulanıyordu, 30 değil).
+     `.lang > span > a` özgüllüğü artırır; sıra ne olursa olsun dar ekran kuralı geçerli. */
+  .lang > span > a {
     min-width: 30px;
     padding: 2px;
   }
@@ -284,10 +287,17 @@ html.lm .gnav:focus-visible {
     gap: 6px;
   }
   .lang {
-    gap: 2px;
+    gap: 0;
   }
-  .lang a {
-    min-width: 26px;
+  .lang i {
+    margin: 0 2px;
+  }
+  .navL {
+    gap: 6px;
+  }
+  .lang > span > a {
+    min-width: 24px;
+    padding: 2px 1px;
   }
 }
 
@@ -395,6 +405,18 @@ html.lm .bracket {
   color: var(--dim);
   text-decoration: none;
   padding: 2px 4px;
+  /* Dar ekranda görsel kutu 24×36'ya iniyor (yer açmak için). Dokunma alanı ::before ile
+     44×44'e çıkarılır: görsel küçülür ama parmakla vurulabilirlik korunur. */
+  position: relative;
+}
+.lang a::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100%, 44px);
+  height: 44px;
+  transform: translate(-50%, -50%);
 }
 .lang a[aria-current="page"] {
   color: var(--cream);
