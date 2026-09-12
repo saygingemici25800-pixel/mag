@@ -197,9 +197,9 @@
     "orderNote": "Комментарий к заказу",
     "submit": "Подтвердить заказ",
     "submitting": "Отправляем…",
-    "closed": "Сейчас мы закрыты — откроемся завтра в {open}.",
-    "closedShort": "Закрыто · откроется в {open}",
-    "hours": "Ежедневно {open}–00:00",
+    "closed": "Сейчас мы закрыты — откроемся {day} в {open}.",
+    "closedShort": "Закрыто · откроется {day} в {open}",
+    "hours": "Сегодня {range}",
     "err": {
       "name": "Укажите имя",
       "phone": "Введите телефон в формате 05XX XXX XX XX",
@@ -244,7 +244,9 @@
     "removedState": "убрано",
     "includedState": "входит",
     "removedLabel": "Убрано",
-    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek"
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek",
+    "today": "сегодня",
+    "tomorrow": "завтра"
   },
   "track": {
     "metaTitle": "Отслеживание заказа",
@@ -374,7 +376,6 @@
     "address": "Адрес",
     "phone": "Телефон",
     "hours": "Часы работы",
-    "hoursValue": "Ежедневно 11:00–00:00",
     "map": "Открыть в Google Картах",
     "social": "Соцсети",
     "close": "Закрыть",
@@ -385,7 +386,30 @@
     "pending": "— скоро",
     "instagram": "Instagram",
     "tiktok": "TikTok",
-    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek"
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek",
+    "hoursTitle": "Часы работы",
+    "openNow": "сейчас открыто",
+    "closedNow": "сейчас закрыто",
+    "weekdays": [
+      "Воскресенье",
+      "Понедельник",
+      "Вторник",
+      "Среда",
+      "Четверг",
+      "Пятница",
+      "Суббота"
+    ],
+    "weekdaysShort": [
+      "Вс",
+      "Пн",
+      "Вт",
+      "Ср",
+      "Чт",
+      "Пт",
+      "Сб"
+    ],
+    "rangeSep": "–",
+    "daysJoin": "–"
   },
   "categories": {
     "burger": "Бургеры",

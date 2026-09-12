@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Messages } from "@/lib/i18n";
 import { CONTACT } from "@/lib/contact";
+import Hours from "@/components/chrome/Hours";
 
 /**
  * İLETİŞİM — aynı sayfada tam ekran katman. AYRI ROTA YOK: URL, scroll konumu ve sahne ilerlemesi (p)
@@ -207,15 +208,18 @@ export default function ContactOverlay({ t, label, labelShort }: { t: Messages["
               <div className="cRow cLine">
                 <span>
                   <b>{t.phone}</b>
-                  {/* AÇIK — işletme verecek */}
-                  {CONTACT.phone ? <a href={`tel:${CONTACT.phone.replace(/\s/g, "")}`}>{CONTACT.phone}</a> : <em>{t.pending}</em>}
+                  {/* 12 Eyl 2026: numara işletmeden geldi. tel: için phoneTel (+90…) —
+                      mobilde dokununca arama açar; ekranda okunur biçim gösterilir. */}
+                  <a href={`tel:${CONTACT.phoneTel}`} data-phone>
+                    {CONTACT.phone}
+                  </a>
                 </span>
               </div>
               <div className="cRow cLine">
                 <span>
-                  <b>{t.hours}</b>
-                  {/* AÇIK — çalışma saatleri */}
-                  {CONTACT.hours ? <i>{CONTACT.hours}</i> : <em>{t.pending}</em>}
+                  <b>{t.hoursTitle}</b>
+                  {/* Saatler lib/hours.ts'ten; "şu an açık/kapalı" istemcide hesaplanır. */}
+                  <Hours t={t} />
                 </span>
               </div>
               <div className="cRow cLine">

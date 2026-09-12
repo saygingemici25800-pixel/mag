@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocale, useT } from "@/components/LocaleProvider";
-import { OPENS_AT_LABEL, isOpen } from "@/lib/hours";
+import { isOpen } from "@/lib/hours";
+import { closedShortLabel, todayHoursLabel } from "@/lib/hoursLabel";
 import { cartAdd, qtyOf, useCart } from "@/lib/cart";
 import { flyToCart, prefetchCartFx } from "@/lib/cartFx";
 import { formatPriceFor, itemDesc, itemName } from "@/lib/i18n";
@@ -17,7 +18,6 @@ import ProductSheet from "./ProductSheet";
 import "./order.css";
 
 const ORDER: Category[] = ["burger", "taco", "noodle", "yan", "sos", "icecek"];
-const fmt = (s: string, vars: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ""));
 
 /** /siparis — yapışkan kategori çipleri, büyük ürün kartları, ürün sheet'i, yapışkan sepet çubuğu (mobil öncelikli) */
 export default function OrderPage() {
@@ -63,7 +63,7 @@ export default function OrderPage() {
     <main className={"ord ord-list" + (cartHasItems ? " has-cartbar" : "")}>
       <div className="mx-auto max-w-3xl">
         <header className="mb-4 flex flex-col gap-4">
-          <div className="ord-label">{open === false ? fmt(o.closedShort, { open: OPENS_AT_LABEL }) : fmt(o.hours, { open: OPENS_AT_LABEL })}</div>
+          <div className="ord-label">{open === false ? closedShortLabel(t) : todayHoursLabel(t)}</div>
           <h1 className="big in">
             <span>
               <i>{o.title[0]}</i>

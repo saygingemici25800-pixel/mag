@@ -7,6 +7,7 @@ import { SITE } from "@/lib/site";
 import type { Bind } from "./Arc";
 import Faq from "./Faq";
 import Testimonials from "./Testimonials";
+import Hours from "@/components/chrome/Hours";
 
 interface Props {
   t: Messages;
@@ -53,6 +54,12 @@ export default function Outro({ t, bind }: Props) {
           <div className="fauxinput">{t.footer.placeholder}</div>
           <div className="fauxbtn">{t.footer.cta}</div>
           <div className="legal">{t.footer.legal}</div>
+        </div>
+        {/* 12 Eyl 2026: çalışma saatleri footer'da da görünür (lib/hours.ts tek kaynak).
+            compact: bugünün aralığı + "şu an açık/kapalı". */}
+        <div className="foothours">
+          <b>{t.contact.hoursTitle}</b>
+          <Hours t={t.contact} variant="compact" />
         </div>
         <div className="copyline">{t.footer.copy}</div>
         </div>

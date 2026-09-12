@@ -694,3 +694,60 @@ html.heroOn .mark {
   opacity: 0;
   pointer-events: none;
 }
+
+/* ---- Çalışma saatleri (İLETİŞİM katmanı + footer) ----
+   Veri lib/hours.ts'ten; "şu an açık/kapalı" istemcide hesaplanır (sunucuda yazılmaz).
+   .cRow > span grid'i 9ch + 1fr olduğu için liste sağ kolona oturur. */
+.hrsList {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.hrsRow {
+  display: grid;
+  grid-template-columns: 7.5ch 1fr;
+  gap: 12px;
+  align-items: baseline;
+}
+.hrsRow > span {
+  color: var(--dim);
+  font-size: 0.92em;
+}
+.hrsRow > i {
+  font-style: normal;
+  color: var(--cream);
+  font-variant-numeric: tabular-nums;
+}
+/* bugünün satırı öne çıksın */
+.hrsRow.today > span,
+.hrsRow.today > i {
+  color: var(--accent);
+}
+.hrsState {
+  margin-top: 5px;
+  font-family: var(--font-museo-stack);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.hrsOpen {
+  color: var(--accent);
+}
+.hrsClosed {
+  color: var(--dim);
+}
+/* footer: tek satır, bugünün aralığı + durum */
+.hrsCompact {
+  display: inline-flex;
+  gap: 10px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  font-variant-numeric: tabular-nums;
+}
+.hrsCompact > b {
+  font-family: var(--font-museo-stack);
+  font-weight: 400;
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}

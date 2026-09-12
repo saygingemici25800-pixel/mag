@@ -187,9 +187,9 @@
     "orderNote": "Sipariş notu",
     "submit": "Siparişi onayla",
     "submitting": "Gönderiliyor…",
-    "closed": "Şu an kapalıyız — yarın {open}'da açılıyoruz.",
-    "closedShort": "Kapalı · {open}'da açılıyoruz",
-    "hours": "Her gün {open}–00:00",
+    "closed": "Şu an kapalıyız — {day} {open}'da açılıyoruz.",
+    "closedShort": "Kapalı · {day} {open}'da açılıyoruz",
+    "hours": "Bugün {range}",
     "err": {
       "name": "Ad gerekli",
       "phone": "Telefonu 05XX XXX XX XX biçiminde gir",
@@ -235,7 +235,9 @@
     "notRemovable": "çıkarılamaz",
     "removedState": "çıkarıldı",
     "includedState": "içinde",
-    "removedLabel": "Çıkarılan"
+    "removedLabel": "Çıkarılan",
+    "today": "bugün",
+    "tomorrow": "yarın"
   },
   "track": {
     "title": [
@@ -363,7 +365,6 @@
     "address": "Adres",
     "phone": "Telefon",
     "hours": "Çalışma saati",
-    "hoursValue": "Her gün 11:00–00:00",
     "map": "Google Haritalar'da aç",
     "social": "Sosyal",
     "close": "Kapat",
@@ -373,7 +374,30 @@
     "minutes": "dk",
     "pending": "— yakında",
     "instagram": "Instagram",
-    "tiktok": "TikTok"
+    "tiktok": "TikTok",
+    "hoursTitle": "Çalışma saatleri",
+    "openNow": "şu an açık",
+    "closedNow": "şu an kapalı",
+    "weekdays": [
+      "Pazar",
+      "Pazartesi",
+      "Salı",
+      "Çarşamba",
+      "Perşembe",
+      "Cuma",
+      "Cumartesi"
+    ],
+    "weekdaysShort": [
+      "Paz",
+      "Pzt",
+      "Sal",
+      "Çar",
+      "Per",
+      "Cum",
+      "Cmt"
+    ],
+    "rangeSep": "–",
+    "daysJoin": "–"
   },
   "categories": {
     "burger": "Burger",

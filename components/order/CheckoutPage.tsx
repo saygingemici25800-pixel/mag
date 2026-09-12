@@ -5,7 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocale, useT } from "@/components/LocaleProvider";
 import { cartClear, cartRemove, cartSet, cartSetRemoved, lineProductId, useCart } from "@/lib/cart";
 import { animateLineOut, animateSummaryIn, prefetchCartFx } from "@/lib/cartFx";
-import { OPENS_AT_LABEL, isOpen, timeSlots } from "@/lib/hours";
+import { isOpen, timeSlots } from "@/lib/hours";
+import { closedLabel } from "@/lib/hoursLabel";
 import { formatPriceFor, ingName, itemName, localePath } from "@/lib/i18n";
 import type { NewOrderInput, ValidationError } from "@/lib/orders";
 import { computeTotals, findMenuItem, normalizePhone, type OrderType } from "@/lib/orders-shared";
@@ -282,7 +283,11 @@ export default function CheckoutPage() {
               <input className="ctl" placeholder={o.orderNote} aria-label={o.orderNote} maxLength={200} value={form.note} onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))} />
             </section>
 
-            {open === false ? <div className="warn">{fmt(o.closed, { open: OPENS_AT_LABEL })}</div> : null}
+            {open === false ? (
+              <div className="warn" data-hours-closed>
+                {closedLabel(t)}
+              </div>
+            ) : null}
             {err("hours") ? <span className="err">{o.err.hours}</span> : null}
             {err("payment") || err("generic") ? <span className="err">{o.err.generic}</span> : null}
             {!settings.ordering_open ? (

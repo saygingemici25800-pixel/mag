@@ -777,8 +777,26 @@ html:not(.heroOn) .shint .chev {
   gap: 0;
   flex: none;
 }
+/* 12 Eyl 2026: footer'da çalışma saatleri — telif satırının hemen üstünde, ortalı.
+   Saatler lib/hours.ts'ten; durum ("şu an açık/kapalı") istemcide hesaplanır. */
+.foothours {
+  margin-top: clamp(20px, 5vh, 48px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  color: var(--dim);
+}
+.foothours > b {
+  font-family: var(--font-museo-stack);
+  font-weight: 400;
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
 .copyline {
-  margin-top: clamp(28px, 7vh, 70px);
+  margin-top: clamp(14px, 3vh, 28px);
   text-align: center;
   font-family: var(--font-museo-stack);
   font-weight: 400;

@@ -48,3 +48,7 @@ next-env.d.ts
 
 # testlerin kök dizine bıraktığı ekran görüntüleri
 /*.png
+
+# İşletmenin ham çekim arşivi (135 JPG, ~2,4 GB) — repoya GİRMEZ.
+# Galeriye giren kareler public/galeri/ altına işlenmiş (WebP) olarak konur.
+/mag-foto

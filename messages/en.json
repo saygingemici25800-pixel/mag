@@ -160,7 +160,6 @@
     "address": "Address",
     "phone": "Phone",
     "hours": "Opening hours",
-    "hoursValue": "Every day 11:00–00:00",
     "map": "Open in Google Maps",
     "social": "Social",
     "close": "Close",
@@ -170,7 +169,30 @@
     "minutes": "min",
     "pending": "— coming soon",
     "instagram": "Instagram",
-    "tiktok": "TikTok"
+    "tiktok": "TikTok",
+    "hoursTitle": "Opening hours",
+    "openNow": "open now",
+    "closedNow": "closed now",
+    "weekdays": [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday"
+    ],
+    "weekdaysShort": [
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat"
+    ],
+    "rangeSep": "–",
+    "daysJoin": "–"
   },
   "categories": {
     "burger": "Burgers",
@@ -269,9 +291,9 @@
     "orderNote": "Order note",
     "submit": "Confirm order",
     "submitting": "Sending…",
-    "closed": "We're closed right now — opening tomorrow at {open}.",
-    "closedShort": "Closed · opens at {open}",
-    "hours": "Every day {open}–00:00",
+    "closed": "We're closed right now — opening {day} at {open}.",
+    "closedShort": "Closed · opens {day} at {open}",
+    "hours": "Today {range}",
     "err": {
       "name": "Name required",
       "phone": "Enter the phone as 05XX XXX XX XX",
@@ -315,7 +337,9 @@
     "notRemovable": "can't be removed",
     "removedState": "removed",
     "includedState": "included",
-    "removedLabel": "Removed"
+    "removedLabel": "Removed",
+    "today": "today",
+    "tomorrow": "tomorrow"
   },
   "track": {
     "metaTitle": "Order tracking",
