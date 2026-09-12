@@ -20,7 +20,7 @@ function fonts() {
 }
 const rgba = (hex: string, a: number) => `rgba(${hexToRgb(hex).join(",")},${a})`;
 
-/** GET /api/og?item=smooky&locale=tr — mor-derin zemin, sıcak backlight, cutout, "mag." + ürün adı (palet: lib/palette.ts) */
+/** GET /api/og?item=smooky&locale=tr — ink→red-deep zemin, sıcak backlight, cutout, "mag." + ürün adı (palet: lib/palette.ts) */
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const itemParam = url.searchParams.get("item") || "smooky";
@@ -42,8 +42,8 @@ export async function GET(req: Request) {
           width: W,
           height: H,
           display: "flex",
-          background: `linear-gradient(180deg, ${PALETTE.purpleDeep}, ${PALETTE.purple})`,
-          color: PALETTE.lime,
+          background: `linear-gradient(180deg, ${PALETTE.ink}, ${PALETTE.redDeep})`,
+          color: PALETTE.yellow,
           position: "relative",
           fontFamily: "Archivo",
         }}
@@ -57,14 +57,14 @@ export async function GET(req: Request) {
             height: 560,
             borderRadius: 999,
             opacity: 0.55,
-            background: `radial-gradient(circle at center, ${PALETTE.warm} 0%, ${rgba(PALETTE.warm, 0.35)} 45%, ${rgba(PALETTE.purpleDeep, 0)} 70%)`,
+            background: `radial-gradient(circle at center, ${PALETTE.warm} 0%, ${rgba(PALETTE.warm, 0.35)} 45%, ${rgba(PALETTE.ink, 0)} 70%)`,
           }}
         />
         <div style={{ position: "absolute", left: 72, top: 64, display: "flex", fontSize: 64, fontStyle: "italic", letterSpacing: -4 }}>
           <span>mag</span>
-          <span style={{ color: PALETTE.lime }}>.</span>
+          <span style={{ color: PALETTE.yellow }}>.</span>
         </div>
-        <div style={{ position: "absolute", left: 72, top: 148, display: "flex", fontSize: 22, letterSpacing: 6, color: rgba(PALETTE.lime, 0.6), fontStyle: "normal" }}>
+        <div style={{ position: "absolute", left: 72, top: 148, display: "flex", fontSize: 22, letterSpacing: 6, color: rgba(PALETTE.yellow, 0.6), fontStyle: "normal" }}>
           {sub}
         </div>
         <div style={{ position: "absolute", left: 66, bottom: 70, display: "flex", flexDirection: "column", fontSize: 128, lineHeight: 0.86, fontStyle: "italic", letterSpacing: -6 }}>

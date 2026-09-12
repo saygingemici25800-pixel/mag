@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { PALETTE, hexToRgb } from "@/lib/palette";
 
-/** ışık konisinin rengi: sıcak ada (palette.warm) beyazla yarı yarıya — mor zemine sıcak ama pastel bir koni */
+/** ışık konisinin rengi: sıcak ada (palette.warm) beyazla yarı yarıya — koyu zemine sıcak ama pastel bir koni */
 const RAY_RGB = hexToRgb(PALETTE.warm).map((c) => (c / 255 + 1) / 2) as [number, number, number];
 
 interface Props {

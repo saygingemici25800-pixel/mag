@@ -46,18 +46,30 @@ for (const f of files) {
 check("bileşenlerde hard-code renk yok (hex/rgba)", hard.length === 0, hard.slice(0, 6).join(" "));
 
 const globals = readFileSync(path.join(root, "app/globals.css"), "utf8");
+/* ölü token taraması için erken birleşim (allSrc aşağıda ayrıca kuruluyor) */
+const allSrcEarly = files.map((f) => readFileSync(f, "utf8")).join("\n");
 const cssVar = (n) => globals.match(new RegExp(`--${n}:\\s*(#[0-9a-fA-F]{6})`))?.[1]?.toLowerCase();
 const pal = readFileSync(path.join(root, "lib/palette.ts"), "utf8");
 const tsVal = (k) => pal.match(new RegExp(`${k}:\\s*"(#[0-9a-fA-F]{6})"`))?.[1]?.toLowerCase();
+/* 12 Eyl 2026: mor/limon palet KALDIRILDI → kırmızı/sarı/gri */
 for (const [css, ts] of [
-  ["mag-purple", "purple"],
-  ["mag-lime", "lime"],
-  ["mag-purple-deep", "purpleDeep"],
-  ["mag-purple-soft", "purpleSoft"],
+  ["mag-red", "red"],
+  ["mag-yellow", "yellow"],
+  ["mag-grey", "grey"],
+  ["mag-red-deep", "redDeep"],
   ["mag-ink", "ink"],
+  ["mag-on-red", "onRed"],
+  ["mag-on-yellow", "onYellow"],
 ]) check(`palette.ts aynası = :root (${css})`, cssVar(css) && cssVar(css) === tsVal(ts), `${cssVar(css)} / ${tsVal(ts)}`);
-check(":root --mag-purple #422057", cssVar("mag-purple") === "#422057");
-check(":root --mag-lime #ffd662", cssVar("mag-lime") === "#ffd662");
+check(":root --mag-red #c72d1b", cssVar("mag-red") === "#c72d1b");
+check(":root --mag-yellow #fdd20e", cssVar("mag-yellow") === "#fdd20e");
+check(":root --mag-grey #e7e2da", cssVar("mag-grey") === "#e7e2da");
+check(":root --mag-red-deep #7a1b10", cssVar("mag-red-deep") === "#7a1b10");
+check(":root --mag-ink #2a0906", cssVar("mag-ink") === "#2a0906");
+/* Eski palet tamamen gitmeli: ölü token/ad kalmasın */
+/* Yorumlar hariç: globals.css'te "--hero-white kaldırıldı" AÇIKLAMASI var, kural değil. */
+const stripComments = (t) => t.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+check("mor/limon token kalmadı (ölü token yok)", !/--mag-purple|--mag-lime|--hero-white/.test(stripComments(globals + allSrcEarly)), "");
 
 const allSrc = files.map((f) => readFileSync(f, "utf8")).join("\n") + readFileSync(path.join(root, "lib/menu.ts"), "utf8");
 /* Artık next/font KULLANILIYOR (tek aile MuseoModerno). Kritik olan çalışma zamanında
@@ -94,13 +106,24 @@ const blend = (fg, bg, a) => {
   const c = (h, i) => parseInt(h.slice(1 + i, 3 + i), 16);
   return "#" + [0, 2, 4].map((i) => Math.round(c(fg, i) * a + c(bg, i) * (1 - a)).toString(16).padStart(2, "0")).join("");
 };
-const LIME = cssVar("mag-lime"), PURPLE = cssVar("mag-purple"), DEEP = cssVar("mag-purple-deep"), INK = cssVar("mag-ink");
+const YELLOW = cssVar("mag-yellow"), RED = cssVar("mag-red"), GREY = cssVar("mag-grey"), DEEP = cssVar("mag-red-deep"), INK = cssVar("mag-ink");
+/* Gövde metninin gerçekte oturduğu yüzey: --mag-red-surface = %65 red + %35 deep
+   (globals.css'te color-mix ile; burada aynı karışım elle kuruluyor). */
+const SURFACE = blend(RED, DEEP, 0.65);
 const pairs = [
-  ["ink üzerinde… limon (buton: ink yazı, limon dolgu)", INK, LIME, 4.5],
-  ["limon yazı / mor zemin (#422057)", LIME, PURPLE, 4.5],
-  ["limon yazı / mor-derin zemin (#1A0C22)", LIME, DEEP, 4.5],
-  ["ikincil (limon %60) / mor zemin — bilgi (spec %60; AA için ≥%66 gerekir)", blend(LIME, PURPLE, 0.6), PURPLE, 0],
-  ["ikincil (limon %60) / mor-derin zemin — bilgi", blend(LIME, DEEP, 0.6), DEEP, 0],
+  /* İSTENEN ÜÇ ÖLÇÜM */
+  ["sarı yazı / kırmızı zemin (#C72D1B)", YELLOW, RED, 0],
+  ["ink yazı / sarı zemin (buton dolgusu)", INK, YELLOW, 4.5],
+  ["gri yazı / kırmızı zemin (#C72D1B)", GREY, RED, 0],
+  /* Sitede gerçekten kullanılan yüzeyler */
+  ["sarı yazı / gövde yüzeyi (%65 red + %35 deep)", YELLOW, SURFACE, 4.5],
+  ["gri yazı / gövde yüzeyi", GREY, SURFACE, 4.5],
+  ["sarı yazı / red-deep zemin", YELLOW, DEEP, 4.5],
+  ["gri yazı / red-deep zemin", GREY, DEEP, 4.5],
+  ["sarı yazı / ink zemin (hero)", YELLOW, INK, 4.5],
+  ["gri yazı / ink zemin (hero)", GREY, INK, 4.5],
+  ["ikincil (gri %65) / red-deep — bilgi", blend(GREY, DEEP, 0.65), DEEP, 0],
+  ["ikincil (gri %65) / ink — bilgi", blend(GREY, INK, 0.65), INK, 0],
 ];
 console.log("\n-- WCAG kontrast --");
 for (const [name, fg, bg, min] of pairs) {
@@ -132,7 +155,7 @@ const rt = await page.evaluate(async () => {
     loaded: [...document.fonts].filter((f) => f.status === "loaded").map((f) => `${f.family}/${f.weight}`),
     h1: fam("h1"), body: fam("body"), cta: fam(".cta"), p: fam(".left p"), badge: fam(".badge b"), mark: fam(".mark"), hint: fam(".counter"),
     synth: getComputedStyle(document.documentElement).fontSynthesis,
-    accent: cs.getPropertyValue("--accent").trim(), lime: cs.getPropertyValue("--mag-lime").trim(),
+    accent: cs.getPropertyValue("--accent").trim(), yellow: cs.getPropertyValue("--mag-yellow").trim(),
     stageBg: getComputedStyle(document.querySelector(".stage")).backgroundImage,
     bodyBg: getComputedStyle(document.body).backgroundImage,
     /* h1 artık hero ismi (referans: beyaz); palet kontrolü iddia başlığında */
@@ -149,11 +172,12 @@ check("h1 / .cta / .mark / .badge b → MuseoModerno", [rt.h1, rt.cta, rt.mark, 
 /* TEK AİLE: gövde de başlık da MuseoModerno; ayrım kalınlıkta (aşağıda ölçülüyor). */
 check("body / .left p / .counter → MuseoModerno", [rt.body, rt.p, rt.hint].every((f) => f === "MuseoModerno"), JSON.stringify([rt.body, rt.p, rt.hint]));
 check("font-synthesis: none (sahte kalın/italik yok)", rt.synth === "none", rt.synth);
-check("--accent = limon", rt.accent.toLowerCase() === rt.lime.toLowerCase(), rt.accent);
-check("sahne zemini: mor-derin → mor dikey gradyan", /linear-gradient/.test(rt.stageBg) && /rgb\(26, 12, 34\)/.test(rt.stageBg) && /rgb\(66, 32, 87\)/.test(rt.stageBg), rt.stageBg.slice(0, 80));
+check("--accent = sarı", rt.accent.toLowerCase() === rt.yellow.toLowerCase(), rt.accent);
+/* HERO zemini: ürün fotoğrafları bozulmasın diye düz kırmızı DEĞİL, ink → red-deep. */
+check("hero zemini: ink → red-deep dikey gradyan", /linear-gradient/.test(rt.stageBg) && /rgb\(42, 9, 6\)/.test(rt.stageBg) && /rgb\(122, 27, 16\)/.test(rt.stageBg), rt.stageBg.slice(0, 80));
 check("sayfa gövdesi de aynı gradyan", /linear-gradient/.test(rt.bodyBg));
-check("iddia başlığı (.left .big) rengi limon", rt.h1Color === "rgb(255, 214, 98)", rt.h1Color);
-check("buton: limon dolgu + ink yazı", rt.ctaBg === "rgb(255, 214, 98)" && rt.ctaColor === "rgb(26, 12, 34)", `${rt.ctaBg} / ${rt.ctaColor}`);
+check("iddia başlığı (.left .big) rengi sarı", rt.h1Color === "rgb(253, 210, 14)", rt.h1Color);
+check("buton: sarı dolgu + ink yazı", rt.ctaBg === "rgb(253, 210, 14)" && rt.ctaColor === "rgb(42, 9, 6)", `${rt.ctaBg} / ${rt.ctaColor}`);
 check("hero ışık konisi: WebGL katmanı (screen blend)", rt.rays?.canvas === true && rt.rays?.blend === "screen", JSON.stringify(rt.rays));
 
 /* aydınlık bölüm (manifesto): limon perde tam, chrome yazısı ink */
@@ -174,9 +198,9 @@ const lm = await page.evaluate(() => ({
   orderColor: getComputedStyle(document.querySelector("[data-order-cta]")).color,
   contactColor: getComputedStyle(document.querySelector("[data-contact-open]")).color,
 }));
-check("manifesto: html.lm + limon perde ≥ .95", lm.lm && lm.bright >= 0.95 && lm.brightBg === "rgb(255, 214, 98)", JSON.stringify(lm));
-check("manifesto: SİPARİŞ ters dolgu (ink zemin, krem yazı)", lm.orderBg === "rgb(26, 12, 34)" && lm.orderColor === "rgb(255, 214, 98)", `${lm.orderBg} / ${lm.orderColor}`);
-check("manifesto: İLETİŞİM yazısı ink", lm.contactColor === "rgb(26, 12, 34)", lm.contactColor);
+check("manifesto: html.lm + sarı perde ≥ .95", lm.lm && lm.bright >= 0.95 && lm.brightBg === "rgb(253, 210, 14)", JSON.stringify(lm));
+check("manifesto: SİPARİŞ ters dolgu (ink zemin, sarı yazı)", lm.orderBg === "rgb(42, 9, 6)" && lm.orderColor === "rgb(253, 210, 14)", `${lm.orderBg} / ${lm.orderColor}`);
+check("manifesto: İLETİŞİM yazısı ink", lm.contactColor === "rgb(42, 9, 6)", lm.contactColor);
 
 /* sipariş sayfası: fiyat Comico, açıklama Bonny */
 await page.goto(base + "/siparis", { waitUntil: "load" });

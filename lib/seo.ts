@@ -4,7 +4,7 @@ import type { HeroId } from "@/lib/menu";
 import { PALETTE } from "@/lib/palette";
 import { SITE, siteUrl } from "@/lib/site";
 
-export const viewport: Viewport = { themeColor: PALETTE.purpleDeep, colorScheme: "dark" };
+export const viewport: Viewport = { themeColor: PALETTE.ink, colorScheme: "dark" };
 
 /** Kök layout metadata'sı: title şablonu, metadataBase, varsayılan OG. */
 export function baseMetadata(locale: Locale): Metadata {

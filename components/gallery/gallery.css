@@ -6,7 +6,7 @@
   height: 100dvh;
   overflow: hidden;
   background: var(--char);
-  color: var(--cream);
+  color: var(--body);
 }
 
 /* Sürükleme alanı: tüm ekran. touch-action burada da yazılır ama asıl koruma

@@ -155,7 +155,7 @@ html.lm .gnav:focus-visible {
 
 /* ---- SİPARİŞ + İLETİŞİM: bir çift ----
    Aynı sınıf (.cta) ikisini de biçimler: aynı yükseklik, aynı tipografi, aynı yuvarlaklık.
-   Ayrım yalnızca dolgudan: SİPARİŞ limon dolgu (birincil eylem), İLETİŞİM çerçeveli (ikincil).
+   Ayrım yalnızca dolgudan: SİPARİŞ sarı dolgu (birincil eylem), İLETİŞİM çerçeveli (ikincil).
    Yükseklik min-height ile SABİT: link ve button farklı satır kutusu üretir, yoksa 1-2 px kayarlar. */
 .cta {
   font-family: var(--font-museo-stack);
@@ -183,7 +183,7 @@ html.lm .gnav:focus-visible {
   outline: 2px solid var(--cream);
   outline-offset: 3px;
 }
-/* İLETİŞİM — aynı kalıp, ters dolgu: iki limon leke yan yana durunca hangisinin asıl
+/* İLETİŞİM — aynı kalıp, ters dolgu: iki sarı leke yan yana durunca hangisinin asıl
    eylem olduğu okunmuyor. */
 .cta[data-contact-open] {
   background: transparent;
@@ -348,7 +348,7 @@ html.lm .mark i {
 html.lm .eq b {
   background: var(--char);
 }
-/* Aydınlık bölümde limon dolgu krem zeminde erir; çift, koyu/çerçeveli olarak devam eder. */
+/* Aydınlık bölümde sarı dolgu açık zeminde erir; çift, koyu/çerçeveli olarak devam eder. */
 html.lm .cta {
   background: var(--char);
   color: var(--cream);
@@ -440,13 +440,13 @@ html.lm .lang a[aria-current="page"] {
 /* ---- İletişim overlay ---- */
 /* ---- İLETİŞİM katmanı (aynı sayfada, rota yok) ----
    Animasyon Web Animations API'den (ContactOverlay.tsx); burada yalnızca başlangıç durumları ve düzen.
-   Mor-derin zemin, limon tipografi, bol boşluk. */
+   Koyu kırmızı zemin, sarı tipografi, bol boşluk. */
 .contact {
   position: fixed;
   inset: 0;
   z-index: 85;
   background: var(--page-bg);
-  color: var(--cream);
+  color: var(--body);
   overflow: hidden;
 }
 /* açılış panelleri: 3 üst (33.333vw × 50vh, height→0), 3 alt (width→0) */
@@ -513,6 +513,7 @@ html.lm .lang a[aria-current="page"] {
   text-transform: uppercase;
   font-weight: 900;
   padding:  0.18em 0 0.12em; /* İ noktası ve üst uzantılar maskeden taşmasın */
+  color: var(--cream); /* BAŞLIK sarı (.contact'tan gri miras alıyordu) */
 }
 .cRows {
   display: flex;
@@ -599,7 +600,7 @@ html.lm .lang a[aria-current="page"] {
   font-weight: 400;
   font-size: 0.8rem;
   letter-spacing: 0.08em;
-  color: var(--cream);
+  color: var(--body);
   white-space: nowrap;
 }
 /* YOL TARİFİ AL */
@@ -715,7 +716,7 @@ html.heroOn .mark {
 }
 .hrsRow > i {
   font-style: normal;
-  color: var(--cream);
+  color: var(--body);
   font-variant-numeric: tabular-nums;
 }
 /* bugünün satırı öne çıksın */

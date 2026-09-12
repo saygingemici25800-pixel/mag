@@ -1,5 +1,6 @@
 /**
- * İçindekiler satırında malzeme sözcükleri vurgulanır: tek palet (mor/limon) — her tür ana yazı renginde (--cream), gövde ikincil (--dim) kalır.
+ * İçindekiler satırında malzeme sözcükleri vurgulanır: her tür VURGU renginde (--cream = sarı),
+ * gövde ikincil (--dim = gri %65) kalır. Tek palet; malzeme başına ayrı renk YOK.
  * Hem ana sayfa (dive kopyası) hem sipariş sayfası (kart açıklaması, sheet) aynı fonksiyondan geçer. TR + EN anahtar kelimeler.
  */
 export type IngredientKind = "meat" | "cheese" | "green" | "sauce" | "pickle" | "plain";

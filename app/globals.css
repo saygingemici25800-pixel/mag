@@ -11,29 +11,43 @@
 /* ---- renk sistemi: TEK KAYNAK. Bileşenlerde hex yok; her şey bu değişkenlerden türer.
    (lib/palette.ts yalnızca JS/OG için aynı değerlerin aynası — tests/e2e/palette.mjs eşitliği denetler.) ---- */
 :root {
-  /* iki ana renk */
-  --mag-purple: #422057;
-  --mag-lime: #ffd662;
-  /* türevler */
-  --mag-purple-deep: #1a0c22; /* sahne zemini — mor ailesinden, saf siyah yerine */
-  --mag-purple-soft: #5a2e74; /* kart yüzeyi, ayırıcı */
-  --mag-purple-mid: #2a1438; /* zemin gradyanının orta durağı (hero referansı: %55) */
-  --mag-ink: #1a0c22; /* limon zemin üzerindeki yazı */
-  /* burgerin arkasındaki "sıcak ada": mor zeminden hafif sıcak bir geçiş (fotoğrafların amber tonu mordan kopmasın) */
-  --mag-warm: color-mix(in srgb, var(--mag-purple-deep) 50%, #ff9636);
+  /* ---- ÜÇ ANA RENK (12 Eyl 2026: mor/limon palet kaldırıldı) ----
+     Ağırlık hedefi: kırmızı ~%60 · sarı ~%30 · gri ~%10 */
+  --mag-red: #c72d1b; /* ana renk */
+  --mag-yellow: #fdd20e; /* vurgu */
+  --mag-grey: #e7e2da; /* açık sıcak gri — gövde metni */
+  /* ---- türevler ---- */
+  --mag-red-deep: #7a1b10; /* koyu yüzey: kart, ayırıcı, bölüm zemini */
+  --mag-ink: #2a0906; /* sahne zemini — kırmızıdan türemiş, neredeyse siyah */
+  --mag-on-red: #fdd20e; /* kırmızı üzerindeki yazı */
+  --mag-on-yellow: #2a0906; /* sarı üzerindeki yazı */
+  /* Gövde metninin oturduğu yüzey. DÜZ --mag-red DEĞİL: ölçüldü, gri yazı saf
+     kırmızıda 4,26:1 ile AA'yı geçmiyor; red-deep'e doğru karıştırılınca geçiyor
+     (%65 red + %35 deep → gri 5,33:1, sarı 4,71:1). Sayfa gradyanı da bu yüzden
+     ağırlığını koyu tarafta tutuyor. */
+  --mag-red-surface: color-mix(in srgb, var(--mag-red) 65%, var(--mag-red-deep));
+  /* burgerin arkasındaki "sıcak ada": ürün fotoğraflarının amber tonu zeminden kopmasın */
+  --mag-warm: color-mix(in srgb, var(--mag-ink) 50%, #ff9636);
 
-  /* anlamsal katman — eski adlar korunur ki bileşen CSS'i değişmesin */
-  --char: var(--mag-purple-deep); /* zemin */
-  --cream: var(--mag-lime); /* başlık ve ana yazı */
-  --ink: var(--mag-ink); /* limon üstünde yazı */
-  --dim: color-mix(in srgb, var(--mag-lime) 60%, transparent); /* ikincil metin */
-  --line: color-mix(in srgb, var(--mag-lime) 20%, transparent); /* ayırıcı */
-  --surface: color-mix(in srgb, var(--mag-purple-soft) 55%, var(--mag-purple-deep)); /* kart/sheet yüzeyi */
-  --accent: var(--mag-lime); /* aktif/vurgu: sepet çubuğu, rozet, ilerleme, üstü çizili */
-  --page-bg: linear-gradient(180deg, var(--mag-purple-deep) 0%, var(--mag-purple-mid) 55%, var(--mag-purple) 100%);
-  /* hero referansı (docs/ref/hero/hero.html) — beyaz/siyah (ışık konisi rengi LightRays içinde) */
-  --hero-white: #fff;
-  --hero-white-rgb: 255, 255, 255;
+  /* ---- anlamsal katman — bileşen CSS'i bu adları kullanır, değişmedi ---- */
+  --char: var(--mag-ink); /* zemin */
+  --cream: var(--mag-yellow); /* başlık ve vurgu */
+  --ink: var(--mag-on-yellow); /* sarı üstünde yazı */
+  --body: var(--mag-grey); /* gövde metni */
+  --dim: color-mix(in srgb, var(--mag-grey) 65%, transparent); /* ikincil metin */
+  --line: color-mix(in srgb, var(--mag-grey) 20%, transparent); /* ayırıcı */
+  --surface: var(--mag-red-deep); /* kart/sheet yüzeyi */
+  --accent: var(--mag-yellow); /* aktif/vurgu: sepet çubuğu, rozet, ilerleme, üstü çizili */
+  /* Sayfa zemini: red-deep → red geçişi. Orta durak kırmızıya yakın ama saf değil
+     (gövde metni okunur kalsın), en alt saf kırmızı = ana renk vurgusu. */
+  --page-bg: linear-gradient(180deg, var(--mag-red-deep) 0%, var(--mag-red-surface) 55%, var(--mag-red) 100%);
+  /* HERO zemini: ürün fotoğrafları sıcak amber/siyah zeminde çekildi; düz kırmızı
+     ışık kurgusunu ve siluetleri bozuyor. Bu yüzden ink → red-deep koyu gradyan. */
+  --hero-bg: linear-gradient(180deg, var(--mag-ink) 0%, var(--mag-ink) 38%, var(--mag-red-deep) 100%);
+  /* Hero siluet/maske SİYAHI — palet rengi değil, gerçek siyah:
+     .sil maskesi ve yansıma maskeleri bununla çiziliyor (ışık konisi rengi LightRays içinde).
+     12 Eyl 2026: --hero-white kaldırıldı; ürün adı artık sarı (--cream), ilerleme
+     çubuğu izi gri (--line), sayaç gri (--dim) — beyaz kalmadı. */
   --hero-black: #000;
   --hero-black-rgb: 0, 0, 0;
   --edge: 20px;
@@ -47,13 +61,14 @@
 
 @theme inline {
   --color-*: initial;
-  --color-purple: var(--mag-purple);
-  --color-lime: var(--mag-lime);
-  --color-purple-deep: var(--mag-purple-deep);
-  --color-purple-soft: var(--mag-purple-soft);
+  --color-red: var(--mag-red);
+  --color-yellow: var(--mag-yellow);
+  --color-grey: var(--mag-grey);
+  --color-red-deep: var(--mag-red-deep);
   --color-ink: var(--mag-ink);
   --color-char: var(--char);
   --color-cream: var(--cream);
+  --color-body: var(--body);
   --color-dim: var(--dim);
   --color-line: var(--line);
   --color-surface: var(--surface);
@@ -87,7 +102,9 @@ body {
   margin: 0;
   min-height: 100dvh;
   background: var(--page-bg);
-  color: var(--cream);
+  /* 12 Eyl 2026: gövde metni GRİ. Eski palette limon hem başlık hem gövdeydi;
+     yeni palette ayrıştı — başlık/vurgu sarı (--cream), gövde gri (--body). */
+  color: var(--body);
   font-family: var(--font-museo-stack);
   /* gövde varsayılanı: 400 (açıklama, SSS cevabı, footer, yasal metin) */
   font-weight: 400;

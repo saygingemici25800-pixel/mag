@@ -2,7 +2,7 @@
 .pnl {
   min-height: 100vh;
   padding: 24px clamp(14px, 3vw, 40px) 60px;
-  color: var(--cream);
+  color: var(--body);
 }
 .pnl-top {
   display: flex;
@@ -223,7 +223,7 @@
   padding: 0 14px;
   border-radius: 8px;
   border: 1px solid color-mix(in srgb, var(--cream) 20%, transparent);
-  color: var(--cream);
+  color: var(--body);
   text-decoration: none;
   font-size: 0.92rem;
 }
@@ -286,7 +286,7 @@
   border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--cream) 30%, transparent);
   background: color-mix(in srgb, var(--cream) 4%, transparent);
-  color: var(--cream);
+  color: var(--body);
 }
 .total {
   font-family: var(--font-museo-stack);
@@ -312,7 +312,7 @@
   border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--cream) 25%, transparent);
   background: color-mix(in srgb, var(--cream) 4%, transparent);
-  color: var(--cream);
+  color: var(--body);
   font-size: 1rem;
 }
 .login .act.primary {
@@ -379,7 +379,7 @@
   border-radius: 8px;
   border: 1px solid color-mix(in srgb, var(--cream) 25%, transparent);
   background: color-mix(in srgb, var(--cream) 4%, transparent);
-  color: var(--cream);
+  color: var(--body);
   font: inherit;
 }
 .sumgrid {
@@ -399,7 +399,7 @@
   font-family: var(--font-museo-stack);
   font-weight: 700;
   font-size: 1.15rem;
-  color: var(--cream);
+  color: var(--body);
 }
 /* aşama zaman damgası ve hazırlanma süresi girişi */
 .ostamp {
@@ -421,7 +421,7 @@
   border-radius: 8px;
   border: 1px solid color-mix(in srgb, var(--cream) 25%, transparent);
   background: color-mix(in srgb, var(--cream) 4%, transparent);
-  color: var(--cream);
+  color: var(--body);
   font: inherit;
   text-align: center;
 }
@@ -444,7 +444,7 @@
   padding: 12px 22px;
 }
 
-/* Çıkarılan malzemeler — mutfak için: küçük punto, yüksek kontrast (limon, üstü çizili değil) */
+/* Çıkarılan malzemeler — mutfak için: küçük punto, yüksek kontrast (sarı, üstü çizili değil) */
 .oitems .oremoved {
   display: block;
   grid-column: 2 / -1;

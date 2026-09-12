@@ -66,7 +66,7 @@ export default function OrderCard({ t, order: o, unseen, fresh, busy, onSeen, on
             <b>{it.qty}×</b>
             <span>{it.name}</span>
             <span className="font-bold text-sm text-dim">{formatPrice(it.price * it.qty)}</span>
-            {/* Mutfak bunu kaçırmamalı: küçük punto ama yüksek kontrast (limon) */}
+            {/* Mutfak bunu kaçırmamalı: küçük punto ama yüksek kontrast (sarı) */}
             {it.removed?.length ? (
               <small className="oremoved" data-removed>
                 {t.removedLabel}: {it.removed.join(", ")}

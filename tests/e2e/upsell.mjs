@@ -83,7 +83,8 @@ let s = await upsellState();
 check("/siparis: bölüm görünür", s.exists && s.visible);
 /* TEK AİLE: aile adı her yerde MuseoModerno, ayrım kalınlıkta. */
 check("başlık 'YANINDA İYİ GİDER', MuseoModerno", s.title === "YANINDA İYİ GİDER" && s.titleFont === "MuseoModerno", `${s.title} · ${s.titleFont}`);
-check("ürün adı MuseoModerno, fiyat limon", s.nameFont === "MuseoModerno" && s.priceColor === "rgb(255, 214, 98)", `${s.nameFont} · ${s.priceColor}`);
+/* 12 Eyl 2026: fiyat VURGU → sarı #FDD20E (eski limon #FFD662 kaldırıldı) */
+check("ürün adı MuseoModerno, fiyat sarı", s.nameFont === "MuseoModerno" && s.priceColor === "rgb(253, 210, 14)", `${s.nameFont} · ${s.priceColor}`);
 check("sekiz öneri kartı, her birinde görsel/rozet", s.count === 8 && s.hasImages, `${s.count} kart`);
 check("sepette olmayan ürünlerde '+ Ekle'", s.withAdd.length === 8 && s.withQty.length === 0, `ekle=${s.withAdd.length} adet=${s.withQty.length}`);
 check("masaüstünde 4'lü ızgara", s.display === "grid" && s.cols === 4, `${s.display} · ${s.cols} sütun`);

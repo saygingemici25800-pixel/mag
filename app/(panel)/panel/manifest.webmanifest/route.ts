@@ -19,10 +19,10 @@ export function GET() {
       scope: "/panel",
       display: "standalone",
       orientation: "portrait",
-      background_color: PALETTE.purpleDeep,
-      theme_color: PALETTE.purpleDeep,
+      background_color: PALETTE.ink,
+      theme_color: PALETTE.ink,
       icons: [
-        /* kare ikon: mor zemin + limon wordmark (scripts/brand-derivatives.mjs yanında üretildi) */
+        /* kare ikon: koyu zemin + sarı wordmark (scripts/brand-derivatives.mjs yanında üretildi) */
         { src: "/brand/panel-icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
         { src: "/brand/panel-icon-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
       ],

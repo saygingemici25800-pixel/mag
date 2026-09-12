@@ -144,7 +144,8 @@ const panelRemoved = await panel.evaluate((id) => {
   return el ? { text: el.textContent.trim(), color: getComputedStyle(el).color } : null;
 }, orderId);
 check("panelde 'Çıkarılan: …' görünüyor", /Çıkarılan/.test(panelRemoved?.text ?? "") && panelRemoved.text.includes(target), panelRemoved?.text);
-check("panelde yüksek kontrast (limon)", panelRemoved?.color === "rgb(255, 214, 98)", panelRemoved?.color);
+/* 12 Eyl 2026: palet kırmızı/sarı/gri — vurgu rengi sarı #FDD20E */
+check("panelde yüksek kontrast (sarı)", panelRemoved?.color === "rgb(253, 210, 14)", panelRemoved?.color);
 await panel.screenshot({ path: `${out}/1440-panel.png` });
 await panelCtx.close();
 await ctx.close();

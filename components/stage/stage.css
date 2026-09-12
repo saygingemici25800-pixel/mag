@@ -12,16 +12,19 @@
   position: fixed;
   inset: 0;
   overflow: hidden;
-  /* tek palet: mor-derin → mor dikey gradyan (ürün başına gradyan yok) */
-  background: var(--page-bg);
+  /* 12 Eyl 2026: HERO zemini düz kırmızı DEĞİL. Ürün fotoğrafları sıcak amber/siyah
+     zeminde çekildi; kırmızı zemin hem siluetleri hem koni ışığını bozuyor.
+     Bu yüzden ink → red-deep koyu gradyan (--hero-bg). Sayfanın geri kalanı
+     (panel bölümleri) --page-bg kullanmaya devam ediyor. */
+  background: var(--hero-bg);
 }
 
-/* ---- aydınlık bölüm (manifesto) perdesi: limon, gücü JS'ten (Frame.bright) ---- */
+/* ---- aydınlık bölüm (manifesto) perdesi: SARI, gücü JS'ten (Frame.bright) ---- */
 .bgBright {
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: var(--mag-lime);
+  background: var(--accent);
   opacity: 0;
   pointer-events: none;
 }
@@ -185,7 +188,9 @@
   line-height: 0.92;
   letter-spacing: -0.01em;
   text-transform: uppercase;
-  color: var(--hero-white);
+  /* 12 Eyl 2026: ürün adı BAŞLIK → sarı (eski palette hero referansından beyazdı).
+     Gölge siyah kalıyor: ürünün üstüne denk geldiğinde okunurluğu o sağlıyor. */
+  color: var(--cream);
   text-shadow: 0 2px 24px rgba(var(--hero-black-rgb), 0.55);
   transition: opacity 0.28s;
 }
@@ -392,7 +397,7 @@ html:not(.heroOn) .shint .chev {
   transform: translateX(-50%);
   width: min(420px, 60vw);
   height: 2px;
-  background: rgba(var(--hero-white-rgb), 0.14);
+  background: var(--line); /* ayırıcı: gri %20 */
   border-radius: 2px;
   z-index: 20;
 }
@@ -400,7 +405,7 @@ html:not(.heroOn) .shint .chev {
   position: absolute;
   top: 0;
   bottom: 0;
-  background: var(--mag-lime);
+  background: var(--accent);
   border-radius: 2px;
   transition: left 0.48s cubic-bezier(0.22, 1, 0.28, 1);
 }
@@ -414,7 +419,7 @@ html:not(.heroOn) .shint .chev {
   font-size: 11px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(var(--hero-white-rgb), 0.55);
+  color: var(--dim); /* ikincil metin: gri %65 */
   z-index: 20;
   white-space: nowrap;
 }
@@ -439,6 +444,9 @@ html:not(.heroOn) .shint .chev {
   letter-spacing: -0.04em;
   text-transform: uppercase;
   font-weight: 900;
+  /* 12 Eyl 2026: BÖLÜM BAŞLIKLARI SARI. Önce renk vermiyordu, body'den miras
+     alıyordu; body artık gri olduğu için başlıklar da griye düşüyordu. */
+  color: var(--cream);
 }
 .big span {
   display: block;
@@ -572,7 +580,7 @@ html:not(.heroOn) .shint .chev {
   margin: 0;
   font-size: 1.05rem;
   line-height: 1.55;
-  color: var(--cream);
+  color: var(--body);
   max-width: 36ch;
 }
 
@@ -698,6 +706,7 @@ html:not(.heroOn) .shint .chev {
   font-size: clamp(2.3rem, 9vw, 5.4rem);
   line-height: 0.8;
   letter-spacing: -0.045em;
+  color: var(--cream); /* panel başlıkları (SIKÇA SORULANLAR, BİZE KATIL) sarı */
 }
 .faqlist {
   display: flex;
@@ -722,7 +731,7 @@ html:not(.heroOn) .shint .chev {
   line-height: 1.5;
 }
 .signup h2 {
-  font-size: clamp(2rem, 7vw, 3.6rem);
+  font-size: clamp(2rem, 7vw, 3.6rem); /* renk .panel h2'den gelir (sarı) */
 }
 .fauxinput {
   border: 1px solid color-mix(in srgb, var(--cream) 20%, transparent);
@@ -1014,7 +1023,7 @@ html.lm .ctaPill {
   }
   50% {
     transform: scale(1.03);
-    filter: drop-shadow(0 0 26px color-mix(in srgb, var(--mag-lime) 75%, transparent)) drop-shadow(0 0 42px color-mix(in srgb, var(--mag-purple-soft) 60%, transparent));
+    filter: drop-shadow(0 0 26px color-mix(in srgb, var(--accent) 75%, transparent)) drop-shadow(0 0 42px color-mix(in srgb, var(--mag-red) 60%, transparent));
   }
   100% {
     transform: scale(1);
@@ -1311,7 +1320,7 @@ html.lm .ctaPill {
   font-weight: 400;
   font-size: clamp(0.86rem, 1.35vw, 1rem);
   line-height: 1.42;
-  color: var(--cream);
+  color: var(--body);
   /* uzun yorumlar bölümü büyütmesin: sabit satır sayısı, taşma gizli */
   display: -webkit-box;
   -webkit-line-clamp: 2;

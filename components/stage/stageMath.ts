@@ -172,7 +172,7 @@ export function slideEase(x: number): number {
 }
 
 export interface Frame {
-  /** aydınlık bölüm perdesi (limon) gücü: manifestoda 0→1, çıkışta 1→0 */
+  /** aydınlık bölüm perdesi (sarı) gücü: manifestoda 0→1, çıkışta 1→0 */
   bright: number;
   lm: boolean;
   items: ItemStyle[];
@@ -336,7 +336,7 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
   if (tOut > 0) upT = upT * (1 - ease(Math.min(tOut1 * 1.6, 1)));
 
   /* background */
-  /* limon perde: manifestoya girerken 0→1, çıkarken 1→0 (renk CSS'te, burada yalnızca güç) */
+  /* sarı perde: manifestoya girerken 0→1, çıkarken 1→0 (renk CSS'te, burada yalnızca güç) */
   let bright = tPay > 0 ? ease(Math.min(tPay / 0.42, 1)) : 0;
   if (tRange > 0) bright = 1 - ease(Math.min(tRange / 0.32, 1));
   const lm = tPay > 0.32 && tRange < 0.3;
