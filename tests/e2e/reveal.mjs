@@ -17,15 +17,18 @@ const at = async (pr) => {
     return { faq: g(".scFaq"), faqInner: g(".scFaq .panelInner"), foot: g(".scFoot"), footInner: g(".scFoot .panelInner"), veil: document.querySelector(".panelVeil")?.style.opacity };
   });
 };
-const pre = await at(0.78);   // SSS öncesi
-/* 12 Eyl 2026: segment haritası değişti (hero geçişi yarıya indi), sabit p değerleri
-   bandın farklı yerine düşüyordu. Konumlar artık HARİTADAN türetiliyor: harita bir daha
-   değişirse bu test kendiliğinden doğru yerde örnekler. */
+/* 12 Eyl 2026: konumlar HARİTADAN türetiliyor; harita değişirse test kendiliğinden
+   doğru yerde örnekler.
+   ÖNEMLİ: panel girişi bandın İÇİNDE değil, band BAŞLANGICINA binen ±0.035'lik pencerede
+   olup biter (stageMath: tFaqSlide/tFootSlide = seg(p, baş−0.035, baş+0.035)). Bu yüzden
+   "önce/orta" örnekleri bandın başına göre alınır; band içine bakmak hareketi kaçırır. */
 const S = segmentsFor(false);
-const inSeg = (seg, f) => seg[0] + (seg[1] - seg[0]) * f;
-const mid = await at(inSeg(S.faq, 0.35));      // SSS girişi ortası
-const faqFull = await at(inSeg(S.faq, 0.78));  // SSS tam yerleşmiş
-const footMid = await at(inSeg(S.foot, 0.42)); // BİZE KATIL girişi ortası (hareket sürerken)
+const SLIDE = 0.035; // stageMath tFaqSlide/tFootSlide yarı-genişliği (masaüstü: bandK=1)
+const slideAt = (seg, f) => seg[0] - SLIDE + 2 * SLIDE * f; // f=0 giriş öncesi, 1 giriş sonu
+const pre = await at(slideAt(S.faq, 0.0));      // SSS öncesi: panel henüz ekran dışında
+const mid = await at(slideAt(S.faq, 0.5));      // SSS girişi ortası
+const faqFull = await at(slideAt(S.faq, 1.0));  // SSS tam yerleşmiş
+const footMid = await at(slideAt(S.foot, 0.5)); // BİZE KATIL girişi ortası (hareket sürerken)
 check("SSS öncesi panel ekran dışında (translateY büyük)", parseFloat(pre.faq.tf.match(/translateY\(([-\d.]+)px/)?.[1] ?? 0) > 400, pre.faq.tf);
 const midY = parseFloat(mid.faq.tf.match(/translateY\(([-\d.]+)px/)?.[1] ?? 0);
 check("giriş ortasında panel yarı yolda", midY > 20 && midY < 700, `translateY=${midY.toFixed(0)}px`);

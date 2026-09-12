@@ -260,7 +260,7 @@ export function heroCard(vw: number, vh: number): HeroCard {
 export function heroScale(a: number): number {
   return a < 1 ? lerp(1, 0.72, a) : Math.max(0.55, 0.72 - (a - 1) * 0.06);
 }
-/** parlaklık: odak 1, yanlar .07 */
+/** parlaklık: odak 1, yanlar HERO_SIDE_BRIGHT (.12) */
 export function heroBright(a: number): number {
   return a < 1 ? lerp(1, HERO_SIDE_BRIGHT, a) : HERO_SIDE_BRIGHT;
 }
