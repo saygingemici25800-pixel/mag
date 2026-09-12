@@ -173,8 +173,7 @@ if (base) {
     /* Girişin 401 dönmesi bu testi DÜŞÜRMEZ: sunucuda PANEL_KEY tanımsızsa
        panelMode() "open" olur (lib/panel-auth.ts — geliştirmede bilinçli olarak açık,
        üretimde her zaman 401). O durumda PATCH'ler çerezsiz de geçer ve asıl ölçtüğümüz
-       şey — "panel kapalıysa saat içinde sipariş alınmaz" — yine doğrulanır.
-       Not: .env.local'de anahtar LIVE_PANEL_KEY adıyla duruyor, PANEL_KEY olarak değil. */
+       şey — "panel kapalıysa saat içinde sipariş alınmaz" — yine doğrulanır. */
     if (!login.ok) console.log(`ATLANDI panel girişi — HTTP ${login.status} (sunucuda PANEL_KEY yok; panelMode=open)`);
     else check("panel girişi", cookie.length > 0, `çerez ${cookie ? "var" : "yok"}`);
     const patch = (open) =>
