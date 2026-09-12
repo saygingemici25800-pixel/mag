@@ -3,10 +3,14 @@
  * Testler mobil p konumlarını masaüstü p'den bununla eşler. stageMath değişirse burası da değişmeli
  * (claims-explode.mjs bunu scroller yüksekliğiyle çapraz kontrol eder).
  */
+/* 12 Eyl 2026: hero→iddia geçişi (fan+dive) yarıya indi, harita yeniden normalize edildi. */
 export const S_DESKTOP = {
-  fan: [0.04, 0.16], dive: [0.16, 0.28], c0: [0.28, 0.38], c1: [0.38, 0.46], c2: [0.46, 0.54], c3: [0.54, 0.62],
-  pay: [0.62, 0.72], range: [0.72, 0.8], faq: [0.8, 0.87], foot: [0.87, 0.905], out1: [0.905, 0.958], out2: [0.958, 0.99],
+  fan: [0.04545, 0.11364], dive: [0.11364, 0.18182], c0: [0.18182, 0.29545], c1: [0.29545, 0.38636],
+  c2: [0.38636, 0.47727], c3: [0.47727, 0.56818], pay: [0.56818, 0.68182], range: [0.68182, 0.77273],
+  faq: [0.77273, 0.85227], foot: [0.85227, 0.89205], out1: [0.89205, 0.95227], out2: [0.95227, 0.98864],
 };
+/** masaüstü scroller / eski 1200vh (stageMath.DESKTOP_TOTAL ile aynı) */
+export const DESKTOP_TOTAL = 0.88;
 const SHRINK = { fan: 2 / 3, dive: 2 / 3, c0: 2 / 3, c1: 2 / 3, c2: 2 / 3, c3: 2 / 3, pay: 2 / 3 };
 function build() {
   const keys = Object.keys(S_DESKTOP);

@@ -1,5 +1,6 @@
 // SSS ve BİZE KATIL "reveal": alttan gelen panel + iç parallax + stacked pages
 import { chromium } from "playwright";
+import { segmentsFor } from "./_segments.mjs";
 const base = process.argv[2] ?? "http://localhost:3112";
 const b = await chromium.launch();
 const p = await b.newPage({ viewport: { width: 1440, height: 860 } });
@@ -17,9 +18,14 @@ const at = async (pr) => {
   });
 };
 const pre = await at(0.78);   // SSS öncesi
-const mid = await at(0.80);   // SSS girişi ortası
-const faqFull = await at(0.835);
-const footMid = await at(0.872); // BİZE KATIL girişi ortası
+/* 12 Eyl 2026: segment haritası değişti (hero geçişi yarıya indi), sabit p değerleri
+   bandın farklı yerine düşüyordu. Konumlar artık HARİTADAN türetiliyor: harita bir daha
+   değişirse bu test kendiliğinden doğru yerde örnekler. */
+const S = segmentsFor(false);
+const inSeg = (seg, f) => seg[0] + (seg[1] - seg[0]) * f;
+const mid = await at(inSeg(S.faq, 0.35));      // SSS girişi ortası
+const faqFull = await at(inSeg(S.faq, 0.78));  // SSS tam yerleşmiş
+const footMid = await at(inSeg(S.foot, 0.42)); // BİZE KATIL girişi ortası (hareket sürerken)
 check("SSS öncesi panel ekran dışında (translateY büyük)", parseFloat(pre.faq.tf.match(/translateY\(([-\d.]+)px/)?.[1] ?? 0) > 400, pre.faq.tf);
 const midY = parseFloat(mid.faq.tf.match(/translateY\(([-\d.]+)px/)?.[1] ?? 0);
 check("giriş ortasında panel yarı yolda", midY > 20 && midY < 700, `translateY=${midY.toFixed(0)}px`);
