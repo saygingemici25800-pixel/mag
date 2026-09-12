@@ -1,8 +1,11 @@
 /* Sahne stilleri — proto/proto.html'den porte. Ölçüler ve eğriler aynen korunur. */
 
 .scroller {
-  /* masaüstü; mobilde üç bölüm kısaltıldığı için 1200 × 0.77333 = 928vh (stageMath.MOBILE_TOTAL ile eşleşir) */
-  height: 1200vh;
+  /* 12 Eyl 2026: hero→iddia geçişi yarıya inince harita 0.88'e düştü, scroller da kısaldı:
+     1200 × 0.88 = 1056vh (stageMath.DESKTOP_TOTAL ile EŞLEŞMELİ). Böylece DOKU ve sonrası
+     aynı piksel uzunluğunda kalır; yalnızca hero geçişi kısalır.
+     Mobilde ayrıca üç bölüm 2/3'e iner: 1056 × 0.78788 = 832vh (MOBILE_TOTAL). */
+  height: 1056vh;
 }
 
 .stage {
@@ -497,7 +500,7 @@ html:not(.heroOn) .shint .chev {
 }
 @media (max-width: 900px) {
   .scroller {
-    height: 928vh;
+    height: 832vh;
   }
   /* mobil: tek sütun, burgerin üstünde; yatay kayma yerine aynı geçiş (taraf farkı yok) */
   .claimText,

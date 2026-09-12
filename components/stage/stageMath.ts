@@ -3,27 +3,39 @@
  * Saf fonksiyonlar: DOM yok. Stage.tsx her karede `computeFrame` çağırıp sonucu DOM'a yazar.
  */
 
-/** Masaüstü segment haritası — DEĞİŞMEZ. Mobil harita bundan türetilir (aşağıda). */
+/** Masaüstü segment haritası. Mobil harita bundan türetilir (aşağıda).
+ *
+ * 12 Eyl 2026 — HERO→İDDİA GEÇİŞİ YARIYA İNDİ. fan ve dive uzunlukları yarılandı
+ * (0.12 + 0.12 → 0.06 + 0.06), kalan segmentlerin UZUNLUKLARI aynı bırakılıp harita
+ * 0..1 aralığına yeniden normalize edildi. Toplam 0.88'e düştüğü için scroller da
+ * 1200vh → 1056vh oldu (DESKTOP_TOTAL); böylece DOKU→KARAKTER→KATMAN→DENGE ve
+ * sonrasının PİKSEL uzunlukları değişmedi, yalnızca hero geçişi kısaldı.
+ * Ölçüm: hero bitişi → DOKU başlangıcı 2.88 ekran iken 1.44 ekran.
+ */
 export const S_DESKTOP = {
-  fan: [0.04, 0.16],
-  dive: [0.16, 0.28],
-  c0: [0.28, 0.38],
-  c1: [0.38, 0.46],
-  c2: [0.46, 0.54],
-  c3: [0.54, 0.62],
-  pay: [0.62, 0.72],
-  range: [0.72, 0.8],
-  faq: [0.8, 0.87],
-  foot: [0.87, 0.905],
-  out1: [0.905, 0.958], // tek burger yaklaşır
-  out2: [0.958, 0.99], // yanlar belirir
+  fan: [0.04545, 0.11364],
+  dive: [0.11364, 0.18182],
+  c0: [0.18182, 0.29545],
+  c1: [0.29545, 0.38636],
+  c2: [0.38636, 0.47727],
+  c3: [0.47727, 0.56818],
+  pay: [0.56818, 0.68182],
+  range: [0.68182, 0.77273],
+  faq: [0.77273, 0.85227],
+  foot: [0.85227, 0.89205],
+  out1: [0.89205, 0.95227], // tek burger yaklaşır
+  out2: [0.95227, 0.98864], // yanlar belirir
 } as const satisfies Record<string, readonly [number, number]>;
+
+/** Masaüstü scroller yüksekliği / eski 1200vh. Harita kısaldı, scroller da kısalmalı ki
+    sonraki bölümlerin px uzunluğu korunsun. stage.css'teki değerle EŞLEŞMELİ. */
+export const DESKTOP_TOTAL = 0.88;
 type SegMap = { -readonly [K in keyof typeof S_DESKTOP]: readonly [number, number] };
 
 /* Mobilde üç bölüm gereğinden uzundu: hero→iddia geçişi (fan+dive), iddia (c0..c3) ve manifesto
    (pay). Bu bölümlerin SCROLL uzunluğu (px) üçte bir kısalır; diğer bölümlerin px uzunluğu
    korunur. Sıra ve oranlar aynı, hiçbir aşama atlanmaz. Scroller yüksekliği de aynı oranda
-   kısalır: 1200vh × MOBILE_TOTAL (stage.css'teki mobil değer bununla eşleşmeli). */
+   kısalır: 1056vh × MOBILE_TOTAL = 832vh (stage.css'teki mobil değer bununla eşleşmeli). */
 const MOBILE_SHRINK: Partial<Record<keyof typeof S_DESKTOP, number>> = { fan: 2 / 3, dive: 2 / 3, c0: 2 / 3, c1: 2 / 3, c2: 2 / 3, c3: 2 / 3, pay: 2 / 3 };
 function buildMobile(): { map: SegMap; total: number } {
   const keys = Object.keys(S_DESKTOP) as (keyof typeof S_DESKTOP)[];
@@ -42,7 +54,7 @@ function buildMobile(): { map: SegMap; total: number } {
 }
 const MOBILE = buildMobile();
 export const S_MOBILE: SegMap = MOBILE.map;
-/** mobil scroller yüksekliği / masaüstü (1200vh × bu) */
+/** mobil scroller yüksekliği / masaüstü (1056vh × bu) */
 export const MOBILE_TOTAL = MOBILE.total;
 export function segmentsFor(mobile: boolean): SegMap {
   return mobile ? S_MOBILE : S_DESKTOP;
@@ -208,7 +220,10 @@ export function heroBaseY(vh: number): number {
 
 /* ---- Hero referansı (docs/ref/hero/hero.html) — sayılar birebir ---- */
 export const HERO_MOBILE_MAX = 760; // referans: innerWidth <= 760
-export const HERO_SIDE_BRIGHT = 0.07;
+/** Yandaki (odak dışı) ürünlerin parlaklığı. 12 Eyl 2026: 0.07 → 0.12 — siluetler biraz
+    daha seçilsin diye. Hâlâ SİLUET; ürün okunur hale gelmemeli.
+    ODAK parlaklığı (1) ve ışık kurgusu DEĞİŞMEDİ. */
+export const HERO_SIDE_BRIGHT = 0.12;
 export const HERO_REFL_OPACITY = 0.18;
 /** Yan ok: ürün sınır kutusuyla ok arası boşluk (masaüstü / mobil — mobilde ürüne daha yakın) */
 export const ARROW_GAP = 28;

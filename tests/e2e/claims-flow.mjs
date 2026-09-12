@@ -155,9 +155,12 @@ for (const i of [0, 3]) {
   check(`mobil c${i}: burger kırpılmamış`, inView(s), `${s.burger.x0.toFixed(0)}→${s.burger.x1.toFixed(0)} vp ${s.vw}`);
   check(`mobil c${i}: metin burgerin üstünde, çakışma yok`, !overlap(s.text, s.burger) && s.text.y0 >= s.burger.y1 - 1, `metin üst ${s.text?.y0.toFixed(0)} · burger alt ${s.burger.y1.toFixed(0)}`);
 }
-/* mobil scroll uzunluğu artmadı */
+/* mobil scroll uzunluğu ARTMADI. 12 Eyl 2026: hero→iddia geçişi yarıya inince scroller
+   928vh → 832vh oldu (stageMath: 1056 × MOBILE_TOTAL). Kontrol "tam 928" değil "artmadı":
+   kısalma iyileşme, uzama gerileme. */
 const height = await p.evaluate(() => document.querySelector(".scroller").getBoundingClientRect().height / innerHeight);
-check("mobil scroll uzunluğu artmadı (928vh)", Math.abs(height - 9.28) < 0.05, `${height.toFixed(2)}×vh`);
+check("mobil scroll uzunluğu artmadı (≤9.28×vh)", height <= 9.28 + 0.05, `${height.toFixed(2)}×vh`);
+check("mobil scroller beklenen değerde (832vh)", Math.abs(height - 8.32) < 0.05, `${height.toFixed(2)}×vh`);
 void Sm;
 await p.screenshot({ path: `${out}/390-c3.png` });
 await p.close();
