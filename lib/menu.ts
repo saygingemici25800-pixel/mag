@@ -29,6 +29,16 @@ export interface MenuItem {
   pairs?: string[];
   /** Sepet/ödeme sayfasındaki "YANINDA İYİ GİDER" bölümünde öne çıkar */
   upsell?: boolean;
+  /**
+   * Hero olmayan ürünler için tabak/masa fotoğrafı (public altında yol).
+   * Hero ürünleri saydam kesim kullanır (components/stage/cutouts.ts), bu alan onlar için değil.
+   *
+   * 12 Eyl 2026 — BİLİNÇLİ KARAR (kullanıcı onayı): taco ve noodle kalemlerinin
+   * hepsi AYNI TEK görseli paylaşır. Dosya bir kez üretildi
+   * (public/urun/ortak/noodle-taco-citir.webp = arşivdeki IMG_9115); beş kalem de
+   * aynı yolu gösterir, KOPYALANMADI. Karede noodle, taco ve burger birlikte.
+   */
+  photo?: string;
 }
 
 export interface HeroItem extends MenuItem {
@@ -36,6 +46,13 @@ export interface HeroItem extends MenuItem {
   hero: true;
   desc: string;
 }
+
+/**
+ * NOODLE + TACO kalemlerinin PAYLAŞTIĞI tek görsel (kullanıcı onaylı bilinçli karar,
+ * 12 Eyl 2026). Dosya bir kez üretildi; beş kalem de bu sabiti gösterir, kopyalanmadı.
+ * Kaynak: arşivdeki IMG_9115 — karede noodle, taco ve burger birlikte.
+ */
+export const SHARED_PHOTO = "/urun/ortak/noodle-taco-citir.webp";
 
 export const MENU: Record<Category, MenuItem[]> = {
   burger: [
@@ -129,6 +146,7 @@ export const MENU: Record<Category, MenuItem[]> = {
     // 2 adet
     {
       id: "tavuk-taco",
+      photo: SHARED_PHOTO,
       pairs: ["ayran", "zencefilli-gazoz"],
       name: "Tavuk Taco",
       price: 450,
@@ -137,6 +155,7 @@ export const MENU: Record<Category, MenuItem[]> = {
     },
     {
       id: "tiftik-taco",
+      photo: SHARED_PHOTO,
       pairs: ["ayran", "alkolsuz-bira"],
       name: "Tiftik Taco",
       price: 530,
@@ -145,6 +164,7 @@ export const MENU: Record<Category, MenuItem[]> = {
     },
     {
       id: "karides-taco",
+      photo: SHARED_PHOTO,
       pairs: ["zencefilli-gazoz", "soda"],
       name: "Karidesli Taco",
       price: 520,
@@ -155,6 +175,7 @@ export const MENU: Record<Category, MenuItem[]> = {
   noodle: [
     {
       id: "tavuklu-noodle",
+      photo: SHARED_PHOTO,
       pairs: ["zencefilli-gazoz", "ayran"],
       name: "Tavuklu",
       price: 450,
@@ -163,6 +184,7 @@ export const MENU: Record<Category, MenuItem[]> = {
     },
     {
       id: "karidesli-noodle",
+      photo: SHARED_PHOTO,
       pairs: ["soda", "alkolsuz-bira"],
       name: "Karidesli",
       price: 550,

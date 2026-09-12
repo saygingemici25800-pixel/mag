@@ -18,6 +18,26 @@ const fresh = async (b, opts = {}) => {
 };
 const state = (p) => p.evaluate(() => document.querySelector(".contact[role=dialog]")?.dataset.state ?? "none");
 const scene = (p) => p.evaluate(() => ({ y: window.scrollY, tf: document.querySelector(".item.focus")?.style.transform ?? "", pre: !!document.querySelector(".pre"), ovf: getComputedStyle(document.documentElement).overflow }));
+/* 12 Eyl 2026: sahne yumuşatma döngüsü (stageMath SMOOTHING) sabit bir süre sonra
+   DEĞİL, hedefe yaklaştıkça durur. Sabit 1800 ms bekleyip örnek almak kararsızdı:
+   "before" bazen 219 px, bazen 314 px, bazen −201 px çıkıyordu (aynı konumda).
+   Bu yüzden artık SÜRE değil, DURGUNLUK bekliyoruz: transform 3 ardışık örnekte
+   (150 ms arayla) 0,2 px'ten az değişince yakınsamış sayılır. */
+const settleScene = async (p, timeout = 12000) => {
+  const read = () => p.evaluate(() => document.querySelector(".item.focus")?.style.transform ?? "");
+  const num = (t) => [...String(t).matchAll(/-?\d+(?:\.\d+)?/g)].map((m) => Number(m[0]));
+  const t0 = Date.now();
+  let prev = num(await read()), stable = 0;
+  while (Date.now() - t0 < timeout) {
+    await p.waitForTimeout(150);
+    const cur = num(await read());
+    const same = cur.length === prev.length && cur.every((v, i) => Math.abs(v - prev[i]) < 0.2);
+    stable = same ? stable + 1 : 0;
+    prev = cur;
+    if (stable >= 3) return true;
+  }
+  return false;
+};
 
 const b = await chromium.launch();
 for (const vp of [{ w: 1440, h: 860 }, { w: 390, h: 844 }]) {
@@ -25,7 +45,8 @@ for (const vp of [{ w: 1440, h: 860 }, { w: 390, h: 844 }]) {
   const p = await fresh(b, vp);
   /* sahnenin ortasında aç: p korunmalı */
   await p.evaluate(() => { const m = document.documentElement.scrollHeight - innerHeight; window.scrollTo(0, Math.round(0.42 * m)); });
-  await p.waitForTimeout(1800);
+  await p.waitForTimeout(600);
+  check(`${tag} sahne yakınsadı (örnek öncesi)`, await settleScene(p));
   const before = await scene(p);
   await p.click("[data-contact-open]");
   await p.waitForTimeout(150);
@@ -55,9 +76,23 @@ for (const vp of [{ w: 1440, h: 860 }, { w: 390, h: 844 }]) {
   await p.keyboard.press("Escape");
   await p.waitForFunction(() => !document.querySelector(".contact"), null, { timeout: 8000 }).catch(() => {});
   check(`${tag} ESC kapattı`, (await state(p)) === "none");
+  await settleScene(p);
   const after = await scene(p);
   check(`${tag} kapanınca scroll kilidi kalktı`, after.ovf !== "hidden", after.ovf);
-  check(`${tag} scroll konumu ve sahne p aynen`, after.y === before.y && after.tf === before.tf, `y ${before.y}→${after.y}`);
+  /* 12 Eyl 2026: transform STRING'i birebir karşılaştırmak kararsızdı. Sahnenin
+     yumuşatma döngüsü (stageMath SMOOTHING) bu konumda tam yakınsamıyor: settle
+     sonrası ardışık örneklerde 314.3 ↔ 314.4 px gibi 0,1 px salınım ölçüldü
+     (değişiklikten ÖNCEKİ sürümde aynı yerde 6 farklı değer görüldü — yani
+     kararsızlık eskiden beri var, katmanla ilgisi yok).
+     Ölçüt artık SAYISAL: katman kapanınca scroll birebir aynı olmalı, sahne de
+     1 px toleransla aynı yerde durmalı (katman sahneyi kaydırmadı). Artık iki örnek
+     de settleScene ile yakınsamış durumda alındığı için 1 px yeterli; gerçek bir
+     kayma olsa onlarca px olurdu. */
+  const nums = (t) => [...String(t).matchAll(/-?\d+(?:\.\d+)?/g)].map((m) => Number(m[0]));
+  const a0 = nums(before.tf), a1 = nums(after.tf);
+  const sameShape = a0.length === a1.length;
+  const within = sameShape && a0.every((v, i) => Math.abs(v - a1[i]) <= 1);
+  check(`${tag} scroll konumu ve sahne p aynen (±1 px)`, after.y === before.y && within, `y ${before.y}→${after.y} · tf ${before.tf} → ${after.tf}`);
   check(`${tag} preloader tekrar oynamadı`, !after.pre);
   check(`${tag} odak İLETİŞİM butonuna döndü`, await p.evaluate(() => document.activeElement?.hasAttribute("data-contact-open")));
   /* dışarı tıklayınca kapan */

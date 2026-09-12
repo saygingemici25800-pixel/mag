@@ -4,9 +4,27 @@ import Image from "next/image";
 import { CUTOUTS_M } from "@/components/stage/cutouts";
 import type { HeroId, MenuItem } from "@/lib/menu";
 
-/** Kare ürün görseli: cutout (koyu kutu) → hero jpg → baş harf. */
+/** Kare ürün görseli: hero cutout → paylaşılan/ürün fotoğrafı → baş harf. */
 export default function ProductImage({ m, name, size = 96, big = false, eager = false }: { m: MenuItem; name: string; size?: number; big?: boolean; eager?: boolean }) {
   const src = m.hero ? CUTOUTS_M[m.id as HeroId] : undefined;
+  /* 12 Eyl 2026: hero olmayan kalemler için m.photo (taco ve noodle'ın PAYLAŞTIĞI
+     tek görsel — lib/menu SHARED_PHOTO). next/image genişlik/yükseklik istiyor;
+     dosya 800×1200 üretildi. */
+  if (!src && m.photo) {
+    return (
+      <div className={"pimg" + (big ? " big" : "")}>
+        <Image
+          src={m.photo}
+          alt=""
+          width={800}
+          height={1200}
+          sizes={big ? "(max-width: 640px) 90vw, 480px" : `${size}px`}
+          loading={eager || big ? "eager" : "lazy"}
+          fetchPriority={eager ? "high" : undefined}
+        />
+      </div>
+    );
+  }
   if (src) {
     return (
       <div className={"pimg" + (big ? " big" : "")}>

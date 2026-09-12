@@ -121,7 +121,17 @@
     "navShort": "GALERİ",
     "altFallback": "MAG Street Food ürün fotoğrafı",
     "altOf": "{name} — MAG Street Food",
-    "wallAria": "Fotoğraf duvarı — ok tuşlarıyla gezinin"
+    "wallAria": "Fotoğraf duvarı — ok tuşlarıyla gezinin",
+    "sceneFries": "Metal kâsede el yapımı patates kızartması, önlüklü ekip",
+    "sceneParmesan": "Parmesanlı patates kovası",
+    "sceneBag": "MAG kraft paket poşeti",
+    "sceneHands": "Burger, bira ve MAG poşeti tutan eller",
+    "sceneSign": "MAG. Street Food Etc tabelası",
+    "sceneWall": "Duvarda neon burger ve çizim figür",
+    "sceneServe": "Elde servis edilen burger ve patates",
+    "sceneLogo": "Burger, duvardaki MAG logosu önünde",
+    "sceneTable": "Masada noodle, taco ve burger bir arada",
+    "sceneLime": "Tacoya limon sıkılıyor"
   },
   "footer": {
     "title": [

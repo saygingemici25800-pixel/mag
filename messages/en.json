@@ -123,7 +123,17 @@
     "altFallback": "MAG Street Food product photo",
     "altOf": "{name} — MAG Street Food",
     "wallAria": "Photo wall — use arrow keys to navigate",
-    "_acik": "AÇIK: EN çevirisi onay bekliyor"
+    "_acik": "AÇIK: EN çevirisi onay bekliyor",
+    "sceneFries": "Hand-cut fries in a steel bowl, held by staff in an apron",
+    "sceneParmesan": "Bucket of parmesan fries",
+    "sceneBag": "MAG kraft takeaway bag",
+    "sceneHands": "Hands holding a burger, a beer and a MAG bag",
+    "sceneSign": "MAG. Street Food Etc sign",
+    "sceneWall": "Neon burger and line-drawn figure on the wall",
+    "sceneServe": "Burger and fries served by hand",
+    "sceneLogo": "Burger in front of the MAG logo on the wall",
+    "sceneTable": "Noodles, tacos and a burger together on the table",
+    "sceneLime": "Lime being squeezed over tacos"
   },
   "footer": {
     "title": [

@@ -161,11 +161,19 @@ export default function PhotoWall() {
     };
   }, []);
 
-  /* Alt metin: ürün biliniyorsa adından, bilinmiyorsa ortak yedek. Tahmin YOK. */
-  const altOf = (item?: string) => {
-    if (!item) return g.altFallback;
-    const m = findMenuItem(item);
-    return m ? g.altOf.replace("{name}", m.name) : g.altFallback;
+  /* Alt metin: ürün biliniyorsa menü adından; ürün DEĞİLSE (tabela, poşet, tezgâh,
+     duvar işi) lib/gallery'deki altKey ile messages.gallery'den okunur; ikisi de yoksa
+     ortak yedek. Tahmin YOK — kareler tek tek açılıp bakıldı, metin ona göre yazıldı. */
+  const altOf = (photo: { item?: string; altKey?: string }) => {
+    if (photo.item) {
+      const m = findMenuItem(photo.item);
+      if (m) return g.altOf.replace("{name}", m.name);
+    }
+    if (photo.altKey) {
+      const s = (g as unknown as Record<string, string>)[photo.altKey];
+      if (s) return s;
+    }
+    return g.altFallback;
   };
 
   const total = GALLERY.length;
@@ -191,7 +199,7 @@ export default function PhotoWall() {
                 <figure className="gtile" key={i} style={{ animationDelay: `${delay.toFixed(3)}s` }}>
                   <Image
                     src={photo.src}
-                    alt={copy === 0 ? altOf(photo.item) : ""}
+                    alt={copy === 0 ? altOf(photo) : ""}
                     width={photo.w}
                     height={photo.h}
                     /* servis genişliği karo boyutunu geçmesin */

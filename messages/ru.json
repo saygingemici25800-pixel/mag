@@ -128,7 +128,17 @@
     "altFallback": "Фото продукта MAG Street Food",
     "altOf": "{name} — MAG Street Food",
     "wallAria": "Фотостена — используйте стрелки для навигации",
-    "_acik": "AÇIK: Rusça çeviri onay bekliyor"
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor",
+    "sceneFries": "Картофель фри в стальной чаше, в руках сотрудника в фартуке",
+    "sceneParmesan": "Ведёрко картофеля фри с пармезаном",
+    "sceneBag": "Крафтовый пакет MAG",
+    "sceneHands": "Руки с бургером, пивом и пакетом MAG",
+    "sceneSign": "Вывеска MAG. Street Food Etc",
+    "sceneWall": "Неоновый бургер и рисованная фигура на стене",
+    "sceneServe": "Бургер и картофель фри, поданные в руке",
+    "sceneLogo": "Бургер на фоне логотипа MAG на стене",
+    "sceneTable": "Лапша, тако и бургер вместе на столе",
+    "sceneLime": "Лайм выжимают на тако"
   },
   "footer": {
     "title": [
