@@ -188,84 +188,86 @@ h3,
 }
 
 /* ---- Köşe okları: sırayla yanma + toplu flaş ----
-   Döngü 2160 ms, üç AYRI keyframe (tek keyframe + gecikme İŞE YARAMIYOR: gecikme toplu
+   Döngü 2920 ms, üç AYRI keyframe (tek keyframe + gecikme İŞE YARAMIYOR: gecikme toplu
    flaşı da kaydırıyor ve üçü hiçbir anda birlikte yanmıyor — ölçüldü).
-     0–180 ms   üstteki yanar
-     180–360    ortadaki yanar
-     360–540    alttaki yanar
-     540–760    ÜÇÜ BİRDEN flaş (220 ms)
-     760–2160   bekleme (1400 ms — 11 Eyl 2026'da 700'den iki katına çıkarıldı)
-   Adım süreleri DEĞİŞMEDİ; yalnızca döngü sonundaki bekleme uzadı.
+     0–360 ms    üstteki yanar
+     360–720     ortadaki yanar
+     720–1080    alttaki yanar
+     1080–1520   ÜÇÜ BİRDEN flaş (440 ms)
+     1520–2920   bekleme (1400 ms)
+   12 Eyl 2026 — DAHA YAVAŞ: adım 180 → 360 ms, toplu flaş 220 → 440 ms (iki katı).
+   Bekleme 1400 ms'de bırakıldı ki döngü gereksiz uzamasın; nefes aynı, yanıp sönme yavaş.
+   Yüzdeler 2920 ms'ye göre yeniden hesaplandı (yüzdeler süreyle ölçeklenir).
    Yanma 0.15 → 0.9, ease-in-out. Yalnızca opacity; transform/filter YOK. */
 @keyframes cornerSeq1 {
-  0.0% {
+  0% {
     opacity: 0.15;
   }
-  4.17% {
+  6.16% {
     opacity: 0.9;
   }
-  8.33% {
+  12.33% {
     opacity: 0.15;
   }
-  25.0% {
+  36.99% {
     opacity: 0.15;
   }
-  30.09% {
+  44.52% {
     opacity: 0.9;
   }
-  35.19% {
+  52.05% {
     opacity: 0.15;
   }
-  100.0% {
+  100% {
     opacity: 0.15;
   }
 }
 @keyframes cornerSeq2 {
-  0.0% {
+  0% {
     opacity: 0.15;
   }
-  8.33% {
+  12.33% {
     opacity: 0.15;
   }
-  12.5% {
+  18.49% {
     opacity: 0.9;
   }
-  16.67% {
+  24.66% {
     opacity: 0.15;
   }
-  25.0% {
+  36.99% {
     opacity: 0.15;
   }
-  30.09% {
+  44.52% {
     opacity: 0.9;
   }
-  35.19% {
+  52.05% {
     opacity: 0.15;
   }
-  100.0% {
+  100% {
     opacity: 0.15;
   }
 }
 @keyframes cornerSeq3 {
-  0.0% {
+  0% {
     opacity: 0.15;
   }
-  16.67% {
+  24.66% {
     opacity: 0.15;
   }
-  20.83% {
+  30.82% {
     opacity: 0.9;
   }
-  25.0% {
+  36.99% {
     opacity: 0.15;
   }
-  30.09% {
+  44.52% {
     opacity: 0.9;
   }
-  35.19% {
+  52.05% {
     opacity: 0.15;
   }
-  100.0% {
+  100% {
     opacity: 0.15;
   }
 }

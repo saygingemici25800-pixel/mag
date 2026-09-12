@@ -195,6 +195,9 @@ for (const [w, h, label] of [[1440, 900, "masaüstü"], [390, 844, "mobil"]]) {
     const st = getComputedStyle(L.querySelector(".cchev"));
     return {
       okSayısı: cs.length, okYük: cs, okGen: Math.round(L.querySelector('.cchev').getBoundingClientRect().width), grupYük: Math.round(lb.height),
+      /* beklenen grup yüksekliği = 3 × kutu + 2 × aralık.
+         Aralık İKİNCİ oktan okunur: ilkinin margin-top'u :first-child ile 0'lanmıştır. */
+      beklenenGrupYük: Math.round(cs.reduce((a, h) => a + h, 0) + 2 * parseFloat(getComputedStyle(L.querySelectorAll(".cchev")[1]).marginTop)),
       dikeyYüzde: Math.round((lb.top + lb.height / 2) / innerHeight * 100),
       solKenar: Math.round(lb.left), sağKenar: Math.round(innerWidth - rb.right),
       çubukÇakışma: ov(lb, bar) || ov(rb, bar), sayaçÇakışma: ov(lb, cnt) || ov(rb, cnt),
@@ -207,8 +210,10 @@ for (const [w, h, label] of [[1440, 900, "masaüstü"], [390, 844, "mobil"]]) {
   check("köşe okları var (iki grup)", !!g);
   check("her grupta 3 ok", g.okSayısı === 3, String(g.okSayısı));
   /* 11 Eyl 2026: oklar AŞAĞI baktığı için kutu döndü — ok 80×40 (önce 40×80).
-     Ölçüt okun UZUN kenarı (~80 px) ve grup yüksekliği (~164 px). */
-  check("ok ~80 px (uzun kenar), grup ~150-175 px", g.okGen >= 70 && g.okGen <= 90 && g.grupYük >= 140 && g.grupYük <= 180, `ok ${g.okGen}×${g.okYük[0]} · grup ${g.grupYük}`);
+     12 Eyl 2026: üç ok birbirine yaklaştı (aralık 22 → 6 px), grup 164 → 132 px.
+     Ölçüt okun UZUN kenarı (~80 px) ve grup yüksekliği: 3 × 40 kutu + 2 × aralık.
+     Aralık CSS'ten okunur, böylece aralık bir daha değişirse test kendiliğinden uyar. */
+  check("ok ~80 px (uzun kenar), grup = 3 kutu + 2 aralık", g.okGen >= 70 && g.okGen <= 90 && Math.abs(g.grupYük - g.beklenenGrupYük) <= 2, `ok ${g.okGen}×${g.okYük[0]} · grup ${g.grupYük} (beklenen ${g.beklenenGrupYük})`);
   check("dikeyde ~%80", Math.abs(g.dikeyYüzde - 80) <= 3, `%${g.dikeyYüzde}`);
   check("kenardan içeride, taşma yok", g.ekranİçinde && g.solKenar >= 12 && g.sağKenar >= 12, `sol ${g.solKenar} sağ ${g.sağKenar}`);
   check("ilerleme çubuğunu kapatmıyor", !g.çubukÇakışma);
@@ -220,13 +225,25 @@ for (const [w, h, label] of [[1440, 900, "masaüstü"], [390, 844, "mobil"]]) {
 
   /* SIRA: üst → orta → alt → toplu flaş → bekleme. Web Animations API ile ölçülür;
      CSS animationDelay ile "duraklat + faz ver" yöntemi yarışıyordu. */
+  /* 12 Eyl 2026: örnekleme anları artık animasyonun KENDİ süresinden türetiliyor.
+     Önce sabit ms (70/280/420/630/1100) yazılıydı ve döngü 2160 → 2920 ms olunca
+     fazların ortasına düşmüyordu. Faz oranları keyframe'lerle aynı kaynaktan:
+     adım 3 × %12.33, toplu flaş %36.99–%52.05, kalanı bekleme. */
   const seq = await p.evaluate(() => {
     const cs = [...document.querySelectorAll(".cnr.r .cchev")];
     const anims = cs.map((c) => c.getAnimations()[0]);
     if (anims.some((a) => !a)) return null;
     anims.forEach((a) => a.pause());
-    const at = (t) => { anims.forEach((a) => { a.currentTime = t; }); return cs.map((c) => parseFloat(getComputedStyle(c).opacity)); };
-    return { ust: at(70), orta: at(280), alt: at(420), toplu: at(630), bekleme: at(1100) };
+    const dur = anims[0].effect.getTiming().duration; // ms, CSS'ten
+    const at = (frac) => { const t = dur * frac; anims.forEach((a) => { a.currentTime = t; }); return cs.map((c) => parseFloat(getComputedStyle(c).opacity)); };
+    return {
+      dur,
+      ust: at(0.0616),     // 1. adımın ortası (tepe)
+      orta: at(0.1849),    // 2. adımın ortası
+      alt: at(0.3082),     // 3. adımın ortası
+      toplu: at(0.4452),   // toplu flaşın ortası
+      bekleme: at(0.76),   // bekleme bölgesi
+    };
   });
   check("faz 1: yalnızca ÜSTTEKİ yanık", seq.ust[0] > 0.6 && seq.ust[1] < 0.3 && seq.ust[2] < 0.3, seq.ust.map((v) => v.toFixed(2)).join(" "));
   check("faz 2: yalnızca ORTADAKİ yanık", seq.orta[1] > 0.6 && seq.orta[0] < 0.3 && seq.orta[2] < 0.3, seq.orta.map((v) => v.toFixed(2)).join(" "));
