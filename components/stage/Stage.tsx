@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { preload } from "react-dom";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useLocale, useT } from "@/components/LocaleProvider";
 import { itemDesc, localePath } from "@/lib/i18n";
@@ -14,7 +13,6 @@ import Hero from "./Hero";
 import LightRays from "./LightRays";
 import Outro from "./Outro";
 import CUT_CENTERS from "@/lib/cutCenters.json";
-import { LOGO } from "./logo";
 import Preloader from "./Preloader";
 import { useLoadProgress } from "./useLoadProgress";
 import StaticFallback from "./StaticFallback";
@@ -49,8 +47,8 @@ export default function Stage({ extra }: { extra?: ExtraCutouts }) {
   const [reduced, setReduced] = useState(false);
   const [preDone, setPreDone] = useState(false);
   const load = useLoadProgress();
-  // logo ilk boyamada hazır olsun (preloader'ın tek görseli)
-  preload(LOGO.src, { as: "image", fetchPriority: "high" });
+  /* 13 Eyl 2026: logo artık INLINE SVG (components/stage/logoPath.ts) — ağdan
+     ayrı bir dosya gelmiyor, bu yüzden preload'a gerek kalmadı. */
 
   const activeRef = useRef(0);
   const ciRef = useRef(-1);

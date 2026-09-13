@@ -989,24 +989,46 @@ html.lm .ctaPill {
   width: min(460px, 42vw);
   aspect-ratio: 912 / 434;
   line-height: 0;
+  /* SVG fill="currentColor" taşıyor: rengi buradan alır (krem/sarı). */
+  color: var(--cream);
+  /* kutu çizen hiçbir şey yok — iOS'ta saydam logo çevresinde dikdörtgen görünmesin */
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  outline: none;
+  isolation: auto;
+  mix-blend-mode: normal;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 @media (max-width: 900px) {
   .preLogo {
     width: min(300px, 72vw);
   }
 }
-.preLogo img {
+.preLogo svg {
   position: absolute;
   inset: 0;
   display: block;
   width: 100%;
   height: 100%;
-  /* kaynak (912 px) CSS boyutundan büyük: küçültme kalitesi tarayıcıya bırakılmasın */
-  image-rendering: auto;
+  /* Rengi .preLogo'nun color'ından al. SVG kök öğesinde fill attribute'u YOK;
+     fill varsayılanı siyahtır, bu yüzden burada açıkça currentColor veriliyor
+     (denendi: verilmezse logo koyu zeminde siyah çıkıp kayboluyor). */
+  fill: currentColor;
+  /* 13 Eyl 2026 — iOS Safari'deki DİKDÖRTGEN KUTUYA karşı savunma.
+     Logo saydam; arkasında/çevresinde hiçbir kutu çizilmemeli. */
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  outline: none;
 }
-/* alt katman: bulanık + sönük başlar (JS her karede blur 16→0, brightness .55→1, saturate .7→1) */
+/* Alt katman: sönük başlar, ilerledikçe kaybolur (JS: opacity .35 → 0).
+   BLUR YOK — `filter: blur()` saydam görselin kenar piksellerini elemanın
+   dikdörtgen kutusuna yayıyor ve iOS Safari'de logonun etrafında görünür bir
+   kutu bırakıyordu. Ölçüldü: yalnızca blur kapatılınca kutu tamamen kayboluyor. */
 .preBase {
-  filter: blur(16px) brightness(0.55) saturate(0.7);
+  opacity: 0.35;
 }
 /* üst katman: net, tam renk; soldan sağa açılır (JS: clip-path inset(0 X 0 0), X = (1−shown)·100%) */
 .preSharp {
@@ -1056,7 +1078,7 @@ html.lm .ctaPill {
 }
 /* reduced-motion: blur/wipe yok; logo fade-in JS'te (WAAPI, 300 ms); çizgi ilerler */
 @media (prefers-reduced-motion: reduce) {
-  /* `.preLogo img` (0,1,1) seçicisini geçmek için aynı özgüllük */
+  /* `.preLogo svg` (0,1,1) seçicisini geçmek için aynı özgüllük */
   .preLogo .preBase {
     display: none;
   }

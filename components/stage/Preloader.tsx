@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { LOGO } from "./logo";
+import { LOGO_H, LOGO_PATH, LOGO_VIEWBOX, LOGO_W } from "./logoPath";
 
 /** gösterilen ilerleme = min(gerçek, geçen süre / MIN_MS): en az 2.4 s sürer */
 const MIN_MS = 2400;
@@ -24,7 +24,7 @@ interface Props {
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /**
- * Açılış: MAG SAFE logosu iki katman. Alt katman bulanık/sönük (blur 16 → 0, brightness .55 → 1),
+ * Açılış: MAG logosu iki katman. Alt katman sönük başlar (opaklık .35 → 0; blur YOK — iOS'ta kutu yapıyordu),
  * üst katman net ve tam renk, soldan sağa clip-path ile açılır; açılan kenarı 22 px'lik beyaz-pembe
  * ışık çizgisi takip eder. Gösterilen ilerleme gerçek ilerleme ile 2.4 s'lik zamanlayıcının yavaş
  * olanı. %100'de 120 ms vurgu (pembe + teal halo, 1 → 1.03 → 1), 350 ms bekleme, 600 ms fade +
@@ -45,8 +45,8 @@ export default function Preloader({ progress, label, onDone }: Props) {
 
   const root = useRef<HTMLDivElement>(null);
   const logo = useRef<HTMLDivElement>(null);
-  const base = useRef<HTMLImageElement>(null);
-  const sharp = useRef<HTMLImageElement>(null);
+  const base = useRef<SVGSVGElement>(null);
+  const sharp = useRef<SVGSVGElement>(null);
   const fill = useRef<HTMLElement>(null);
   const num = useRef<HTMLDivElement>(null);
 
@@ -69,7 +69,12 @@ export default function Preloader({ progress, label, onDone }: Props) {
         root.current?.style.setProperty("--p", shown.toFixed(4));
         root.current?.setAttribute("aria-valuenow", String(pct));
         if (!rm) {
-          if (base.current) base.current.style.filter = `blur(${(16 * (1 - shown)).toFixed(2)}px) brightness(${(0.55 + 0.45 * shown).toFixed(3)}) saturate(${(0.7 + 0.3 * shown).toFixed(3)})`;
+          /* 13 Eyl 2026: blur() KALDIRILDI. Saydam logoyu bulanıklaştırmak kenar
+             piksellerini elemanın DİKDÖRTGEN kutusuna yayıyor ve iOS Safari'de
+             logonun etrafında görünür bir kutu bırakıyordu (ölçüldü: blur kapatılınca
+             kutu tamamen kayboluyor). Yerine sönük→net opaklık + parlaklık geçişi:
+             aynı "netleşme" hissi, kutu yok. */
+          if (base.current) base.current.style.opacity = (0.35 * (1 - shown)).toFixed(3);
           if (sharp.current) sharp.current.style.clipPath = `inset(0 ${((1 - shown) * 100).toFixed(3)}% 0 0)`;
         }
         if (fill.current) fill.current.style.transform = `scaleX(${shown.toFixed(4)})`;
@@ -113,12 +118,18 @@ export default function Preloader({ progress, label, onDone }: Props) {
     >
       <div className="preInner">
         <div ref={logo} className="preLogo">
-          {/* alt katman: bulanık ve sönük başlar, ilerlemeyle netleşir */}
-          {/* eslint-disable-next-line @next/next/no-img-element -- düz img; preload Stage'de */}
-          <img ref={base} className="preBase" src={LOGO.src} width={LOGO.width} height={LOGO.height} alt="" fetchPriority="high" decoding="async" />
+          {/* 13 Eyl 2026: <img> yerine INLINE SVG. Sebep: SVG fill="currentColor"
+              taşıyor ve rengi CSS'ten alması yalnızca inline'da mümkün — <img src>
+              ile currentColor siyaha düşüp koyu zeminde logo kayboluyor (denendi).
+              Ayrıca ağdan ikinci istek açılmıyor. */}
+          {/* alt katman: sönük başlar, ilerledikçe kaybolur (blur YOK — iOS'ta kutu yapıyordu) */}
+          <svg ref={base} className="preBase" viewBox={LOGO_VIEWBOX} width={LOGO_W} height={LOGO_H} aria-hidden="true" focusable="false">
+            <path fillRule="evenodd" clipRule="evenodd" d={LOGO_PATH} />
+          </svg>
           {/* üst katman: net ve tam renk, soldan sağa açılır */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img ref={sharp} className="preSharp" src={LOGO.src} width={LOGO.width} height={LOGO.height} alt="MAG SAFE" fetchPriority="high" decoding="async" />
+          <svg ref={sharp} className="preSharp" viewBox={LOGO_VIEWBOX} width={LOGO_W} height={LOGO_H} role="img" aria-label="MAG Street Food">
+            <path fillRule="evenodd" clipRule="evenodd" d={LOGO_PATH} />
+          </svg>
         </div>
         <div className="preBar" aria-hidden="true">
           <i ref={fill} />

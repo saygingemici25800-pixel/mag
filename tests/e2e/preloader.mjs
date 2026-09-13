@@ -1,4 +1,4 @@
-// Preloader: shown = min(gerçek, geçen/2400) → en az 2.4 s; iki katmanlı logo (blur/wipe), kenar çizgisi,
+// Preloader: shown = min(gerçek, geçen/2400) → en az 2.4 s; iki katmanlı INLINE SVG logo (opaklık/wipe), kenar çizgisi,
 // yükleme çizgisi + "YÜKLENİYOR · %NN", %100 vurgusu, 350 ms bekleme, 600 ms kalkış; reduced-motion.
 // Ayrıca ilk boyama → kalkış süresini ölçer ve %15 / %55 / %100 karelerini alır.
 import { chromium } from "playwright";
@@ -15,7 +15,7 @@ const probe = (p) => p.evaluate(() => {
   const sharp = pre.querySelector(".preSharp"), basei = pre.querySelector(".preBase");
   return {
     now, gone: false, p: parseFloat(pre.style.getPropertyValue("--p") || "0"), cls: pre.className,
-    clip: sharp?.style.clipPath ?? "", blur: parseFloat(basei?.style.filter.match(/blur\(([\d.]+)px\)/)?.[1] ?? "16"),
+    clip: sharp?.style.clipPath ?? "", baseOp: parseFloat(basei?.style.opacity || "0.35"),
     baseDisplay: basei ? getComputedStyle(basei).display : "none", edge: !!pre.querySelector(".preEdge"),
     bar: pre.querySelector(".preBar i")?.style.transform ?? "", num: pre.querySelector(".preNum")?.textContent ?? "",
     logoOp: parseFloat(getComputedStyle(pre.querySelector(".preLogo")).opacity),
@@ -50,7 +50,11 @@ for (const vp of [{ w: 1440, h: 860 }, { w: 390, h: 844 }]) {
   check(`${tag} en az 2.4 s sürdü (ilk örnek → %100)`, reach && reach.now - first.now >= 2300, reach ? `${(reach.now - first.now).toFixed(0)} ms` : "yok");
   check(`${tag} toplam ≈ 2.4 s + 120 + 350 + 600`, goneAt && goneAt - first.now >= 3300 && goneAt - first.now < 5500, `${(goneAt - first.now).toFixed(0)} ms`);
   const mid = live.find((s) => s.p > 0.4 && s.p < 0.7);
-  check(`${tag} alt katman blur 16 → 0`, first.blur >= 15 && mid && mid.blur < 10 && reach && reach.blur < 0.01, `${first.blur}→${mid?.blur}→${reach?.blur}`);
+  /* 13 Eyl 2026: alt katmanda BLUR YOK. `filter: blur()` saydam logonun kenar
+     piksellerini elemanın dikdörtgen kutusuna yayıyor ve iOS Safari'de logonun
+     çevresinde görünür bir kutu bırakıyordu. Yerine sönük→net OPAKLIK geçişi:
+     .35 → 0. Ölçüt de buna göre değişti. */
+  check(`${tag} alt katman opaklık .35 → 0`, first.baseOp >= 0.3 && mid && mid.baseOp < 0.25 && reach && reach.baseOp < 0.01, `${first.baseOp}→${mid?.baseOp}→${reach?.baseOp}`);
   /* tarayıcı inset(0 59% 0 0) → inset(0px 59.296% 0px 0px) normalize eder */
   const X = (c) => parseFloat(c.match(/inset\(0(?:px)? ([\d.]+)%/)?.[1] ?? "NaN");
   check(`${tag} üst katman soldan sağa açılır (clip-path)`, X(firstClip) > 50 && mid && X(mid.clip) > 25 && X(mid.clip) < 65 && reach && X(reach.clip) === 0, `${firstClip} → ${mid?.clip} → ${reach?.clip}`);
@@ -74,7 +78,7 @@ for (const vp of [{ w: 1440, h: 860 }, { w: 390, h: 844 }]) {
   check("yavaş ağda gerçek ilerlemeyi bekler (> 2.4 s)", reach && reach.now - first.now > 3500, reach ? `${(reach.now - first.now).toFixed(0)} ms` : "%100'e ulaşmadı");
   await p.close();
 }
-/* reduced-motion: blur/wipe yok, logo 300 ms fade-in, çizgi ilerler, yine ≥ 2.4 s */
+/* reduced-motion: opaklık/wipe yok, logo 300 ms fade-in, çizgi ilerler, yine ≥ 2.4 s */
 {
   const p = await b.newPage({ viewport: { width: 1440, height: 860 }, reducedMotion: "reduce" });
   await p.goto(base + "/", { waitUntil: "commit" });
