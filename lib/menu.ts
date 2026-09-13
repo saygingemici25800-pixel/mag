@@ -138,6 +138,10 @@ export const MENU: Record<Category, MenuItem[]> = {
       name: "Mag Çıtır",
       price: 490,
       hero: true,
+      /* Hero kesimi (public/urun/citir.webp) HENÜZ YOK. Kesim gelene kadar sipariş
+         arayüzünde ortak fotoğraf gösterilir; kesim eklendiğinde ProductImage
+         otomatik olarak onu tercih eder (cutout > photo). */
+      photo: SHARED_PHOTO,
       desc: "Panelenmiş tavuk parçaları, cips, sweet chili sos",
       ingredients: [{ name: "brioche ekmek", removable: false }, { name: "Panelenmiş tavuk parçaları", removable: false }, { name: "cips", removable: true }, { name: "sweet chili sos", removable: true }],
     },

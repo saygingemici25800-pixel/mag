@@ -12,6 +12,7 @@ import type { NewOrderInput, ValidationError } from "@/lib/orders";
 import { computeTotals, findMenuItem, normalizePhone, type OrderType } from "@/lib/orders-shared";
 import { useClockMinute } from "@/lib/useClock";
 import { ZONES, getZone } from "@/lib/zones";
+import ProductImage from "./ProductImage";
 import MinCartInfo from "./MinCartInfo";
 import Upsell from "./Upsell";
 import IngredientPicker from "./IngredientPicker";
@@ -119,6 +120,9 @@ export default function CheckoutPage() {
             if (!m) return null;
             return (
               <div key={it.key} className="line" data-cart-line data-line-key={it.key}>
+                {/* 13 Eyl 2026: sepet/ödeme özetinde görsel YOKTU (yalnızca metin).
+                    ProductImage aynı sırayı uygular: kesim > fotoğraf > kısa ad rozeti. */}
+                <ProductImage m={m} name={itemName(t, m)} size={56} />
                 <div>
                   <div className="text-sm font-bold">{itemName(t, m)}</div>
                   {it.removed.length ? (
