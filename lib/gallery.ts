@@ -1,20 +1,30 @@
 /**
  * Galeri duvarı — görsel listesi TEK KAYNAK. Bileşene gömülü liste yok.
  *
- * DURUM (12 Eyl 2026): işletmenin çekim arşivinden (mag-foto/, 135 kare) 24 kare
- * seçildi ve kullanıcı onayladı. Hepsi public/galeri/ altına işlendi:
- * uzun kenar 1600px, WebP kalite 82. Ham arşiv .gitignore'da, repoya girmiyor.
+ * 13 Eyl 2026 — GALERİ SIFIRDAN KURULDU. Eski 24 karelik seçki kaldırıldı;
+ * işletmenin çekim arşivinden (mag-foto/, 135 kare) YÜZ İÇERMEYEN 63 karenin
+ * TAMAMI galeriye alındı. Dosyalar public/galeri/01..63.webp: uzun kenar 1200px,
+ * WebP kalite 78 (ort. 62 KB/kare, toplam 3,8 MB).
  *
- * YÜZ POLİTİKASI: arşivdeki 71 karede tanınabilir yüz var, HİÇBİRİ kullanılmadı
- * (izinsiz kullanmıyoruz). Buradaki karelerde yalnızca el/gövde görünüyor —
- * kimlik belirlemiyor; altı tanesi tam boyutta ayrıca doğrulandı.
+ * YÜZ POLİTİKASI — DEĞİŞMEDİ: arşivdeki 72 karede tanınabilir yüz var, hiçbiri
+ * kullanılmadı. Liste docs/screens/galeri-onay/SECIM.md'de 71 kare olarak duruyordu;
+ * bu turda 63 adayın HEPSİ tek tek yeniden görüntülendi ve IMG_8514'te (tezgâhta
+ * profilden yüz) listede OLMAYAN bir yüz bulunup çıkarıldı. Kalan 63 karede yalnızca
+ * el/gövde/saç var — kimlik belirlemiyor.
  *
- * ALT METİN: fotoğrafın içeriği tahmin EDİLMEZ. Kareler tek tek açılıp bakıldı.
- *  - Ürün karesi ise `item` verilir → alt metin menü adından kurulur (gallery.altOf).
- *  - Ürün olmayan kare (tabela, poşet, tezgâh, duvar işi) ise `altKey` verilir →
- *    messages.gallery[altKey] üç dilde yazılı. Böylece "MAG poşeti" karesine
- *    ürün adı uydurulmaz.
- *  - İkisi de yoksa ortak yedek (gallery.altFallback) kullanılır.
+ * PERFORMANS: duvar 4 kopya × ekrana göre ızgara basıyor, yani DOM'daki <img>
+ * sayısı LİSTE UZUNLUĞUNA DEĞİL ekran boyutuna bağlı. Her karo loading="lazy" +
+ * quality={70} + sizes ≤22vw; tarayıcı yalnızca ekranda görünen karoyu indiriyor.
+ * Bu yüzden 24 → 63 kare geçişi ilk yükleme transferini artırmıyor (ölçüldü,
+ * rapor commit mesajında). Liste uzadıkça tekrar AZALIYOR, maliyet artmıyor.
+ *
+ * ALT METİN: içerik tahmin EDİLMEZ. 63 karenin hepsi açılıp bakıldı; altKey ile
+ * messages.gallery'deki üç dilli açıklamaya bağlanıyor (43 benzersiz açıklama —
+ * aynı sahnenin varyasyonları aynı metni paylaşıyor).
+ *
+ * ORAN: kareler karışık (50 dikey, 13 yatay). Karo kutusu KARE ve object-fit:cover
+ * — yani her kare merkezden kırpılıyor. Tek bir en-boy oranı dayatmak yatay kareleri
+ * daha çok kırpardı; kırpma kutuda, kaynak dosyada değil (oran korunuyor).
  */
 export interface GalleryPhoto {
   src: string;
@@ -23,38 +33,76 @@ export interface GalleryPhoto {
   h: number;
   /** lib/menu.ts ürün id'si; alt metin bundan kurulur. Ürün karesi değilse boş. */
   item?: string;
-  /** messages.gallery içindeki alt metin anahtarı — ürün olmayan kareler için. */
+  /** messages.gallery içindeki alt metin anahtarı. */
   altKey?: string;
 }
 
-/* Sıra duvardaki sıradır: burger → çıtır → taco → noodle → yan ürün → mekân.
-   Kaynak dosya adı yorumda, arşivde geri bulunabilsin diye. */
+/* Sıra dosya adı sırası (01..63) = arşiv sırası. Kaynak dosya adı yorumda. */
 export const GALLERY: GalleryPhoto[] = [
-  { src: "/galeri/01.webp", w: 1600, h: 1067, item: "orjinal" }, // IMG_8463 cheeseburger, siyah tabak
-  { src: "/galeri/02.webp", w: 1600, h: 1067, item: "orjinal" }, // IMG_8483 cheeseburger + kovada patates
-  { src: "/galeri/03.webp", w: 1600, h: 1066, item: "orjinal" }, // IMG_8790 cheeseburger, sarmaşık zemin
-  { src: "/galeri/04.webp", w: 1600, h: 1067, item: "jalapeno" }, // IMG_8796 yeşillikli burger
-  { src: "/galeri/05.webp", w: 1067, h: 1600, item: "caesar" }, // IMG_8803 marullu burger
-  { src: "/galeri/06.webp", w: 1600, h: 1067, item: "brisket" }, // IMG_8819 burger, beyaz duvar
-  { src: "/galeri/07.webp", w: 1600, h: 1067, item: "citir" }, // IMG_8858 Mag Çıtır
-  { src: "/galeri/08.webp", w: 1067, h: 1600, item: "citir" }, // IMG_8865 çıtır, patates üstünde
-  { src: "/galeri/09.webp", w: 1067, h: 1600, altKey: "sceneServe" }, // IMG_8875 elde servis
-  { src: "/galeri/10.webp", w: 1067, h: 1600, altKey: "sceneLogo" }, // IMG_8849 duvardaki MAG logosu
-  { src: "/galeri/11.webp", w: 1600, h: 1067, item: "smooky" }, // IMG_8619 burger + kovada patates
-  { src: "/galeri/12.webp", w: 1600, h: 1067, item: "karides-taco" }, // IMG_8932 iki taco, metal stant
-  { src: "/galeri/13.webp", w: 1067, h: 1600, altKey: "sceneLime" }, // IMG_9247 tacoya limon
-  { src: "/galeri/14.webp", w: 1067, h: 1600, item: "tavuk-taco" }, // IMG_9251 taco yakın çekim
-  { src: "/galeri/15.webp", w: 1067, h: 1600, item: "tavuklu-noodle" }, // IMG_8954 noodle kâsesi
-  { src: "/galeri/16.webp", w: 1067, h: 1600, item: "tavuklu-noodle" }, // IMG_8958 noodle elde
-  { src: "/galeri/17.webp", w: 1600, h: 1067, item: "citir" }, // IMG_9021 çıtır tavuk + sweet chili
-  { src: "/galeri/18.webp", w: 1066, h: 1600, altKey: "sceneTable" }, // IMG_9115 noodle+taco+burger
-  { src: "/galeri/19.webp", w: 1066, h: 1600, altKey: "sceneFries" }, // IMG_9042 kâsede patates, ekip
-  { src: "/galeri/20.webp", w: 1066, h: 1600, altKey: "sceneParmesan" }, // IMG_9122 parmesanlı patates
-  { src: "/galeri/21.webp", w: 1067, h: 1600, altKey: "sceneBag" }, // IMG_8587 kraft MAG poşeti
-  { src: "/galeri/22.webp", w: 1067, h: 1600, altKey: "sceneHands" }, // IMG_8667 burger, bira, poşet
-  { src: "/galeri/23.webp", w: 1067, h: 1600, altKey: "sceneSign" }, // IMG_8432 MAG tabelası
-  { src: "/galeri/24.webp", w: 1067, h: 1600, altKey: "sceneWall" }, // IMG_8437 neon burger, duvar
-];
+  { src: "/galeri/01.webp", w: 800, h: 1200, altKey: "sign" }, // IMG_8432
+  { src: "/galeri/02.webp", w: 800, h: 1200, altKey: "sign" }, // IMG_8433
+  { src: "/galeri/03.webp", w: 800, h: 1200, altKey: "neon" }, // IMG_8437
+  { src: "/galeri/04.webp", w: 800, h: 1200, altKey: "chalkboard" }, // IMG_8439
+  { src: "/galeri/05.webp", w: 800, h: 1200, altKey: "burgerPan" }, // IMG_8442
+  { src: "/galeri/06.webp", w: 1200, h: 800, altKey: "burgerPlate" }, // IMG_8463
+  { src: "/galeri/07.webp", w: 1200, h: 800, altKey: "burgerFries" }, // IMG_8466
+  { src: "/galeri/08.webp", w: 800, h: 1200, altKey: "burgerFriesEdge" }, // IMG_8476
+  { src: "/galeri/09.webp", w: 800, h: 1200, altKey: "burgerFriesEdge" }, // IMG_8477
+  { src: "/galeri/10.webp", w: 1200, h: 800, altKey: "burgerFries" }, // IMG_8483
+  { src: "/galeri/11.webp", w: 800, h: 1200, altKey: "burgerFriesIndoor" }, // IMG_8495
+  { src: "/galeri/12.webp", w: 800, h: 1200, altKey: "burgerServed" }, // IMG_8507
+  { src: "/galeri/13.webp", w: 799, h: 1200, altKey: "burgerServed" }, // IMG_8510
+  { src: "/galeri/14.webp", w: 800, h: 1200, altKey: "burgerCounter" }, // IMG_8521
+  { src: "/galeri/15.webp", w: 1200, h: 800, altKey: "kitchenFry" }, // IMG_8523
+  { src: "/galeri/16.webp", w: 800, h: 1200, altKey: "bagWalk" }, // IMG_8571
+  { src: "/galeri/17.webp", w: 800, h: 1200, altKey: "bagWalk" }, // IMG_8574
+  { src: "/galeri/18.webp", w: 800, h: 1200, altKey: "bagWalk" }, // IMG_8576
+  { src: "/galeri/19.webp", w: 800, h: 1200, altKey: "bagHold" }, // IMG_8587
+  { src: "/galeri/20.webp", w: 800, h: 1200, altKey: "bagHold" }, // IMG_8591
+  { src: "/galeri/21.webp", w: 1200, h: 800, altKey: "burgerFries" }, // IMG_8619
+  { src: "/galeri/22.webp", w: 1200, h: 800, altKey: "burgerFries" }, // IMG_8624
+  { src: "/galeri/23.webp", w: 800, h: 1200, altKey: "burgerBucket" }, // IMG_8638
+  { src: "/galeri/24.webp", w: 1200, h: 800, altKey: "burgerFries" }, // IMG_8642
+  { src: "/galeri/25.webp", w: 800, h: 1200, altKey: "burgerLeaf" }, // IMG_8656
+  { src: "/galeri/26.webp", w: 800, h: 1200, altKey: "handsBw" }, // IMG_8666
+  { src: "/galeri/27.webp", w: 800, h: 1200, altKey: "handsWood" }, // IMG_8667
+  { src: "/galeri/28.webp", w: 800, h: 1200, altKey: "tableHands" }, // IMG_8746
+  { src: "/galeri/29.webp", w: 1200, h: 800, altKey: "burgerPlate" }, // IMG_8790
+  { src: "/galeri/30.webp", w: 1200, h: 800, altKey: "burgerGreens" }, // IMG_8796
+  { src: "/galeri/31.webp", w: 800, h: 1200, altKey: "burgerStreet" }, // IMG_8803
+  { src: "/galeri/32.webp", w: 800, h: 1200, altKey: "burgerTable" }, // IMG_8806
+  { src: "/galeri/33.webp", w: 1200, h: 800, altKey: "burgerWall" }, // IMG_8819
+  { src: "/galeri/34.webp", w: 800, h: 1200, altKey: "burgerLogo" }, // IMG_8849
+  { src: "/galeri/35.webp", w: 1200, h: 800, altKey: "citir" }, // IMG_8858
+  { src: "/galeri/36.webp", w: 800, h: 1200, altKey: "citirFries" }, // IMG_8865
+  { src: "/galeri/37.webp", w: 800, h: 1200, altKey: "serveWindow" }, // IMG_8875
+  { src: "/galeri/38.webp", w: 800, h: 1200, altKey: "serveStack" }, // IMG_8888
+  { src: "/galeri/39.webp", w: 800, h: 1200, altKey: "servePalm" }, // IMG_8891
+  { src: "/galeri/40.webp", w: 1200, h: 800, altKey: "taco" }, // IMG_8932
+  { src: "/galeri/41.webp", w: 800, h: 1200, altKey: "tacoLeaf" }, // IMG_8941
+  { src: "/galeri/42.webp", w: 800, h: 1200, altKey: "tacoLeaf" }, // IMG_8944
+  { src: "/galeri/43.webp", w: 800, h: 1200, altKey: "noodleLeaf" }, // IMG_8954
+  { src: "/galeri/44.webp", w: 800, h: 1200, altKey: "noodleHold" }, // IMG_8958
+  { src: "/galeri/45.webp", w: 800, h: 1200, altKey: "noodleHold" }, // IMG_8970
+  { src: "/galeri/46.webp", w: 800, h: 1200, altKey: "friesBowl" }, // IMG_9004
+  { src: "/galeri/47.webp", w: 800, h: 1200, altKey: "friesBowl" }, // IMG_9010
+  { src: "/galeri/48.webp", w: 1200, h: 800, altKey: "citirTenders" }, // IMG_9021
+  { src: "/galeri/49.webp", w: 800, h: 1200, altKey: "friesBowl" }, // IMG_9042
+  { src: "/galeri/50.webp", w: 800, h: 1200, altKey: "tableSpread" }, // IMG_9106
+  { src: "/galeri/51.webp", w: 800, h: 1200, altKey: "burgerFriesWood" }, // IMG_9107
+  { src: "/galeri/52.webp", w: 800, h: 1200, altKey: "tableDrinks" }, // IMG_9109
+  { src: "/galeri/53.webp", w: 800, h: 1200, altKey: "tableNoodle" }, // IMG_9115
+  { src: "/galeri/54.webp", w: 800, h: 1200, altKey: "parmFries" }, // IMG_9122
+  { src: "/galeri/55.webp", w: 800, h: 1200, altKey: "parmFries" }, // IMG_9132
+  { src: "/galeri/56.webp", w: 800, h: 1200, altKey: "tableSpritz" }, // IMG_9142
+  { src: "/galeri/57.webp", w: 800, h: 1200, altKey: "tableSpritz" }, // IMG_9144
+  { src: "/galeri/58.webp", w: 800, h: 1200, altKey: "tacoLime" }, // IMG_9247
+  { src: "/galeri/59.webp", w: 800, h: 1200, altKey: "tacoLime" }, // IMG_9251
+  { src: "/galeri/60.webp", w: 800, h: 1200, altKey: "tacoLime" }, // IMG_9258
+  { src: "/galeri/61.webp", w: 800, h: 1200, altKey: "dessert" }, // IMG_9334
+  { src: "/galeri/62.webp", w: 800, h: 1200, altKey: "tacoTable" }, // IMG_9382
+  { src: "/galeri/63.webp", w: 800, h: 1200, altKey: "tacoTable" }, // IMG_9387
+]
 
 /** Izgara TABANI: gerçek sütun/satır sayısı çalışma zamanında ekrana göre büyütülür
     (bir kopya ekranı aşmalı, yoksa sarmalamada boşluk görünür). Dört kopya döşenir. */
@@ -64,12 +112,11 @@ export const ROWS = 3;
 export const TILES = COLS * ROWS;
 
 /**
- * Karo sırası. 12 Eyl 2026: görsel sayısı 7 → 24 oldu, artık karo sayısından (15) FAZLA;
- * yani tekrar zorunlu değil, her karo farklı foto alabiliyor. Formül aynı kaldı çünkü
- * amaç değişmedi: komşu karolar aynı fotoyu göstermesin.
+ * Karo sırası. 63 görsel, bir kopyada 15 karo: artık liste karo sayısından ÇOK daha
+ * uzun, yani bir ekranda aynı kare iki kez görünmüyor. Formül yine de duruyor çünkü
+ * amaç değişmedi: komşu karolar aynı fotoğrafı göstermesin.
  *
  * Formül: (x + r + copy·2) mod n — sütun, satır ve kopya farklı adımlarla kaydırılır.
- * ÖLÇÜLDÜ (5 sütun × 3 satır, 2×2 kopya = 10×6 karo): komşu çiftlerin %0'ı aynı foto.
  * Sütun sayısı değişirse katsayılar YENİDEN doğrulanmalı (tests/e2e/galeri.mjs ölçüyor).
  */
 export function tileIndex(copy: number, i: number, total: number, cols: number = COLS): number {
