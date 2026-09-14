@@ -692,12 +692,27 @@ html:not(.heroOn) .shint .chev {
   inset: 0;
   z-index: 36;
   background: var(--page-bg);
+  /* 14 Eyl 2026: ÜST BOŞLUK sabit barın ÖLÇÜLEN yüksekliğinden türüyor.
+     Panel `justify-content: center` olduğu için içerik dikeyde ortalanıyor;
+     kısa ekranlarda (360×800) başlık yukarı çıkıp sabit barın hemen altına
+     giriyordu — ölçüldü: 390'da bar ile başlık arası 106 px iken 360'ta 70 px'e
+     düşüyor ve başlık barla sıkışık görünüyordu.
+     padding-top, ortalamanın başlangıç noktasını barın ALTINA çekiyor; böylece
+     ekran ne kadar kısa olursa olsun başlık barın altında kalmıyor.
+     Masaüstünde içerik zaten bolca aşağıda olduğu için görünüm DEĞİŞMİYOR. */
   padding: 0 var(--edge);
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 22px;
   overflow: hidden;
+}
+/* Üst boşluk YALNIZCA mobilde: masaüstünde içerik zaten barın çok altında
+   (ölçüldü: 1440'ta bar ile başlık arası 770 px) ve orada konum DEĞİŞMEMELİ. */
+@media (max-width: 900px) {
+  .panel {
+    padding-top: calc(var(--topbar-h) + 16px);
+  }
 }
 .panel h2 {
   margin: 0;
@@ -716,7 +731,9 @@ html:not(.heroOn) .shint .chev {
   margin: 0 auto;
 }
 .signup {
-  max-width: 500px;
+  /* 14 Eyl 2026: 500 → 560. Ters blok (.joinNote) max-width 560px isteniyor;
+     kapsayıcı 500'de kalsaydı kutu o genişliğe hiç ulaşamazdı. */
+  max-width: 560px;
   margin: 0 auto;
   width: 100%;
   text-align: center;
@@ -724,11 +741,41 @@ html:not(.heroOn) .shint .chev {
   flex-direction: column;
   gap: 13px;
 }
-.signup p {
-  margin: 0;
-  color: var(--dim);
-  font-size: 0.9rem;
+/* Ters blok ile altındaki e-posta input'u arası 22 px (kapsayıcı gap'i 13 px). */
+.joinNote + .fauxinput {
+  margin-top: 9px;
+}
+/* ---- BİZE KATIL alt metni: TERS BLOK ----
+   14 Eyl 2026. Bölüm koyu zeminli; bu kutu AÇIK zemin + KOYU yazı, yani
+   çevresindeki her şeyin tersi — göz buraya takılsın.
+   Zemin gri (--mag-grey), yazı ink (--mag-on-yellow ile aynı koyu). Kenarlık yok.
+   Yuvarlaklık bölümdeki diğer kutularla aynı (.fauxinput/.fauxbtn 14px). */
+.joinNote {
+  margin: 0 auto;
+  max-width: 560px;
+  width: 100%;
+  padding: 18px 22px;
+  border-radius: 14px;
+  border: 0;
+  background: var(--mag-grey);
+  color: var(--mag-ink);
+  font-family: var(--font-museo-stack);
+  font-weight: 400;
+  font-size: 15px; /* mobil */
   line-height: 1.5;
+  text-align: left;
+  /* uzun kelimeler dar ekranda taşmasın */
+  overflow-wrap: break-word;
+}
+@media (min-width: 900px) {
+  .joinNote {
+    font-size: 17px;
+  }
+}
+/* "MAG SAFE" ve "bi' MAG'ler miyiz?" — yalnızca KALINLIK, renk aynı kalır */
+.joinNote b {
+  font-weight: 700;
+  color: inherit;
 }
 .signup h2 {
   font-size: clamp(2rem, 7vw, 3.6rem); /* renk .panel h2'den gelir (sarı) */

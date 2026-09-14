@@ -178,7 +178,7 @@
       "ПРИСОЕДИНЯЙТЕСЬ",
       "К НАМ"
     ],
-    "lead": "Узнавайте первыми о новинках и акциях.",
+    "lead": "Присоединяйся, дорогой любитель MAG. Будь то новинки или состав наших блюд (мы называем это MAG SAFE)... До встречи за вкусным — ну что, MAG-нем?",
     "placeholder": "ваш e-mail",
     "cta": "Подписаться",
     "legal": "Подписываясь, вы принимаете нашу политику конфиденциальности.",
@@ -197,7 +197,11 @@
       "kvkk",
       "cerez"
     ],
-    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek"
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek",
+    "leadEmphasis": [
+      "MAG SAFE",
+      "ну что, MAG-нем?"
+    ]
   },
   "order": {
     "metaTitle": "Заказ",

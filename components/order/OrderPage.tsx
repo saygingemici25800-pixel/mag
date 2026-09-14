@@ -53,7 +53,17 @@ export default function OrderPage() {
     return () => io.disconnect();
   }, []);
   useEffect(() => {
-    chipsRef.current?.querySelector<HTMLElement>(`[data-cat="${activeCat}"]`)?.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+    /* 14 Eyl 2026: scrollIntoView KALDIRILDI — SAYFAYI dikeyde de kaydırıyordu.
+       `block: "nearest"` bile yeterli değil: yapışkan çip çubuğu kısmen görünür
+       durumdayken tarayıcı onu tam görünür yapmak için sayfayı yukarı çekiyor ve
+       anchor payını (scroll-margin-top) geri alıyordu. Ölçüldü: #kat-sos ile
+       gelince başlık 148 px'te doğru oturuyor, hemen ardından 70 px'e kayıyordu.
+       Çözüm: yalnızca ÇUBUĞUN KENDİ yatay kaydırması, sayfaya hiç dokunmadan. */
+    const bar = chipsRef.current;
+    const chip = bar?.querySelector<HTMLElement>(`[data-cat="${activeCat}"]`);
+    if (!bar || !chip) return;
+    const target = chip.offsetLeft - (bar.clientWidth - chip.offsetWidth) / 2;
+    bar.scrollTo({ left: Math.max(0, target), behavior: "smooth" });
   }, [activeCat]);
 
   const closeSheet = useCallback(() => setSheet(null), []);
@@ -84,8 +94,12 @@ export default function OrderPage() {
         </nav>
 
         <div className="flex flex-col gap-10">
+          {/* 14 Eyl 2026: bölümlerdeki `scroll-mt-32` (sabit 128 px) KALDIRILDI.
+              Anchor payı artık globals.css'teki [id^="kat-"] kuralından ve ölçülen
+              --sticky-top değişkeninden geliyor; gerçek engel topbar + yapışkan
+              çip çubuğuydu (132 px), 128 px yetmiyordu. */}
           {ORDER.map((cat) => (
-            <section key={cat} id={`kat-${cat}`} className="scroll-mt-32">
+            <section key={cat} id={`kat-${cat}`}>
               <div className="mb-3 flex items-baseline justify-between gap-4">
                 <h2 className="ord-h">{t.categories[cat]}</h2>
                 <span className="ord-label text-right">{cat === "burger" ? o.burgerNote : cat === "sos" ? o.sauceNote : ""}</span>

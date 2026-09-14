@@ -173,7 +173,7 @@
       "JOIN",
       "US"
     ],
-    "lead": "Be the first to hear about new items and offers.",
+    "lead": "You can join us, dear MAG lover. Whether it's new arrivals or what goes into our food (we call it MAG SAFE)... See you soon for the good stuff — shall we MAG?",
     "placeholder": "your e-mail",
     "cta": "Sign up",
     "legal": "By signing up you accept our privacy policy.",
@@ -191,6 +191,10 @@
       "mesafeli-satis",
       "kvkk",
       "cerez"
+    ],
+    "leadEmphasis": [
+      "MAG SAFE",
+      "shall we MAG?"
     ]
   },
   "cta": {

@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { useLocale } from "@/components/LocaleProvider";
 import { localePath, type Messages } from "@/lib/i18n";
@@ -12,6 +13,33 @@ import Hours from "@/components/chrome/Hours";
 interface Props {
   t: Messages;
   bind: Bind;
+}
+
+
+/**
+ * Metindeki belirli parçaları 700 ağırlıkla vurgular. Renk DEĞİŞMEZ.
+ * Parçalar i18n'den gelir (footer.leadEmphasis) — bileşende dile özgü metin yok.
+ * Aynı parça birden çok geçerse hepsi vurgulanır; parça bulunamazsa metin aynen kalır.
+ */
+function emphasize(text: string, parts: readonly string[]): ReactNode[] {
+  let out: ReactNode[] = [text];
+  for (const part of parts) {
+    if (!part) continue;
+    const next: ReactNode[] = [];
+    for (const chunk of out) {
+      if (typeof chunk !== "string") {
+        next.push(chunk);
+        continue;
+      }
+      const bits = chunk.split(part);
+      bits.forEach((bit, i) => {
+        if (i > 0) next.push(<b key={`${part}-${next.length}`}>{part}</b>);
+        if (bit) next.push(bit);
+      });
+    }
+    out = next;
+  }
+  return out;
 }
 
 /** Manifesto (ATEŞ VE ET) · SSS paneli (+ müşteri yorumları) · BİZE KATIL + telif + sosyal bar. */
@@ -50,7 +78,11 @@ export default function Outro({ t, bind }: Props) {
             <br />
             {t.footer.title[1]}
           </h2>
-          <p>{t.footer.lead}</p>
+          {/* 14 Eyl 2026: TERS BLOK — bölüm koyu zeminli, bu kutu açık zemin + koyu yazı.
+              Göz buraya takılsın diye çevresindeki her şeyin tersi.
+              Vurgulanacak parçalar i18n'den (footer.leadEmphasis) geliyor; bileşende
+              dile gömülü metin YOK, renk değişmiyor yalnızca kalınlık 700. */}
+          <p className="joinNote">{emphasize(t.footer.lead, t.footer.leadEmphasis)}</p>
           <div className="fauxinput">{t.footer.placeholder}</div>
           <div className="fauxbtn">{t.footer.cta}</div>
           <div className="legal">{t.footer.legal}</div>

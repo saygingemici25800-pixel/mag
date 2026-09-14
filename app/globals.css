@@ -51,6 +51,17 @@
   --hero-black: #000;
   --hero-black-rgb: 0, 0, 0;
   --edge: 20px;
+  /* Sabit/yapışkan çubuk yükseklikleri — GERÇEK ölçümle
+     components/chrome/StickyOffsets.tsx tarafından üzerine yazılır.
+     Buradakiler yalnızca JS çalışmadan ÖNCEKİ yedek değerler; ölçüm gelince
+     üzerine yazılır. Yedeğin de doğru olması ÖNEMLİ: sayfa doğrudan #kat-sos
+     gibi bir adresle açıldığında tarayıcı hedefe JS'ten ÖNCE atlıyor ve o anki
+     değeri kullanıyor (ölçüldü: yedek 70 px iken başlık 46 px kesiliyordu).
+     Bu yüzden yedekler gözlenen gerçek değerlere eşitlendi:
+       topbar alt kenarı  = top 26 + yükseklik 44 = 70
+       çip çubuğu alt kenarı = top 72 + yükseklik 60 = 132 */
+  --topbar-h: 70px;
+  --sticky-top: 132px;
 
   /* TEK YIĞIN: MuseoModerno önce, Kiril yedeği (Comfortaa) arkasında. Latin harfler
      MuseoModerno'dan çizilir; tarayıcı yalnızca onda OLMAYAN Kiril harfler için
@@ -287,4 +298,18 @@ h3,
   100% {
     opacity: 0.15;
   }
+}
+
+/* ---- Anchor ile gelinen bölümler: başlık sabit barın altında kalmasın ----
+   14 Eyl 2026. Sorun /siparis'te ölçüldü: gerçek engel topbar'ın alt kenarı (70)
+   DEĞİL, onun altındaki yapışkan çip çubuğunun alt kenarı (132). Bölümlerde
+   `scroll-mt-32` (128 px) sabiti vardı ve mobilde başlık 50 px'e oturup 82 px
+   kesiliyordu.
+   Artık ölçülen --sticky-top kullanılıyor; :target de dahil edildi ki doğrudan
+   URL'den gelen (#kat-sos gibi) her bölüm aynı payı alsın ve sorun başka yerde
+   tekrarlamasın. */
+[id^="kat-"],
+section[id]:target,
+[data-anchor] {
+  scroll-margin-top: calc(var(--sticky-top) + 16px);
 }

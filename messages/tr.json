@@ -171,7 +171,7 @@
       "BİZE",
       "KATIL"
     ],
-    "lead": "Yeni ürünler ve kampanyalardan ilk sen haberdar ol.",
+    "lead": "Bize katılabilirsin sevgili MAG sever. Yenilikler olsun, ürün içerikleri (ki biz MAG SAFE diyoruz) olsun... Güzel içeriklerle buluşmak üzere — bi' MAG'ler miyiz?",
     "placeholder": "e-posta adresin",
     "cta": "Kaydol",
     "legal": "Kaydolarak gizlilik politikamızı kabul etmiş olursun.",
@@ -189,6 +189,10 @@
       "mesafeli-satis",
       "kvkk",
       "cerez"
+    ],
+    "leadEmphasis": [
+      "MAG SAFE",
+      "bi' MAG'ler miyiz?"
     ]
   },
   "order": {

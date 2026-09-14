@@ -1,4 +1,5 @@
 import Chrome from "@/components/chrome/Chrome";
+import StickyOffsets from "@/components/chrome/StickyOffsets";
 import { LocaleProvider } from "@/components/LocaleProvider";
 import { getMessages, type Locale } from "@/lib/i18n";
 import { comfortaa, museo } from "@/lib/fonts";
@@ -13,6 +14,9 @@ export default function SiteHtml({ locale, children }: { locale: Locale; childre
     <html lang={locale} className={`${museo.variable} ${comfortaa.variable}`}>
       <body>
         <LocaleProvider locale={locale} messages={t}>
+          {/* Sabit/yapışkan çubukların gerçek yüksekliğini --topbar-h / --sticky-top
+              değişkenlerine yazar (anchor ile gelince başlık barın altında kalmasın). */}
+          <StickyOffsets />
           <Chrome locale={locale} />
           {children}
         </LocaleProvider>

@@ -492,7 +492,9 @@ select.ctl {
 }
 .chipsbar {
   position: sticky;
-  top: 72px;
+  /* 14 Eyl 2026: sabit 72 px yerine ölçülen topbar alt kenarı + 2 px pay.
+     (StickyOffsets --topbar-h'yi gerçek yükseklikten yazar.) */
+  top: calc(var(--topbar-h) + 2px);
   z-index: 35;
   display: flex;
   gap: 8px;
