@@ -138,10 +138,10 @@ export const MENU: Record<Category, MenuItem[]> = {
       name: "Mag Çıtır",
       price: 490,
       hero: true,
-      /* Hero kesimi (public/urun/citir.webp) HENÜZ YOK. Kesim gelene kadar sipariş
-         arayüzünde ortak fotoğraf gösterilir; kesim eklendiğinde ProductImage
-         otomatik olarak onu tercih eder (cutout > photo). */
-      photo: SHARED_PHOTO,
+      /* 14 Eyl 2026: citir artık kesim kullanıyor — GEÇİCİ olarak orjinal ile AYNI
+         dosyayı paylaşıyor (components/stage/cutouts.ts, gerekçe orada).
+         photo alanı kaldırıldı: ProductImage sırası cutout > photo olduğu için
+         zaten hiç okunmuyordu, ölü alan bırakmayalım. */
       desc: "Panelenmiş tavuk parçaları, cips, sweet chili sos",
       ingredients: [{ name: "brioche ekmek", removable: false }, { name: "Panelenmiş tavuk parçaları", removable: false }, { name: "cips", removable: true }, { name: "sweet chili sos", removable: true }],
     },

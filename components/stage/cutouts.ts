@@ -17,10 +17,22 @@ import truffleM from "@/public/urun/mobil/truffle.webp";
 
 /** Fondan kesilmiş cutout'lar (WebP, 480px). Dosya adı = ürün id'si.
     Eksik ürün (citir): dosya gelince build'de bulunur → lib/cutouts-available.ts */
-export const CUTOUTS: Partial<Record<HeroId, StaticImageData>> = { smooky, brisket, berry, jalapeno, caesar, orjinal, truffle };
+/* 14 Eyl 2026 — GEÇİCİ: citir, orjinal ile AYNI dosyayı paylaşıyor.
+   Kullanıcıya soruldu, "şimdilik böyle, sonra değiştiririz" denildi.
+   DURUM: elde gerçek Mag Çıtır kesimi YOK. Gelen citir.webp, orjinal.webp ile
+   aynı kareydi (piksel karşılaştırması: kayma yok, yalnızca yeniden kodlama farkı)
+   ve ikisi de DANA KÖFTE + CHEDDAR gösteriyor — oysa menüde Mag Çıtır
+   "panelenmiş tavuk parçaları, cips, sweet chili sos".
+   KOPYA YOK: ayrı bir citir.webp tutulmuyor, doğrudan orjinal'in statik import'u
+   iki id'den de referans veriliyor (mobil kopya da böylece hazır geliyor).
+   Gerçek çıtır kesimi gelince: public/urun/citir.webp olarak koymak yeterli —
+   lib/cutouts-available.ts onu build'de bulur ve BURADAKİ paylaşımın önüne geçer
+   (extraCutouts yalnızca CUTOUTS'ta OLMAYAN id'lere bakar, o yüzden aşağıdaki
+   citir satırı da o gün silinmeli). */
+export const CUTOUTS: Partial<Record<HeroId, StaticImageData>> = { smooky, brisket, berry, jalapeno, caesar, orjinal, truffle, citir: orjinal };
 
 /** Mobil kopyalar (300px, kalite 72) — `pnpm assets:cut-m`. */
-export const CUTOUTS_M: Partial<Record<HeroId, StaticImageData>> = { smooky: smookyM, brisket: brisketM, berry: berryM, jalapeno: jalapenoM, caesar: caesarM, orjinal: orjinalM, truffle: truffleM };
+export const CUTOUTS_M: Partial<Record<HeroId, StaticImageData>> = { smooky: smookyM, brisket: brisketM, berry: berryM, jalapeno: jalapenoM, caesar: caesarM, orjinal: orjinalM, truffle: truffleM, citir: orjinalM };
 
 /** Build'de dosya sisteminde bulunan ek cutout'lar (statik import'suz) */
 export interface ExtraCutout {
