@@ -245,14 +245,24 @@ export interface HeroCard {
   /** |p| başına yukarı kayma: 0.6vh */
   liftPer: number;
 }
+/* 14 Eyl 2026 — MOBİL HERO YENİDEN ÖLÇÜLENDİ (yalnızca ≤760px; masaüstü aynen).
+   Önce: kart mobilde min(0.58vh, vw) × min(0.46vh, 0.8vw) idi. 390×844'te bu
+   390×312 demek — kart ekranın TAM genişliği, ürün kenardan kenara taşıyordu;
+   yan siluetler odaktakinin arkasında kalıp görünmüyor, oklar da burgerin
+   ÜSTÜNE denk geliyordu.
+   Şimdi: kutu yarıya indi (0.29vh × 0.23vh tavanlı, genişlik en fazla 0.52vw).
+   spacing 0.38vw → 0.30vw: komşular daha yakın ama üst üste binmiyor —
+   kart genişliği 0.52vw olduğu için 0.30vw aralıkta iki yanda da şerit kalıyor.
+   bottom 0.26vh → 0.34vh: küçülen ürün dikeyde yeniden ortalanır, ürün adı ve
+   ilerleme çubuğuyla çakışmaz. */
 export function heroCard(vw: number, vh: number): HeroCard {
   const m = vw <= HERO_MOBILE_MAX;
   return {
     mobile: m,
-    w: m ? Math.min(0.58 * vh, vw) : 0.66 * vh,
-    h: m ? Math.min(0.46 * vh, 0.8 * vw) : 0.52 * vh,
-    spacing: m ? 0.38 * vw : 0.33 * vh,
-    bottom: 0.26 * vh,
+    w: m ? Math.min(0.29 * vh, 0.52 * vw) : 0.66 * vh,
+    h: m ? Math.min(0.23 * vh, 0.42 * vw) : 0.52 * vh,
+    spacing: m ? 0.3 * vw : 0.33 * vh,
+    bottom: m ? 0.34 * vh : 0.26 * vh,
     liftPer: 0.006 * vh,
   };
 }

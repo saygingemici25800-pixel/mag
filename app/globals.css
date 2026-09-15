@@ -189,6 +189,11 @@ h3,
    Yalnızca opacity + transform (filter YOK): kare maliyeti düşük kalsın.
    Yan ok: 2.4 sn'de bir parlayıp söner, 2 px dışa kayar.
    Aşağı ok: 4 sn'lik döngünün ilk ~%25'inde dalga geçer, kalanı bekleme. */
+/* Yan ok dalgası: 2,4 sn'de bir içten dışa parlama, sonra sönük bekleme.
+   14 Eyl 2026: tepe artık TABANIN KATI DEĞİL, sabit --peak (0.7).
+   Önce `base × 2.2` idi; taban 0.2'ye inince tepe 0.44'te kalıyordu ve istenen
+   0.2 → 0.7 → 0.2 dalgası oluşmuyordu. Dıştaki chevron'lar --peak'i biraz
+   düşürerek sırayı koruyor (.hnav .chev içinde). */
 @keyframes chevWave {
   0%,
   62%,
@@ -197,8 +202,7 @@ h3,
     transform: translateX(0);
   }
   22% {
-    /* kendi taban opaklığının ~2.2 katına çıkar, 1'i geçmez */
-    opacity: min(1, calc(var(--base) * 2.2));
+    opacity: var(--peak);
     transform: translateX(var(--out));
   }
 }

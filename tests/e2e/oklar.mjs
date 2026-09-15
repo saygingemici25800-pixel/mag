@@ -3,7 +3,7 @@
 //  - konum ÇALIŞMA ZAMANINDA: odaktaki ürünün sınır kutusunun 28 px dışı (mobilde 16 px),
 //    ekran kenarına 40 px'ten fazla yaklaşmaz — sabit piksel yok
 //  - dikeyde ürünün ortası
-//  - küçük ve soluk: ~10 px, opaklık 0.55 → 0.30 → 0.15
+//  - küçük ve soluk: ~10 px, bekleme opaklığı 0.20 → 0.17 → 0.14 (dalga tepesi 0.7)
 //  - tıklama ürün değiştirir (sol önceki, sağ sonraki), klavye çalışır, dokunma alanı 44 px
 //  - aşağı ok: ilk kaydırmadan sonra kaybolur ve geri gelmez
 //  - hero görünmezken animasyon durur; reduced-motion'da hareket yok
@@ -90,7 +90,10 @@ for (const [w, h, label, gap] of [[1440, 900, "masaüstü", 28], [1024, 768, "ta
   check("her yanda 3 chevron (toplam 6)", r.adet === 3 && r.solAdet === 3, `sol ${r.solAdet} sağ ${r.adet}`);
   check("küçük (~10 px)", r.w <= 14 && r.h <= 14, `${r.w}×${r.h}px`);
   check("ince çizgi (≤1.5)", parseFloat(r.sw) <= 1.5, r.sw);
-  check("dışa doğru soluklaşır 0.55 → 0.30 → 0.15", Math.abs(r.base[0] - 0.55) < 0.02 && Math.abs(r.base[1] - 0.35) < 0.06 && Math.abs(r.base[2] - 0.15) < 0.02, r.base.join(" / "));
+  /* 14 Eyl 2026: sönük bekleme tabanı 0.55 → 0.20 düşürüldü (istenen dalga
+     0.2 → 0.7 → 0.2). Dıştaki hâlâ daha soluk, ama adım 0.20 yerine 0.03:
+     0.20 / 0.17 / 0.14. Ölçüt buna göre güncellendi. */
+  check("dışa doğru soluklaşır 0.20 → 0.17 → 0.14", Math.abs(r.base[0] - 0.2) < 0.02 && Math.abs(r.base[1] - 0.17) < 0.03 && Math.abs(r.base[2] - 0.14) < 0.02, r.base.join(" / "));
   await p.close();
 }
 

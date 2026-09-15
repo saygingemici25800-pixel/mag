@@ -67,10 +67,17 @@
   container-type: size;
   will-change: transform, opacity;
 }
+/* 14 Eyl 2026 — MOBİL KART YARIYA İNDİ. Bu değerler stageMath.heroCard() ile
+   AYNI OLMALI: ok konumu ve dikey ortalama oradan hesaplanıyor, ikisi ayrışırsa
+   oklar üründen kopar. (heroCard: w min(0.29vh, 0.52vw) · h min(0.23vh, 0.42vw))
+   Önce min(58vh,100vw) × min(46vh,80vw) idi — 390×844'te 390×312, yani ürün
+   ekranın TAM genişliği: yan siluetler arkada kalıyor, oklar burgerin üstüne
+   biniyordu. Alt kenar 26vh → 34vh: küçülen ürün dikeyde yeniden ortalanır. */
 @media (max-width: 760px) {
   .item {
-    width: min(58vh, 100vw);
-    height: min(46vh, 80vw);
+    width: min(29vh, 52vw);
+    height: min(23vh, 42vw);
+    bottom: 34vh;
   }
 }
 @media (max-width: 899px) {
@@ -218,7 +225,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1px;
+  /* 14 Eyl 2026: üç chevron birbirine YAKLAŞTIRILDI (1px → -3px).
+     Negatif boşluk hafif binişme demek; işaretler tek bir "ok" gibi okunuyor
+     ama ayrı ayrı seçilebiliyor (chevron kutusu 10px geniş, -3px'te 7px adım). */
+  gap: -3px;
   transition: opacity 0.4s ease;
 }
 /* sol grup merkezden --arrowGap kadar SOLDA, sağ grup aynı kadar SAĞDA */
@@ -233,8 +243,11 @@
 /* dokunma hedefini 44 px'te tut, görseli büyütme */
 .hnav .chev {
   display: block;
-  /* dıştaki daha soluk: 0.55 → 0.30 → 0.15 (--k: 0,1,2) */
-  --base: calc(0.55 - var(--k) * 0.2);
+  /* 14 Eyl 2026: sönük bekleme tabanı 0.2 (istenen 0.2 → 0.7 → 0.2 dalgası).
+     Dıştaki biraz daha soluk kalsın diye k başına 0.03 düşüyor: 0.20/0.17/0.14. */
+  --base: calc(0.2 - var(--k) * 0.03);
+  /* dalga tepesi: içteki 0.7, dıştakiler kademeli biraz altında */
+  --peak: calc(0.7 - var(--k) * 0.08);
   /* dışa kayma yönü: sol grup sola, sağ grup sağa */
   --out: 2px;
   opacity: var(--base);
@@ -254,6 +267,7 @@
 .hnav:hover .chev,
 .hnav:focus-visible .chev {
   --base: calc(0.8 - var(--k) * 0.2);
+  --peak: 1;
 }
 .hnav:focus-visible {
   outline: 2px solid var(--accent);
