@@ -400,7 +400,9 @@
     "sumAvg": "Ort. hazırlanma",
     "sumCancelled": "İptal",
     "sumDate": "Tarih",
-    "removedLabel": "Çıkarılan"
+    "removedLabel": "Çıkarılan",
+    "pushOff": "Bildirimleri kapat",
+    "pushIosNote": "iPhone'da bildirim için: Paylaş → Ana Ekrana Ekle, sonra buradan aç."
   },
   "cta": {
     "order": "Sipariş ver"

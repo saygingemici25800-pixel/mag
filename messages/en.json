@@ -521,7 +521,9 @@
     "sumAvg": "Avg prep",
     "sumCancelled": "Cancelled",
     "sumDate": "Date",
-    "removedLabel": "Removed"
+    "removedLabel": "Removed",
+    "pushOff": "Bildirimleri kapat",
+    "pushIosNote": "iPhone'da bildirim için: Paylaş → Ana Ekrana Ekle, sonra buradan aç."
   },
   "payment": {
     "status": {

@@ -452,3 +452,42 @@
   font-weight: 500;
   letter-spacing: 0.01em;
 }
+
+/* Push bildiriminden gelince ilgili kart kısa süre vurgulanır (PanelApp derin bağlantı). */
+.ocard.deeplink {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  animation: deeplinkPulse 2.4s ease-out;
+}
+@keyframes deeplinkPulse {
+  0%,
+  100% {
+    outline-color: var(--accent);
+  }
+  50% {
+    outline-color: transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ocard.deeplink {
+    animation: none;
+  }
+}
+
+/* Bildirim butonu + iOS notu (PushButton) */
+.pushWrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.pushWrap .pushOff {
+  font-style: normal;
+  opacity: 0.7;
+}
+.pushNote {
+  max-width: 30ch;
+  font-size: 0.62rem;
+  line-height: 1.35;
+  color: var(--dim);
+}

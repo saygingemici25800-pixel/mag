@@ -261,6 +261,49 @@ export default function PanelApp() {
     return () => stop();
   }, [gate, store, upsert]);
 
+  /* --- bildirimden gelen derin bağlantı: /panel#<sipariş id> ---
+     15 Eyl 2026: push bildirimine tıklanınca panelde O SİPARİŞE gidilsin.
+     İki yol var:
+      a) panel KAPALIYDI → sw.js "/panel#<id>" açar, hash'ten okunur.
+      b) panel zaten AÇIKTI → sw.js sekmeyi focus eder ve postMessage yollar;
+         hash değişmediği için (b) yalnız hash okunarak yakalanamaz.
+     Her ikisi de aynı hedef id state'ini besler. */
+  /* Hedef sipariş REF'te tutuluyor, state'te değil: SSR'de window olmadığı için
+     lazy initializer "" üretiyor ve hydration onu koruyordu; effect içinde
+     setState çağırmak ise cascading render uyarısı veriyor. Ref ikisini de
+     atlatır — aşağıdaki effect zaten `orders` değişince yeniden koşuyor. */
+  /* Mesajla gelen hedef REF'te; hash ise her denemede DOĞRUDAN okunuyor.
+     Hash'i ayrı bir effect'te ref'e yazmak yarış yaratıyordu: o effect
+     aşağıdakinden SONRA koşuyor, kartlar o an zaten yüklüyse aşağıdaki bir daha
+     tetiklenmiyor ve hedef hiç kullanılmıyordu (panel kapalıyken bildirime
+     tıklamak — asıl senaryo — bu yüzden çalışmıyordu). */
+  const deepLinkRef = useRef<string>("");
+  /* Sayaç yalnızca effect'i yeniden koşturmak için; değeri kullanılmıyor. */
+  const [deepLinkTick, setDeepLinkTick] = useState(0);
+  useEffect(() => {
+    const onMsg = (e: MessageEvent) => {
+      if (e.data?.type !== "mag-open-order" || typeof e.data.id !== "string") return;
+      deepLinkRef.current = e.data.id;
+      setDeepLinkTick((n) => n + 1); // panel zaten açıkken de effect'i tetikle
+    };
+    navigator.serviceWorker?.addEventListener("message", onMsg);
+    return () => navigator.serviceWorker?.removeEventListener("message", onMsg);
+  }, []);
+  /* Kartlar sunucudan sonra geldiği için orders değişince tekrar denenir;
+     bulunduğunda hedef temizlenir ki sonraki yenilemelerde tekrar kaydırmasın. */
+  useEffect(() => {
+    const id = deepLinkRef.current || decodeURIComponent(window.location.hash.replace(/^#/, ""));
+    if (!id) return;
+    const el = document.querySelector<HTMLElement>(`.ocard[data-id="${CSS.escape(id)}"]`);
+    if (!el) return; // kart henüz gelmedi; orders güncellenince bu effect yeniden koşar
+    deepLinkRef.current = "";
+    el.scrollIntoView({ block: "center", behavior: "smooth" });
+    el.classList.add("deeplink");
+    const t = window.setTimeout(() => el.classList.remove("deeplink"), 2400);
+    if (window.location.hash) history.replaceState(null, "", window.location.pathname + window.location.search);
+    return () => window.clearTimeout(t);
+  }, [orders, deepLinkTick]);
+
   /* --- görüldü / ses tekrarı --- */
   const unseenIds = useMemo(() => [...orders.values()].filter((o) => o.status === "received" && !seen.has(o.id)).map((o) => o.id), [orders, seen]);
   useEffect(() => {

@@ -1,7 +1,12 @@
 /** Web Push gönderimi (VAPID). Anahtar yoksa sessizce atlar. Süresi dolmuş abonelikleri (404/410) siler. */
 import webpush from "web-push";
-import type { Order } from "@/lib/orders";
+import { type Order } from "@/lib/orders";
 import { getPushStore } from "@/lib/store";
+import { newOrderPayload } from "@/lib/push-payload";
+
+/* Bildirim içeriği lib/push-payload.ts dosyasında (saf dönüşüm, depoya bağlı
+   değil). Çağıranlar tek yerden alsın diye buradan da dışa veriliyor. */
+export { newOrderPayload } from "@/lib/push-payload";
 
 let configured: boolean | null = null;
 function ensureVapid(): boolean {
@@ -11,16 +16,6 @@ function ensureVapid(): boolean {
   if (!pub || !priv) return (configured = false);
   webpush.setVapidDetails(process.env.VAPID_SUBJECT || "mailto:info@magstreetfood.example", pub, priv);
   return (configured = true);
-}
-
-export function newOrderPayload(order: Order) {
-  const summary = order.items.map((i) => `${i.qty}× ${i.name}`).join(", ");
-  return {
-    title: `Yeni sipariş · ₺${order.total}`,
-    body: `${order.type === "pickup" ? "Gel-al" : "Kurye"} · ${summary}`,
-    url: "/panel",
-    tag: order.id,
-  };
 }
 
 export async function sendNewOrderPush(order: Order): Promise<{ sent: number; removed: number }> {
