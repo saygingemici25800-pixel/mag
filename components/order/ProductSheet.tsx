@@ -9,7 +9,7 @@ import type { MenuItem } from "@/lib/menu";
 import { findMenuItem } from "@/lib/orders-shared";
 import Ingredients from "./Ingredients";
 import ProductImage from "./ProductImage";
-import IngredientPicker from "./IngredientPicker";
+import IngredientList from "./IngredientList";
 
 interface Props {
   item: MenuItem;
@@ -27,7 +27,6 @@ export default function ProductSheet({ item, onClose, onAdded }: Props) {
   const [addedPair, setAddedPair] = useState<Set<string>>(() => new Set());
   /* sepete eklemeden önce çıkarılan malzemeler */
   const [removed, setRemoved] = useState<string[]>([]);
-  const [pickerOpen, setPickerOpen] = useState(false);
   /* kopyaların çıkacağı büyük görsel */
   const imgRef = useRef<HTMLDivElement>(null);
 
@@ -92,19 +91,8 @@ export default function ProductSheet({ item, onClose, onAdded }: Props) {
           </span>
         </div>
         {/* Malzeme çıkarma: sepete eklemeden önce de seçilebilir */}
-        {item.ingredients?.length ? (
-          <>
-            <button type="button" className="ing-toggle" onClick={() => setPickerOpen((v) => !v)} aria-expanded={pickerOpen} data-ing-open>
-              {removed.length ? o.editIngredients : o.removeIngredients}
-            </button>
-            {removed.length ? (
-              <p className="removed-line" data-removed>
-                {o.removedLabel}: {removed.join(", ")}
-              </p>
-            ) : null}
-            {pickerOpen ? <IngredientPicker item={item} removed={removed} onChange={setRemoved} onClose={() => setPickerOpen(false)} /> : null}
-          </>
-        ) : null}
+        {/* Malzeme listesi HER ZAMAN AÇIK (sepetteki ile aynı bileşen) */}
+        {item.ingredients?.length ? <IngredientList item={item} removed={removed} onChange={setRemoved} /> : null}
         <input className="ctl" placeholder={o.notePlaceholder} maxLength={120} value={note} onChange={(e) => setNote(e.target.value)} aria-label={o.noteToggle} />
         {pairs.length ? (
           <div>

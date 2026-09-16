@@ -1046,98 +1046,151 @@ select.ctl {
   cursor: not-allowed;
 }
 
-/* ---- Malzeme çıkarma ----
-   Çıkarılan malzeme üstü çizili ve soluk; aktif olanlar normal. Dokunma alanı ≥44 px. */
-.ingpick {
-  margin-top: 10px;
-  padding: 12px;
-  border: 1px solid color-mix(in srgb, var(--cream) 14%, transparent);
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--surface) 94%, transparent);
+/* ---- Malzeme çıkarma listesi ----
+   16 Eyl 2026: eski açılır kart (.ingpick/.ingchip çipleri) KALDIRILDI — büyük ve
+   dağınıktı. Artık sepet satırının altında HER ZAMAN AÇIK, satır satır liste;
+   sağda onay kutusu (işaretli = çıkarıldı). Referans: BK "Çıkarılabilir Malzeme". */
+.inglist-wrap {
+  margin: 10px 0 12px;
+  /* Sepet satırı 3 sütunlu bir grid (görsel | metin | adet+fiyat). Liste
+     GÖRSELİN ALTINA değil, ÜRÜN ADIYLA aynı hizaya gelmeli: 2. sütundan başlar,
+     sağ kenara kadar uzanır. */
+  grid-column: 2 / -1;
+  width: 100%;
+  min-width: 0;
 }
-.ingpick-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-.ingpick-title {
-  font-family: var(--font-museo-stack);
-  font-weight: 700;
-  font-size: 0.82rem;
-  letter-spacing: 0.04em;
-  color: var(--cream);
-}
-.ingpick-close {
-  min-width: 44px;
-  min-height: 44px;
-  border: 0;
-  background: none;
+.inglist-title {
+  font-size: 0.75rem; /* 12px */
+  letter-spacing: 0.06em;
   color: var(--dim);
-  font-size: 1.4rem;
-  line-height: 1;
-  cursor: pointer;
+  margin-bottom: 4px;
 }
 .inglist {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  /* li'ler flex öğesi: çipler satır içinde akmalı, üst üste binmemeli */
-  align-items: flex-start;
 }
-.inglist li {
-  display: flex;
-  min-width: 0;
+/* 6'dan uzun liste: kendi içinde kayar, altta soluklaşma göstergesi */
+.inglist.scroll {
+  max-height: 240px;
+  overflow-y: auto;
+  /* fade yalnızca kaydırma varken anlamlı: alt kenarı şeffaflaştır */
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent 100%);
+  scrollbar-width: thin;
 }
-.ingchip {
-  display: inline-flex;
+.ingrow {
+  display: flex;
   align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-  justify-content: center;
-  min-height: 44px;
-  padding: 8px 14px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--cream) 25%, transparent);
-  background: transparent;
-  color: var(--body);
-  font: inherit;
-  font-size: 0.82rem;
+  min-height: 40px;
+  border-bottom: 1px solid color-mix(in srgb, var(--cream) 12%, transparent);
+}
+.ingrow:last-child {
+  border-bottom: 0;
+}
+/* tüm satır tıklanabilir: label satırı kaplar, dokunma hedefi 40 px */
+.ingrow-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 40px;
   cursor: pointer;
+  position: relative;
+}
+.ingrow-name {
+  font-size: 0.8125rem; /* 13px — mobil */
+  font-weight: 400;
+  line-height: 1.3;
+  color: var(--body);
+  /* tek satır: taşarsa kısalt, yatay taşma olmasın */
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+@media (min-width: 768px) {
+  .ingrow-name {
+    font-size: 0.875rem; /* 14px — masaüstü */
+  }
+}
+/* Gerçek checkbox: GÖRÜNMEZ ama ODAKLANABİLİR (Tab + Space çalışsın).
+   `appearance:none` ŞART — Tailwind preflight kutuyu 0×0'a indiriyordu ve
+   0 boyutlu öğe odak alamıyor; Tab tuşu satırları atlıyordu. */
+.ingbox {
+  appearance: none;
+  -webkit-appearance: none;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  opacity: 0;
+  cursor: pointer;
+}
+.ingbox-fake {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--cream) 35%, transparent);
+  background: transparent;
+  display: grid;
+  place-items: center;
   transition:
-    opacity 0.2s ease,
-    border-color 0.2s ease;
+    background 0.18s ease,
+    border-color 0.18s ease;
 }
-.ingchip:hover:not(:disabled) {
-  border-color: var(--accent);
+/* işaretli = çıkarıldı: dolgu ana renk, tik koyu zemin rengi */
+.ingrow.out .ingbox-fake {
+  background: var(--mag-red);
+  border-color: var(--mag-red);
 }
-.ingchip:focus-visible {
+.ingrow.out .ingbox-fake::after {
+  content: "";
+  width: 10px;
+  height: 6px;
+  border-left: 2px solid var(--mag-ink);
+  border-bottom: 2px solid var(--mag-ink);
+  transform: rotate(-45deg) translate(1px, -1px);
+}
+.ingrow.out .ingrow-name {
+  text-decoration: line-through;
+  color: var(--dim);
+}
+.ingbox:focus-visible + .ingbox-fake {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
-/* çıkarıldı: üstü çizili + soluk */
-.ingchip.out .ingname {
-  text-decoration: line-through;
+.ingrow-label:hover .ingbox-fake {
+  border-color: var(--accent);
 }
-.ingchip.out {
-  opacity: 0.5;
-  border-color: color-mix(in srgb, var(--cream) 15%, transparent);
+/* Çıkarılamaz: kutu yok, satır sönük ve tıklanamaz.
+   DİKKAT: sınıf adı "fixed" OLAMAZ — Tailwind'in .fixed{position:fixed} yardımcı
+   sınıfıyla çakışıyor, satırlar akıştan çıkıp üst üste biniyor (16 Eyl 2026'da
+   bu hataya bir kez daha düşüldü). */
+.ingrow.ingfix {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  opacity: 0.45;
+  pointer-events: none;
 }
-/* çıkarılamaz: pasif, imleç yok. NOT: sınıf adı 'fixed' OLAMAZ — Tailwind'in position:fixed
-   yardımcı sınıfıyla çakışıyor ve çipler akıştan çıkıp üst üste biniyordu. */
-.ingchip.ingfix {
-  cursor: default;
-  opacity: 0.6;
-  border-style: dashed;
-}
-.ingfixed {
-  font-size: 0.66rem;
+.ingrow-fixed {
+  font-size: 0.6875rem; /* 11px */
   color: var(--dim);
   white-space: nowrap;
+  flex: 0 0 auto;
 }
 /* sepet satırındaki özet: küçük ama yüksek kontrast (mutfak kaçırmasın) */
 .removed-line {
@@ -1145,19 +1198,4 @@ select.ctl {
   font-size: 0.74rem;
   line-height: 1.4;
   color: var(--accent);
-}
-.ing-toggle {
-  margin-top: 4px;
-  padding: 6px 0;
-  min-height: 32px;
-  background: none;
-  border: 0;
-  color: var(--dim);
-  font: inherit;
-  font-size: 0.74rem;
-  text-decoration: underline;
-  cursor: pointer;
-}
-.ing-toggle:hover {
-  color: var(--cream);
 }

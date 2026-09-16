@@ -278,7 +278,7 @@
     "closedLead": "Şu an sipariş alamıyoruz. Birazdan tekrar deneyin.",
     "soldOutWarn": "Sepetinizde tükenen ürün var: {items}. Çıkarın ya da değiştirin.",
     "removeIngredients": "Malzeme çıkar",
-    "editIngredients": "Malzemeleri düzenle",
+    "removeIngredientsCount": "Malzeme çıkar ({n})",
     "notRemovable": "çıkarılamaz",
     "removedState": "çıkarıldı",
     "includedState": "içinde",

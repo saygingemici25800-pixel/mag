@@ -286,7 +286,7 @@
     "closedLead": "Сейчас мы не принимаем заказы. Попробуйте чуть позже.",
     "soldOutWarn": "В корзине есть позиции, которых нет в наличии: {items}. Уберите или замените их.",
     "removeIngredients": "Убрать ингредиенты",
-    "editIngredients": "Изменить состав",
+    "removeIngredientsCount": "Убрать ингредиенты ({n})",
     "notRemovable": "нельзя убрать",
     "removedState": "убрано",
     "includedState": "входит",
@@ -554,7 +554,10 @@
     "çıtır soğan": "хрустящий лук",
     "trüf mayonez": "трюфельный майонез",
     "karamelize mantar": "карамелизованные грибы",
-    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek"
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek",
+    "130 g dana köfte": "котлета из говядины 130 г",
+    "yavaş pişmiş lifli dana eti": "томлёная говядина",
+    "füme biber aiolisi": "айоли из копчёного перца"
   },
   "menuDesc": {
     "smooky": "Котлета 130 г, копчёные рёбрышки, карамелизованный лук, чеддер, салат айсберг, айоли с копчёным перцем",

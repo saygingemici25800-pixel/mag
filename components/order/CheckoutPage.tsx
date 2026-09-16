@@ -15,7 +15,7 @@ import { ZONES, getZone } from "@/lib/zones";
 import ProductImage from "./ProductImage";
 import MinCartInfo from "./MinCartInfo";
 import Upsell from "./Upsell";
-import IngredientPicker from "./IngredientPicker";
+import IngredientList from "./IngredientList";
 import { useSettings } from "@/lib/useSettings";
 import "./order.css";
 
@@ -33,8 +33,6 @@ export default function CheckoutPage() {
   const [form, setForm] = useState({ name: "", phone: "", address: "", requested_at: "simdi", note: "" });
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [submitting, setSubmitting] = useState(false);
-  /* malzeme paneli açık olan satır (kimlik) */
-  const [pickerKey, setPickerKey] = useState<string | null>(null);
   /* panel ayarları: sipariş kapalıysa ya da sepette tükenen ürün varsa ödeme yapılamaz */
   const settings = useSettings();
   const minute = useClockMinute();
@@ -131,11 +129,6 @@ export default function CheckoutPage() {
                     </p>
                   ) : null}
                   {it.note ? <div className="text-xs text-dim">{it.note}</div> : null}
-                  {m.ingredients?.length ? (
-                    <button type="button" className="ing-toggle" onClick={() => setPickerKey(pickerKey === it.key ? null : it.key)} aria-expanded={pickerKey === it.key} data-ing-open>
-                      {it.removed.length ? o.editIngredients : o.removeIngredients}
-                    </button>
-                  ) : null}
                   <button type="button" className="ord-label mt-1 block cursor-pointer hover:text-cream" onClick={(e) => removeLine(it.key, e.currentTarget.closest<HTMLElement>("[data-cart-line]"))}>
                     {o.remove}
                   </button>
@@ -152,11 +145,8 @@ export default function CheckoutPage() {
                   </span>
                   <span className="min-w-14 text-right font-bold text-sm">{formatPriceFor(locale, m.price * it.qty)}</span>
                 </div>
-                {pickerKey === it.key ? (
-                  <div className="w-full">
-                    <IngredientPicker item={m} removed={it.removed} onChange={(next) => cartSetRemoved(it.key, next)} onClose={() => setPickerKey(null)} />
-                  </div>
-                ) : null}
+                {/* Malzeme listesi HER ZAMAN AÇIK — satırın tam genişliğinde, ürün adıyla aynı hizada */}
+                <IngredientList item={m} removed={it.removed} onChange={(next) => cartSetRemoved(it.key, next)} />
               </div>
             );
           })}

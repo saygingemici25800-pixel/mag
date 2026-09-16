@@ -379,7 +379,7 @@
     "closedLead": "We can't take orders at the moment. Please try again shortly.",
     "soldOutWarn": "Your cart has sold-out items: {items}. Please remove or replace them.",
     "removeIngredients": "Remove ingredients",
-    "editIngredients": "Edit ingredients",
+    "removeIngredientsCount": "Remove ingredients ({n})",
     "notRemovable": "can't be removed",
     "removedState": "removed",
     "includedState": "included",
