@@ -9,8 +9,11 @@ import { chromium } from "playwright";
 import { mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { seedCart, fillDelivery, FAKE_NOW } from "./_cart-fixture.mjs";
+import { guard } from "../../scripts/test-guard.mjs";
 
 const base = process.argv[2] ?? "http://localhost:3112";
+/* canlı veritabanına test yazmayı engeller (scripts/test-guard.mjs) */
+await guard(base);
 const out = process.argv[3] ?? "docs/screens/malzeme";
 const root = process.argv[4] ?? process.env.ROOT ?? "/Users/saygin/Downloads/mag-starter";
 const KEY = process.env.PANEL_KEY ?? "test1234";

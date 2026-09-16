@@ -9,7 +9,7 @@
 // GERÇEK TESLİMAT (FCM/APNs) BURADA DOĞRULANMAZ — o gerçek cihaz işi.
 // Burada abonelik sözleşmesi, yük biçimi ve derin bağlantı denetlenir.
 import { chromium } from "playwright";
-import { assertServerReady } from "./_cart-fixture.mjs";
+import { assertServerReady, seedCart, fillDelivery, FAKE_NOW } from "./_cart-fixture.mjs";
 import { newOrderPayload } from "../../lib/push-payload.ts";
 import { shortId } from "../../lib/orders.ts";
 
@@ -152,10 +152,24 @@ const b = await chromium.launch();
 
 /* ---------- 5) Derin bağlantı: /panel#<id> doğru karta gider ---------- */
 {
-  /* Deep-link için PANELDE ZATEN GÖRÜNEN bir sipariş kullanılır.
-     Yeni sipariş oluşturmak burada işe yaramaz: POST /api/orders ödeme
-     yönlendirmesi döndürür, sipariş ödeme tamamlanmadan panele düşmez —
-     o akış panel.mjs'de zaten kapsanıyor. */
+  /* Test KENDİ siparişini oluşturur — panelde hazır kayıt OLDUĞUNU VARSAYMAZ.
+     (Önce ".ocard" aranıyordu; temiz depoda hiç kart olmadığı için düşüyordu.)
+     POST /api/orders tek başına yetmez: sipariş ödeme tamamlanana kadar panele
+     düşmez, o yüzden mock ödeme akışı sonuna kadar yürütülür. */
+  const shopCtx = await b.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await seedCart(shopCtx, { smooky: 1, brisket: 1, ayran: 1 });
+  const shop = await shopCtx.newPage();
+  await shop.clock.install({ time: FAKE_NOW });
+  await shop.goto(base + "/siparis/odeme", { waitUntil: "load" });
+  await shop.waitForTimeout(800);
+  await fillDelivery(shop, { zone: "merkez", address: "Push Derin Baglanti Sk. No:1", name: "Push Derin Baglanti", phone: "05321234567" });
+  await shop.click('button[type="submit"]');
+  await shop.waitForURL(/\/odeme\/test/, { timeout: 15000 });
+  await shop.getByRole("button", { name: "Ödemeyi tamamla" }).click();
+  await shop.waitForURL(/\/siparis\/[0-9a-f-]{36}/, { timeout: 20000 });
+  const newId = shop.url().split("/siparis/")[1]?.split("?")[0] ?? "";
+  await shopCtx.close();
+
   const ctx = await b.newContext({ viewport: { width: 1440, height: 900 } });
   const p = await ctx.newPage();
   await p.goto(base + "/panel", { waitUntil: "load" });
@@ -163,25 +177,28 @@ const b = await chromium.launch();
   await p.click("form button[type=submit]");
   await p.waitForSelector(".tabs", { timeout: 8000 });
 
-  /* panelde görünen ilk siparişin id'si */
-  const id = await p.getAttribute(".ocard", "data-id");
-  check("panelde en az bir sipariş kartı var", Boolean(id), String(id));
+  const id = newId;
+  check("test kendi siparişini oluşturdu", /^[0-9a-f-]{36}$/.test(id), id);
+  await p.waitForSelector(`.ocard[data-id="${id}"]`, { timeout: 15000 });
 
   if (id) {
     const payload = newOrderPayload({ id, total: 1, type: "pickup", items: [] });
-    /* Bildirimden gelen url ile panele git. Çerez ctx'te, yeniden giriş gerekmiyor;
-       kartların sunucudan yüklenmesini bekle. */
-    await p.goto(base + payload.url, { waitUntil: "load" });
-    await p.waitForSelector(".tabs", { timeout: 10000 });
-    await p.waitForSelector(`.ocard[data-id="${id}"]`, { timeout: 15000 });
-    const hit = await p.waitForFunction(
+    /* Bildirimden gelme senaryosu: panel KAPALIYDI, sw.js YENİ SEKME açar.
+       Aynı sekmede yalnız hash'i değiştirmek sayfayı yeniden kurmaz (SPA) —
+       gerçek davranışı ölçmek için temiz sekme kullanılır. Çerez context'te,
+       yeniden giriş gerekmiyor. */
+    const np = await ctx.newPage();
+    await np.goto(base + payload.url, { waitUntil: "load" });
+    await np.waitForSelector(".tabs", { timeout: 10000 });
+    await np.waitForSelector(`.ocard[data-id="${id}"]`, { timeout: 15000 });
+    const hit = await np.waitForFunction(
       (oid) => document.querySelector(`.ocard[data-id="${oid}"]`)?.classList.contains("deeplink"),
       id,
       { timeout: 6000 },
     ).then(() => true).catch(() => false);
     check("bildirim url'i o siparişi vurguluyor", hit);
     /* kart görünür alanda mı */
-    const inView = await p.evaluate((oid) => {
+    const inView = await np.evaluate((oid) => {
       const el = document.querySelector(`.ocard[data-id="${oid}"]`);
       if (!el) return false;
       const r = el.getBoundingClientRect();
@@ -189,14 +206,14 @@ const b = await chromium.launch();
     }, id);
     check("kart ekrana kaydırıldı", inView);
     /* hash temizlendi mi (yenilemede tekrar kaydırmasın) */
-    await p.waitForTimeout(2600);
-    check("hash temizlendi", (await p.evaluate(() => location.hash)) === "");
+    await np.waitForTimeout(2600);
+    check("hash temizlendi", (await np.evaluate(() => location.hash)) === "");
 
     /* panel ZATEN AÇIKKEN: sw.js'in postMessage yolu */
-    await p.evaluate((oid) => {
+    await np.evaluate((oid) => {
       navigator.serviceWorker.dispatchEvent(Object.assign(new MessageEvent("message", { data: { type: "mag-open-order", id: oid } }), {}));
     }, id).catch(() => {});
-    const hit2 = await p.waitForFunction(
+    const hit2 = await np.waitForFunction(
       (oid) => document.querySelector(`.ocard[data-id="${oid}"]`)?.classList.contains("deeplink"),
       id,
       { timeout: 4000 },

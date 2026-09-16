@@ -48,10 +48,26 @@ export function fmtMin(min: number): string {
   return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 }
 
-/** Varsayılan "şimdi". Yalnızca sunucuda ve yalnızca test için: MAG_FAKE_NOW=2026-09-03T12:00:00+03:00 */
+/** Varsayılan "şimdi". Yalnızca sunucuda ve yalnızca test için: MAG_FAKE_NOW=2026-09-03T12:00:00+03:00
+ *
+ * 16 Eyl 2026: CANLIDA ASLA DİNLENMEZ. Yanlışlıkla production env'ine girerse
+ * dükkânın açık/kapalı saati sahte zamana göre hesaplanır — kapalıyken sipariş
+ * alınır ya da açıkken reddedilir. Bu yüzden VERCEL_ENV=production iken değer
+ * görmezden gelinir ve bir kez uyarı basılır. */
+let fakeNowWarned = false;
 export function defaultNow(): Date {
   const fake = typeof process !== "undefined" ? process.env.MAG_FAKE_NOW : undefined;
-  return fake ? new Date(fake) : new Date();
+  if (!fake) return new Date();
+  const isProd = typeof process !== "undefined" && (process.env.VERCEL_ENV === "production" || process.env.MAG_ENV === "production");
+  if (isProd) {
+    if (!fakeNowWarned) {
+      fakeNowWarned = true;
+      console.error("[güvenlik] MAG_FAKE_NOW production ortamında tanımlı — YOK SAYILDI. Bu değişkeni production env'inden kaldırın.");
+    }
+    return new Date();
+  }
+  const d = new Date(fake);
+  return isNaN(d.getTime()) ? new Date() : d;
 }
 
 /** Istanbul yerel saati: gün (0-6), saat, dakika ve gün başından dakika. */

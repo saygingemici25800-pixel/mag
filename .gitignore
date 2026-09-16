@@ -32,6 +32,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# .env.test GİZLİ DEĞİL: içinde canlı anahtar yoktur, bilerek boştur.
+# Testlerin canlıya bağlanmamasını sağlayan tek kaynak bu dosya — paylaşılmalı.
+!.env.test
 
 # vercel
 .vercel
@@ -52,3 +55,6 @@ next-env.d.ts
 # İşletmenin ham çekim arşivi (135 JPG, ~2,4 GB) — repoya GİRMEZ.
 # Galeriye giren kareler public/galeri/ altına işlenmiş (WebP) olarak konur.
 /mag-foto
+
+# canlı veritabanı yedekleri — kişisel veri içerebilir, ASLA commitlenmez
+/docs/backup

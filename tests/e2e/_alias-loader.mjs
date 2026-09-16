@@ -25,6 +25,17 @@ export async function resolve(specifier, context, next) {
       }
     }
   }
+  /* Uzantısız GÖRECELİ import ("./iyzico"): TypeScript buna izin verir, Node
+     vermez. Ürün kodu bu biçimi kullandığı için testler yükleyemiyordu. */
+  if (specifier.startsWith(".") && context.parentURL && !/\.(ts|tsx|js|mjs|json)$/.test(specifier)) {
+    for (const ext of [".ts", ".tsx", "/index.ts"]) {
+      try {
+        return await next(specifier + ext, context);
+      } catch {
+        /* sıradaki uzantıyı dene */
+      }
+    }
+  }
   return next(specifier, context);
 }
 

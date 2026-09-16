@@ -10,8 +10,11 @@
 import { chromium } from "playwright";
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { guard } from "../../scripts/test-guard.mjs";
 
 const base = process.argv[2] ?? "http://localhost:3112";
+/* canlı veritabanına test yazmayı engeller (scripts/test-guard.mjs) */
+await guard(base);
 const root = process.argv[3] ?? process.env.ROOT ?? "/Users/saygin/Downloads/mag-starter";
 const KEY = process.env.PANEL_KEY ?? "test1234";
 let fail = 0;

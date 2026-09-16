@@ -5,9 +5,21 @@ import { chromium } from "playwright";
 import { readFile } from "node:fs/promises";
 import pg from "pg";
 import { seedCart, fillDelivery, FAKE_NOW } from "./_cart-fixture.mjs";
+import { guard } from "../../scripts/test-guard.mjs";
 
 const ROOT = "/Users/saygin/Downloads/mag-starter";
 const base = "http://localhost:3112";
+/* Bu test TASARIM GEREĞİ canlı Supabase'e yazar — kanıtı ancak orada üretebilir.
+   Bu yüzden normal test paketinde KOŞMAZ; açıkça izin verilmesi gerekir:
+       MAG_ALLOW_LIVE_DB=1 node tests/e2e/supabase-proof.mjs
+   İzin yoksa guard() net mesajla durdurur (canlıya test kaydı birikmesin). */
+if (process.env.MAG_ALLOW_LIVE_DB !== "1") {
+  console.error("\nsupabase-proof CANLI veritabanına yazar; normal pakette atlanır.");
+  console.error("Bilerek koşacaksan: MAG_ALLOW_LIVE_DB=1 node tests/e2e/supabase-proof.mjs");
+  console.error("Kayıtlarını bitince temizle: node scripts/purge-test-orders.mjs\n");
+  process.exit(0);
+}
+await guard(base);
 const raw = await readFile(ROOT + "/.env.local", "utf8");
 const env = Object.fromEntries(raw.split("\n").filter(l => l.includes("=") && !l.trim().startsWith("#")).map(l => [l.slice(0, l.indexOf("=")).trim(), l.slice(l.indexOf("=") + 1).trim()]));
 const KEY = process.env.PANEL_KEY ?? "test1234";

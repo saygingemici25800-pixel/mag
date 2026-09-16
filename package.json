@@ -10,7 +10,10 @@
     "assets:cut-m": "node scripts/cut-m.mjs",
     "assets:order-sound": "node scripts/gen-order-sound.mjs",
     "assets:og": "node scripts/cut-og.mjs",
-    "assets:centers": "node scripts/cut-center.mjs"
+    "assets:centers": "node scripts/cut-center.mjs",
+    "test:server": "node --env-file=.env.test node_modules/next/dist/bin/next start -p 3112",
+    "test": "node --env-file=.env.test scripts/run-e2e.mjs",
+    "test:guard": "node --env-file=.env.test scripts/test-guard.mjs http://localhost:3112"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",

@@ -8,6 +8,12 @@ export type { CallbackResult, CheckoutResult, PaymentProvider } from "./types";
 
 export function paymentProviderName(): "mock" | "iyzico" {
   const v = process.env.PAYMENT_PROVIDER;
+  /* 16 Eyl 2026: mock sağlayıcı CANLIDA SEÇİLEMEZ. Yanlışlıkla
+     PAYMENT_PROVIDER=mock production env'ine girerse sahte ödeme gerçek siparişi
+     "ödendi" işaretler — para tahsil edilmeden sipariş mutfağa düşer. */
+  if (v === "mock" && (process.env.VERCEL_ENV === "production" || process.env.MAG_ENV === "production")) {
+    throw new Error("PAYMENT_PROVIDER=mock canlı ortamda kullanılamaz — production env'inden kaldırın");
+  }
   if (v === "mock" || v === "iyzico") return v;
   if (!v && !isProduction()) return "mock"; // geliştirmede varsayılan
   throw new Error("PAYMENT_PROVIDER tanımsız (mock | iyzico)");

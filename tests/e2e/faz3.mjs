@@ -1,7 +1,10 @@
 // Faz 3 uçtan uca: panel giriş (PANEL_KEY), ses/push mock, iki sekme (sipariş → panel ≤2 sn → durum → müşteri ≤2 sn)
 import { chromium } from "playwright";
 import { clearCart, fillDelivery, waitForCartCount } from "./_cart-fixture.mjs";
+import { guard } from "../../scripts/test-guard.mjs";
 const base = process.argv[2] ?? "http://localhost:3112";
+/* canlı veritabanına test yazmayı engeller (scripts/test-guard.mjs) */
+await guard(base);
 const out = process.argv[3] ?? ".";
 const KEY = process.env.PANEL_KEY ?? "test1234";
 const FAKE_NOW = new Date("2026-09-03T12:00:00+03:00"); // dükkân açık (MAG_FAKE_NOW ile aynı)

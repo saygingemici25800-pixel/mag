@@ -15,6 +15,7 @@
  *   (ya da tsx: npx tsx tests/e2e/saatler.mjs)
  */
 import { isOpen, istanbulNow, timeSlots, nextOpeningParts, todayRangeLabel, groupedHours, hoursFor, fmtMin, HOURS } from "../../lib/hours.ts";
+import { guard } from "../../scripts/test-guard.mjs";
 
 let fail = 0;
 const check = (n, ok, x = "") => {
@@ -152,6 +153,8 @@ check("her gün açılış < kapanış", HOURS.every((h) => h.openMin < h.closeM
    denenir: saat İÇİNDE olsa bile panel "kapalı" diyorsa sipariş alınmaz (409).
    base verilmezse bu bölüm atlanır (saf mantık testi olarak da çalışsın). */
 const base = process.argv[2];
+/* canlı veritabanına test yazmayı engeller (scripts/test-guard.mjs) */
+await guard(base);
 if (base) {
   const PANEL_KEY = process.env.PANEL_KEY;
   const body = {

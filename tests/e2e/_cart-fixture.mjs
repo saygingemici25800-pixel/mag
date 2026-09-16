@@ -6,6 +6,8 @@
  * testlerin tek noktadan güncellenmesi gerekir.
  */
 
+import { guard } from "../../scripts/test-guard.mjs";
+
 /** localStorage anahtarı ve sürümü — lib/cart.ts ile birebir aynı olmalı */
 export const CART_KEY = "mag:cart";
 export const CART_VERSION = 1;
@@ -117,6 +119,10 @@ export const REQUIRED_SERVER_ENV = ["PANEL_KEY", "PAYMENT_PROVIDER", "MAG_FAKE_N
 
 /** Sunucu test ayarlarıyla mı başlatılmış? Değilse testi anlamlı bir mesajla düşür. */
 export async function assertServerReady(base) {
+  /* CANLI VERİTABANI KİLİDİ — aşağıdaki istek GERÇEK sipariş oluşturur.
+     Sunucu canlı Supabase'e bağlıysa burada durmalı: bu kontrol eklenmeden önce
+     "Hazirlik Kontrol" adıyla 57 kayıt canlı tabloya yazılmıştı. */
+  await guard(base);
   const r = await fetch(base + "/api/orders", {
     method: "POST",
     headers: { "content-type": "application/json" },

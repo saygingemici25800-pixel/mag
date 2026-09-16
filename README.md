@@ -124,7 +124,34 @@ hreflang ve canonical `lib/seo.ts`'ten. Yasal metinler yalnızca Türkçe (`lib/
 6. Supabase → Authentication → URL Configuration → Site URL alanına aynı alan adını yaz.
 7. Yayın sonrası: `/panel` girişi, `/api/og?item=smooky` görseli, `/sitemap.xml`, Search Console'a sitemap.
 
-Testler (Playwright, `pnpm add -D playwright && pnpm exec playwright install chromium`): `tests/e2e/faz3.sh` sürücüsü;
-diğer scriptler `node tests/e2e/<dosya>.mjs http://localhost:3112`. Saat bağımlı testler için sunucu `MAG_FAKE_NOW=…` ile başlatılır.
+## Testler
+
+**Testler CANLI veritabanına yazamaz.** Test ortamı yerel dosya stub'ını (`.data/*.json`)
+kullanır; `.env.test` içinde Supabase anahtarları bilerek BOŞTUR ve bu değerler
+`.env.local`'i ezer.
+
+```bash
+pnpm test:server      # sunucuyu .env.test ile başlatır (depo: stub)
+pnpm test             # tüm paketi koşar
+pnpm test panel push  # yalnız seçili testler
+```
+
+Kilit (`scripts/test-guard.mjs`) iki durumu da yakalar ve testi net bir mesajla
+durdurur:
+- test sürecinde canlı Supabase anahtarı tanımlıysa,
+- sunucu canlı Supabase'e bağlıysa (`/api/panel/me` → `store:"supabase"`).
+
+`supabase-proof` tasarım gereği canlıya yazar, bu yüzden normal pakette **atlanır**.
+Bilerek koşmak için: `MAG_ALLOW_LIVE_DB=1 node tests/e2e/supabase-proof.mjs`.
+Sonrasında kayıtları temizle: `node scripts/purge-test-orders.mjs --apply`.
+
+**Canlı test kaydı temizliği:** `node scripts/purge-test-orders.mjs` (önce rapor;
+silmek için `--apply`). Silmeden önce `docs/backup/` altına (gitignore'lu) yedek alır
+ve test olduğu üç ölçütle kanıtlanmayan kaydı ASLA silmez.
+
+### Yalnızca test ortamına ait değişkenler
+`MAG_FAKE_NOW` ve `PAYMENT_MOCK_SECRET` **production env'inde bulunmamalıdır**.
+Kod seviyesinde de korunur: production'da `MAG_FAKE_NOW` yok sayılır (uyarı basar),
+`PAYMENT_PROVIDER=mock` ise hata fırlatır.
 
 Sonraki: iyzico hosted checkout (5) · katman animasyonu ve eksik ürün fotoğrafları (görseller gelince).

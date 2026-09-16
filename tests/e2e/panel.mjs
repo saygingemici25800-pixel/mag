@@ -4,8 +4,11 @@
 import { chromium } from "playwright";
 import { mkdirSync } from "node:fs";
 import { seedCart, fillDelivery, FAKE_NOW } from "./_cart-fixture.mjs";
+import { guard } from "../../scripts/test-guard.mjs";
 
 const base = process.argv[2] ?? "http://localhost:3112";
+/* canlı veritabanına test yazmayı engeller (scripts/test-guard.mjs) */
+await guard(base);
 const out = process.argv[3] ?? "docs/screens/panel";
 const KEY = process.env.PANEL_KEY ?? "test1234";
 mkdirSync(out, { recursive: true });

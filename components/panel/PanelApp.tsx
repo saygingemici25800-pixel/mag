@@ -286,11 +286,19 @@ export default function PanelApp() {
       deepLinkRef.current = e.data.id;
       setDeepLinkTick((n) => n + 1); // panel zaten açıkken de effect'i tetikle
     };
-    navigator.serviceWorker?.addEventListener("message", onMsg);
-    return () => navigator.serviceWorker?.removeEventListener("message", onMsg);
+    /* serviceWorker VAR ama addEventListener'ı OLMAYABİLİR (kısmi mock, eski
+       gömülü görünümler). Kontrolsüz çağrı tüm paneli çökertiyordu. */
+    const sw = navigator.serviceWorker;
+    if (typeof sw?.addEventListener !== "function") return;
+    sw.addEventListener("message", onMsg);
+    return () => sw.removeEventListener("message", onMsg);
   }, []);
   /* Kartlar sunucudan sonra geldiği için orders değişince tekrar denenir;
-     bulunduğunda hedef temizlenir ki sonraki yenilemelerde tekrar kaydırmasın. */
+     bulunduğunda hedef temizlenir ki sonraki yenilemelerde tekrar kaydırmasın.
+     `gate` de bağımlılık: giriş ekranı gösterilirken bileşen ERKEN RETURN ettiği
+     için (gate "loading"/"login") bu effect hiç kurulmuyordu; gate "ok" olduğunda
+     orders zaten dolu olabildiğinden bir daha tetiklenmiyor ve hash'ten gelen
+     derin bağlantı sessizce çalışmıyordu. */
   useEffect(() => {
     const id = deepLinkRef.current || decodeURIComponent(window.location.hash.replace(/^#/, ""));
     if (!id) return;
@@ -302,7 +310,7 @@ export default function PanelApp() {
     const t = window.setTimeout(() => el.classList.remove("deeplink"), 2400);
     if (window.location.hash) history.replaceState(null, "", window.location.pathname + window.location.search);
     return () => window.clearTimeout(t);
-  }, [orders, deepLinkTick]);
+  }, [orders, deepLinkTick, gate]);
 
   /* --- görüldü / ses tekrarı --- */
   const unseenIds = useMemo(() => [...orders.values()].filter((o) => o.status === "received" && !seen.has(o.id)).map((o) => o.id), [orders, seen]);
