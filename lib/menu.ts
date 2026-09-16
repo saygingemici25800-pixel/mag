@@ -73,15 +73,12 @@ export const MENU: Record<Category, MenuItem[]> = {
          "brisket"ti. orders tablosu (82 satır, hepsi e2e test kaydı) boşaltıldıktan sonra
          takas edildi; sipariş akmaya başlayınca bu düzeltme yapılamazdı.
 
-         İŞLETME ONAYI BEKLİYOR: aşağıdaki desc ve ingredients işletmeden ONAYLI DEĞİL.
-         Kullanıcının örnek olarak yazdığı metin (11 Eyl 2026). Gerçek liste gelince
-         değişecek — o zamana kadar menüde bu görünüyor.
-         Fiyat DEĞİŞMEDİ: işletmeden gelmedi. */
-      name: "Truffle",
+         16 Eyl 2026: ad ve içerik İŞLETMEDEN ONAYLI. Fiyat değişmedi. */
+      name: "TRUFFLE & MUSH",
       price: 600,
       hero: true,
-      desc: "130 gr burger köftesi, trüf mayonez, gravyer peyniri, karamelize mantar, roka",
-      ingredients: [{ name: "brioche ekmek", removable: false }, { name: "130 gr burger köftesi", removable: false }, { name: "trüf mayonez", removable: true }, { name: "gravyer peyniri", removable: true }, { name: "karamelize mantar", removable: true }, { name: "roka", removable: true }],
+      desc: "130 g dana köfte, mantar düxelles, trüf mayonez, cheddar, soğan turşusu",
+      ingredients: [{ name: "brioche ekmek", removable: false }, { name: "130 g dana köfte", removable: false }, { name: "mantar düxelles", removable: true }, { name: "trüf mayonez", removable: true }, { name: "cheddar", removable: true }, { name: "soğan turşusu", removable: true }],
     },
     {
       id: "berry",
@@ -124,13 +121,14 @@ export const MENU: Record<Category, MenuItem[]> = {
       id: "brisket",
       pairs: ["truflu-mayonez", "zencefilli-gazoz"],
       /* ID DÜZELTİLDİ (11 Eyl 2026): id ile görünen ad ters duruyordu.
-         AÇIK: desc ve ingredients hâlâ ESKİ (trüflü/mantarlı) — BRISKET'e ait değil,
-         işletmeden gelecek. Bilerek dokunulmadı. */
+         16 Eyl 2026: içerik İŞLETMEDEN ONAYLI — artık gerçekten BRISKET'e ait
+         (önce TRUFFLE'ın trüflü/mantarlı listesi duruyordu). Fiyat değişmedi.
+         Ana protein "yavaş pişmiş lifli dana eti": ekmekle birlikte kaldırılamaz. */
       name: "Brisket",
       price: 550,
       hero: true,
-      desc: "130 gr burger köftesi, mantar düxelles, trüflü mayonez, cheddar, soğan turşusu",
-      ingredients: [{ name: "brioche ekmek", removable: false }, { name: "130 gr burger köftesi", removable: false }, { name: "mantar düxelles", removable: true }, { name: "trüflü mayonez", removable: true }, { name: "cheddar", removable: true }, { name: "soğan turşusu", removable: true }],
+      desc: "yavaş pişmiş lifli dana eti, karamelize soğan, cheddar, füme biber aiolisi, soğan turşusu",
+      ingredients: [{ name: "brioche ekmek", removable: false }, { name: "yavaş pişmiş lifli dana eti", removable: false }, { name: "karamelize soğan", removable: true }, { name: "cheddar", removable: true }, { name: "füme biber aiolisi", removable: true }, { name: "soğan turşusu", removable: true }],
     },
     {
       id: "citir",
@@ -199,7 +197,6 @@ export const MENU: Record<Category, MenuItem[]> = {
   yan: [
     { id: "patates", pairs: ["truflu-mayonez", "sweet-chili"], name: "Patates kızartması (el yapımı)", price: 300 },
     { id: "patates-parmesan", pairs: ["mag-sos", "jalapeno-sos"], name: "Patates kızartması (parmesanlı)", price: 350 },
-    { id: "sogan-halkasi", name: "Soğan halkası", price: 220, upsell: true }, // AÇIK: fiyat ve porsiyon işletmeden teyit edilecek
   ],
   sos: [
     // 50 ₺
@@ -207,7 +204,6 @@ export const MENU: Record<Category, MenuItem[]> = {
     { id: "jalapeno-sos", name: "Jalapeno", price: 50 },
     { id: "sweet-chili", name: "Sweet & chili", price: 50 },
     { id: "mag-sos", name: "Mag sos", price: 50 },
-    { id: "ekstra-cheddar-sos", name: "Ekstra cheddar sos", price: 50, upsell: true }, // AÇIK: fiyat işletmeden teyit edilecek
     { id: "tutsu-biberli-aioli", name: "Tütsü biberli aioli", price: 50, upsell: true }, // AÇIK: fiyat işletmeden teyit edilecek
   ],
   icecek: [
@@ -217,7 +213,6 @@ export const MENU: Record<Category, MenuItem[]> = {
     { id: "soda", name: "Soda", price: 70 },
     { id: "zencefilli-gazoz", name: "Zencefilli gazoz", price: 190 },
     { id: "alkolsuz-bira", name: "Alkolsüz bira", price: 190 },
-    { id: "salgam", name: "Şalgam", price: 90, upsell: true }, // AÇIK: fiyat ve acılı/acısız seçeneği işletmeden teyit edilecek
     { id: "kola", name: "Kola", price: 110, upsell: true }, // AÇIK: fiyat ve marka işletmeden teyit edilecek
     { id: "limonata", name: "Limonata", price: 130, upsell: true }, // AÇIK: fiyat ve ev yapımı olup olmadığı işletmeden teyit edilecek
   ],
@@ -225,7 +220,7 @@ export const MENU: Record<Category, MenuItem[]> = {
 
 /** "YANINDA İYİ GİDER" — sepette önerilen içecek / sos / yan ürünler (sıra: içecek → yan → sos).
     Fiyat ve içerik AÇIK: işletmeden teyit edilecek (lib/menu.ts içindeki satır yorumları). */
-export const UPSELL_IDS = ["ayran", "salgam", "kola", "limonata", "patates", "sogan-halkasi", "ekstra-cheddar-sos", "tutsu-biberli-aioli"] as const;
+export const UPSELL_IDS = ["ayran", "kola", "limonata", "patates", "tutsu-biberli-aioli"] as const;
 
 /** Öneri listesi — menü sırasına değil UPSELL_IDS sırasına uyar */
 export function upsellItems(): MenuItem[] {

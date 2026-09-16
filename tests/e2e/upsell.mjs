@@ -16,13 +16,19 @@ const check = (n, ok, x = "") => { console.log((ok ? "PASS" : "FAIL") + " " + n 
 
 /* ---- statik: veri ve AÇIK notları ---- */
 const menu = readFileSync(path.join(root, "lib/menu.ts"), "utf8");
+/* 16 Eyl 2026: Şalgam, Soğan halkası ve Ekstra cheddar sos menüden KALDIRILDI
+   (işletme kararı) — sekiz üründen beşe indi. */
 const WANTED = [
-  ["ayran", "Ayran"], ["salgam", "Şalgam"], ["kola", "Kola"], ["limonata", "Limonata"],
-  ["patates", "Patates"], ["sogan-halkasi", "Soğan halkası"], ["ekstra-cheddar-sos", "Ekstra cheddar sos"], ["tutsu-biberli-aioli", "Tütsü biberli aioli"],
+  ["ayran", "Ayran"], ["kola", "Kola"], ["limonata", "Limonata"],
+  ["patates", "Patates"], ["tutsu-biberli-aioli", "Tütsü biberli aioli"],
 ];
-check("UPSELL_IDS sekiz ürünü listeler", WANTED.every(([id]) => new RegExp(`"${id}"`).test(menu.match(/UPSELL_IDS = \[[^\]]+\]/)?.[0] ?? "")), WANTED.map(([id]) => id).join(" "));
+check("UPSELL_IDS beş ürünü listeler", WANTED.every(([id]) => new RegExp(`"${id}"`).test(menu.match(/UPSELL_IDS = \[[^\]]+\]/)?.[0] ?? "")), WANTED.map(([id]) => id).join(" "));
+/* kaldırılan üç ürün hiçbir yerde kalmamalı */
+for (const gone of ["salgam", "sogan-halkasi", "ekstra-cheddar-sos"]) {
+  check(`${gone}: menüden tamamen kaldırıldı`, !new RegExp(`"${gone}"`).test(menu), gone);
+}
 /* yeni eklenen placeholder'ların yanında AÇIK notu olmalı (mevcut ürünlerde zaten fiyat teyitli) */
-for (const id of ["salgam", "kola", "limonata", "sogan-halkasi", "ekstra-cheddar-sos", "tutsu-biberli-aioli"]) {
+for (const id of ["kola", "limonata", "tutsu-biberli-aioli"]) {
   const line = menu.split("\n").find((l) => l.includes(`id: "${id}"`)) ?? "";
   check(`${id}: satırında AÇIK notu var`, /AÇIK/.test(line), line.trim().slice(0, 110));
 }
@@ -85,8 +91,8 @@ check("/siparis: bölüm görünür", s.exists && s.visible);
 check("başlık 'YANINDA İYİ GİDER', MuseoModerno", s.title === "YANINDA İYİ GİDER" && s.titleFont === "MuseoModerno", `${s.title} · ${s.titleFont}`);
 /* 12 Eyl 2026: fiyat VURGU → sarı #FDD20E (eski limon #FFD662 kaldırıldı) */
 check("ürün adı MuseoModerno, fiyat sarı", s.nameFont === "MuseoModerno" && s.priceColor === "rgb(253, 210, 14)", `${s.nameFont} · ${s.priceColor}`);
-check("sekiz öneri kartı, her birinde görsel/rozet", s.count === 8 && s.hasImages, `${s.count} kart`);
-check("sepette olmayan ürünlerde '+ Ekle'", s.withAdd.length === 8 && s.withQty.length === 0, `ekle=${s.withAdd.length} adet=${s.withQty.length}`);
+check("beş öneri kartı, her birinde görsel/rozet", s.count === 5 && s.hasImages, `${s.count} kart`);
+check("sepette olmayan ürünlerde '+ Ekle'", s.withAdd.length === 5 && s.withQty.length === 0, `ekle=${s.withAdd.length} adet=${s.withQty.length}`);
 check("masaüstünde 4'lü ızgara", s.display === "grid" && s.cols === 4, `${s.display} · ${s.cols} sütun`);
 
 /* ---- ekleme: cartFx + çubuk + toplam ---- */

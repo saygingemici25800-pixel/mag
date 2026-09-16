@@ -34,13 +34,25 @@
   --cream: var(--mag-yellow); /* başlık ve vurgu */
   --ink: var(--mag-on-yellow); /* sarı üstünde yazı */
   --body: var(--mag-grey); /* gövde metni */
-  --dim: color-mix(in srgb, var(--mag-grey) 65%, transparent); /* ikincil metin */
+  /* İkincil metin. SAYDAM DEĞİL: %65 opaklıkta kırmızı zeminde 4,03:1 ölçüldü
+     (AA altı). Artık griyi beyaza doğru karıştırıyoruz — her kırmızı durakta
+     4,5:1 üstünde kalıyor ve "soluk" görünümü korunuyor. */
+  --dim: color-mix(in srgb, var(--mag-grey) 82%, #fff); /* ikincil metin */
   --line: color-mix(in srgb, var(--mag-grey) 20%, transparent); /* ayırıcı */
   --surface: var(--mag-red-deep); /* kart/sheet yüzeyi */
   --accent: var(--mag-yellow); /* aktif/vurgu: sepet çubuğu, rozet, ilerleme, üstü çizili */
-  /* Sayfa zemini: red-deep → red geçişi. Orta durak kırmızıya yakın ama saf değil
-     (gövde metni okunur kalsın), en alt saf kırmızı = ana renk vurgusu. */
-  --page-bg: linear-gradient(180deg, var(--mag-red-deep) 0%, var(--mag-red-surface) 55%, var(--mag-red) 100%);
+  /* KIRMIZI ÜSTÜNDE küçük punto sarı yazı. Saf --mag-yellow kırmızı kartta
+     3,77:1 ölçüldü (13 px malzeme etiketleri — AA altı). Beyaza doğru %50
+     açılınca en açık kırmızı durakta bile 4,5:1 üstünde kalıyor, sarı kimliği
+     bozulmuyor. Büyük başlıklar --cream kullanmaya devam ediyor (3:1 yeterli). */
+  --accent-on-red: color-mix(in srgb, var(--mag-yellow) 50%, #fff);
+  /* Sayfa zemini: red-deep → red-surface geçişi.
+     16 Eyl 2026: gradyanın alt ucu SAF --mag-red idi; ölçüldü, ikincil metin
+     (--dim) orada 2,55:1'e düşüyordu — AA'nın çok altı. Alt durak red-surface'e
+     çekildi: kırmızı kimlik duruyor, her durakta metin okunur.
+     Saf --mag-red artık yalnızca DOLU ÖĞELERDE (buton, rozet) kullanılıyor;
+     oralarda yazı --mag-on-red değil koyu zemin üstünde duruyor. */
+  --page-bg: linear-gradient(180deg, var(--mag-red-deep) 0%, var(--mag-red-surface) 100%);
   /* HERO zemini: ürün fotoğrafları sıcak amber/siyah zeminde çekildi; düz kırmızı
      ışık kurgusunu ve siluetleri bozuyor. Bu yüzden ink → red-deep koyu gradyan. */
   --hero-bg: linear-gradient(180deg, var(--mag-ink) 0%, var(--mag-ink) 38%, var(--mag-red-deep) 100%);

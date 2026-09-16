@@ -1,16 +1,17 @@
 /**
- * İçindekiler satırında malzeme sözcükleri vurgulanır: her tür VURGU renginde (--cream = sarı),
+ * İçindekiler satırında malzeme sözcükleri vurgulanır: her tür VURGU renginde
+ * (--accent-on-red: kırmızı kartta AA geçen açık sarı — saf sarı 13 px'te 3,77:1 idi),
  * gövde ikincil (--dim = gri %65) kalır. Tek palet; malzeme başına ayrı renk YOK.
  * Hem ana sayfa (dive kopyası) hem sipariş sayfası (kart açıklaması, sheet) aynı fonksiyondan geçer. TR + EN anahtar kelimeler.
  */
 export type IngredientKind = "meat" | "cheese" | "green" | "sauce" | "pickle" | "plain";
 
 export const INGREDIENT_COLORS: Record<Exclude<IngredientKind, "plain">, string> = {
-  meat: "var(--cream)",
-  cheese: "var(--cream)",
-  green: "var(--cream)",
-  sauce: "var(--cream)",
-  pickle: "var(--cream)",
+  meat: "var(--accent-on-red)",
+  cheese: "var(--accent-on-red)",
+  green: "var(--accent-on-red)",
+  sauce: "var(--accent-on-red)",
+  pickle: "var(--accent-on-red)",
 };
 
 const WORDS: Record<Exclude<IngredientKind, "plain">, string[]> = {
