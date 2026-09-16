@@ -133,15 +133,14 @@ export const MENU: Record<Category, MenuItem[]> = {
     {
       id: "citir",
       pairs: ["sweet-chili", "ayran"],
-      name: "Mag Çıtır",
+      name: "MAG ÇITIR",
       price: 490,
       hero: true,
-      /* 14 Eyl 2026: citir artık kesim kullanıyor — GEÇİCİ olarak orjinal ile AYNI
-         dosyayı paylaşıyor (components/stage/cutouts.ts, gerekçe orada).
-         photo alanı kaldırıldı: ProductImage sırası cutout > photo olduğu için
-         zaten hiç okunmuyordu, ölü alan bırakmayalım. */
-      desc: "Panelenmiş tavuk parçaları, cips, sweet chili sos",
-      ingredients: [{ name: "brioche ekmek", removable: false }, { name: "Panelenmiş tavuk parçaları", removable: false }, { name: "cips", removable: true }, { name: "sweet chili sos", removable: true }],
+      /* 16 Eyl 2026: KENDİ kesimini kullanıyor (public/urun/citir.webp, 679×480).
+         Önce geçici olarak orjinal.webp'yi paylaşıyordu; menüde ve hero'da
+         Mag Çıtır yerine dana köfteli burger görünüyordu. */
+      desc: "panelenmiş tavuk parçaları, patates, sweet chili sos",
+      ingredients: [{ name: "brioche ekmek", removable: false }, { name: "panelenmiş tavuk parçaları", removable: false }, { name: "patates", removable: true }, { name: "sweet chili sos", removable: true }],
     },
   ],
   taco: [

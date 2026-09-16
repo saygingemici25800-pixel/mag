@@ -7,6 +7,7 @@ import jalapeno from "@/public/urun/jalapeno.webp";
 import caesar from "@/public/urun/caesar.webp";
 import orjinal from "@/public/urun/orjinal.webp";
 import truffle from "@/public/urun/truffle.webp";
+import citir from "@/public/urun/citir.webp";
 import smookyM from "@/public/urun/mobil/smooky.webp";
 import brisketM from "@/public/urun/mobil/brisket.webp";
 import berryM from "@/public/urun/mobil/berry.webp";
@@ -14,25 +15,16 @@ import jalapenoM from "@/public/urun/mobil/jalapeno.webp";
 import caesarM from "@/public/urun/mobil/caesar.webp";
 import orjinalM from "@/public/urun/mobil/orjinal.webp";
 import truffleM from "@/public/urun/mobil/truffle.webp";
+import citirM from "@/public/urun/mobil/citir.webp";
 
 /** Fondan kesilmiş cutout'lar (WebP, 480px). Dosya adı = ürün id'si.
-    Eksik ürün (citir): dosya gelince build'de bulunur → lib/cutouts-available.ts */
-/* 14 Eyl 2026 — GEÇİCİ: citir, orjinal ile AYNI dosyayı paylaşıyor.
-   Kullanıcıya soruldu, "şimdilik böyle, sonra değiştiririz" denildi.
-   DURUM: elde gerçek Mag Çıtır kesimi YOK. Gelen citir.webp, orjinal.webp ile
-   aynı kareydi (piksel karşılaştırması: kayma yok, yalnızca yeniden kodlama farkı)
-   ve ikisi de DANA KÖFTE + CHEDDAR gösteriyor — oysa menüde Mag Çıtır
-   "panelenmiş tavuk parçaları, cips, sweet chili sos".
-   KOPYA YOK: ayrı bir citir.webp tutulmuyor, doğrudan orjinal'in statik import'u
-   iki id'den de referans veriliyor (mobil kopya da böylece hazır geliyor).
-   Gerçek çıtır kesimi gelince: public/urun/citir.webp olarak koymak yeterli —
-   lib/cutouts-available.ts onu build'de bulur ve BURADAKİ paylaşımın önüne geçer
-   (extraCutouts yalnızca CUTOUTS'ta OLMAYAN id'lere bakar, o yüzden aşağıdaki
-   citir satırı da o gün silinmeli). */
-export const CUTOUTS: Partial<Record<HeroId, StaticImageData>> = { smooky, brisket, berry, jalapeno, caesar, orjinal, truffle, citir: orjinal };
+    16 Eyl 2026: citir artık KENDİ görselini kullanıyor (679×480, panelenmiş tavuk).
+    Önce geçici olarak orjinal.webp'yi paylaşıyordu — o yüzden menüde/hero'da
+    Mag Çıtır yerine dana köfteli burger görünüyordu. Paylaşım kaldırıldı. */
+export const CUTOUTS: Partial<Record<HeroId, StaticImageData>> = { smooky, brisket, berry, jalapeno, caesar, orjinal, truffle, citir };
 
 /** Mobil kopyalar (300px, kalite 72) — `pnpm assets:cut-m`. */
-export const CUTOUTS_M: Partial<Record<HeroId, StaticImageData>> = { smooky: smookyM, brisket: brisketM, berry: berryM, jalapeno: jalapenoM, caesar: caesarM, orjinal: orjinalM, truffle: truffleM, citir: orjinalM };
+export const CUTOUTS_M: Partial<Record<HeroId, StaticImageData>> = { smooky: smookyM, brisket: brisketM, berry: berryM, jalapeno: jalapenoM, caesar: caesarM, orjinal: orjinalM, truffle: truffleM, citir: citirM };
 
 /** Build'de dosya sisteminde bulunan ek cutout'lar (statik import'suz) */
 export interface ExtraCutout {

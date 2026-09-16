@@ -64,7 +64,11 @@ export const S = S_DESKTOP;
 
 /** Odak büyütmesi: scale = base(t_eff) × (1 + FOCUS_ZOOM × max(0, 1 − |t_eff|)) — sürekli, slota bağlı değil */
 export const FOCUS_ZOOM = 0.14;
-export const N = 8; // menu.burger sırası — hepsi hero'da
+/** Sahnedeki SLOT sayısı (görsel geometri) — ürün sayısı DEĞİL.
+    Ürün sayısı her zaman listeden türer (Stage/Arc: `count = list.length`) ve
+    slotIndex'e `n` olarak geçirilir; buradaki sabit yalnızca kaç kart kutusu
+    çizileceğini söyler. CENTER=4 buna bağlı. */
+export const N = 8;
 export const CENTER = 4; // odaklanan slot: p = i − CENTER ∈ [−4..3] (referans SLOTS); görünür |p|≤2, |p|≥3 hazır bekler (opacity 0)
 /** |t| 2→3 arasında görünürlük 1→0 */
 export function slotVisibility(a: number): number {

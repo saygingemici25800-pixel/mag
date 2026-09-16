@@ -23,7 +23,7 @@ interface Props {
 export default function Arc({ active, bind, extra }: Props) {
   const list = heroProducts(extra);
   const count = list.length;
-  const focusId = list[slotIndex(active, CENTER, count)].id;
+  const focusId = list[slotIndex(active, CENTER, count)]?.id;
   const fc = CUTOUTS[focusId],
     fm = CUTOUTS_M[focusId];
   if (fc) preload(fc.src, { as: "image", media: DESKTOP_MQ, fetchPriority: "high" });
@@ -32,7 +32,10 @@ export default function Arc({ active, bind, extra }: Props) {
   return (
     <div className="field">
       {Array.from({ length: N }, (_, i) => {
+        /* count < N olabilir (ürün sayısı slot sayısından az): sarmal indeks
+           listeye göre hesaplanır, boş slot oluşmaz. */
         const m = list[slotIndex(active, i, count)];
+        if (!m) return null;
         const focus = i === CENTER;
         const hasImg = Boolean(CUTOUTS[m.id] || extra?.[m.id]);
         return <Card key={i} id={m.id} name={m.name} focus={focus} slot={i} ar={aspectOf(m.id)} extra={extra} bind={bind} hasImg={hasImg} alt={focus ? `${m.name} burger` : ""} />;
