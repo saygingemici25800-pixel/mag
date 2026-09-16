@@ -11,7 +11,7 @@
     "assets:order-sound": "node scripts/gen-order-sound.mjs",
     "assets:og": "node scripts/cut-og.mjs",
     "assets:centers": "node scripts/cut-center.mjs",
-    "test:server": "node --env-file=.env.test node_modules/next/dist/bin/next start -p 3112",
+    "test:server": "node scripts/test-server.mjs",
     "test": "node --env-file=.env.test scripts/run-e2e.mjs",
     "test:guard": "node --env-file=.env.test scripts/test-guard.mjs http://localhost:3112"
   },

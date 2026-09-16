@@ -52,7 +52,11 @@ export class FileOrderStore implements OrderStore {
     return [...all]
       .filter((o) => !paidOnly || o.payment_status === "paid")
       .filter(changed)
-      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
+      /* created_at EŞİTSE sıralama belirsizdi (testlerde MAG_FAKE_NOW zamanı
+         dondurduğu için tüm kayıtlar aynı damgayı alıyor ve yeni sipariş
+         listenin sonuna düşebiliyordu). İkincil ölçüt olarak id: sonuç her
+         zaman aynı ve yeni kayıt kararlı bir yerde durur. */
+      .sort((a, b) => (a.created_at === b.created_at ? (a.id < b.id ? 1 : -1) : a.created_at < b.created_at ? 1 : -1))
       .slice(0, limit);
   }
   async update(id: string, patch: Partial<Order>): Promise<Order | null> {
