@@ -3,6 +3,8 @@ import { isPanelAuthorized } from "@/lib/panel-auth";
 import type { Settings } from "@/lib/settings";
 import { getSettingsStore } from "@/lib/store";
 import { normalizeZones } from "@/lib/zones";
+import { normalizePrices } from "@/lib/settings";
+import { findMenuItem } from "@/lib/orders";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,16 +17,16 @@ export async function GET() {
 
 /** PATCH /api/panel/settings — YALNIZCA panel (PANEL_KEY). Yazma buradan geçer;
     service_role yalnızca sunucuda kullanılır, tarayıcıya hiç gitmez.
-    Gövde: { ordering_open?, sold_out?, zones? } */
+    Gövde: { ordering_open?, sold_out?, zones?, prices? } */
 export async function PATCH(req: Request) {
   if (!(await isPanelAuthorized(req))) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  let body: Partial<Pick<Settings, "ordering_open" | "sold_out" | "zones">>;
+  let body: Partial<Pick<Settings, "ordering_open" | "sold_out" | "zones" | "prices">>;
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "invalid-json" }, { status: 400 });
   }
-  const patch: Partial<Pick<Settings, "ordering_open" | "sold_out" | "zones">> = {};
+  const patch: Partial<Pick<Settings, "ordering_open" | "sold_out" | "zones" | "prices">> = {};
   if (typeof body.ordering_open === "boolean") patch.ordering_open = body.ordering_open;
   if (Array.isArray(body.sold_out)) patch.sold_out = body.sold_out.filter((x): x is string => typeof x === "string");
   /* Bölgeler: ŞEMA SUNUCUDA doğrulanır (normalizeZones) — tarayıcıdan gelen ham
@@ -37,6 +39,22 @@ export async function PATCH(req: Request) {
     const ids = new Set(z.map((x) => x.id));
     if (ids.size !== z.length) return NextResponse.json({ error: "zones-duplicate-id" }, { status: 422 });
     patch.zones = z;
+  }
+  /* Fiyatlar: şema SUNUCUDA doğrulanır — pozitif TAM SAYI ve BİLİNEN ürün id'si.
+     Geçersiz kayıt sessizce atılmaz, 422 döner: panel hangi alanın hatalı
+     olduğunu görsün (sessiz atma "kaydettim" yanılgısı yaratıyordu). */
+  if (body.prices !== undefined) {
+    if (!body.prices || typeof body.prices !== "object" || Array.isArray(body.prices)) {
+      return NextResponse.json({ error: "prices-invalid" }, { status: 422 });
+    }
+    const bad: string[] = [];
+    for (const [id, v] of Object.entries(body.prices as Record<string, unknown>)) {
+      const n = typeof v === "number" ? v : Number(v);
+      if (!findMenuItem(id)) bad.push(id + ":unknown-item");
+      else if (!Number.isFinite(n) || !Number.isInteger(n) || n <= 0) bad.push(id + ":not-positive-integer");
+    }
+    if (bad.length) return NextResponse.json({ error: "prices-invalid", fields: bad }, { status: 422 });
+    patch.prices = normalizePrices(body.prices);
   }
   if (Object.keys(patch).length === 0) return NextResponse.json({ error: "empty-patch" }, { status: 422 });
   try {

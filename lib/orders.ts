@@ -3,7 +3,7 @@
  * Depo: lib/orders-store.ts (şimdilik dosya/bellek; Faz 3'te Supabase — arayüz aynı).
  */
 import { DEFAULT_LOCALE, isLocale, type Locale } from "@/lib/i18n";
-import { MENU, type MenuItem } from "@/lib/menu";
+import { MENU, priceOf, type MenuItem } from "@/lib/menu";
 import { findZone, zoneActive, type Zone } from "@/lib/zones";
 import { defaultNow, isOpen, timeSlots } from "@/lib/hours";
 
@@ -159,10 +159,17 @@ export interface Totals {
 
 /** Toplamlar. `zones` verilmezse lib/zones.ts varsayılanı kullanılır (findZone) —
     böylece mevcut çağıranlar bozulmaz; panel listesini kullanmak isteyen geçirir. */
-export function computeTotals(items: { id: string; qty: number }[], type: OrderType, zoneId?: string | null, zones?: Zone[] | null): Totals {
+export function computeTotals(
+  items: { id: string; qty: number }[],
+  type: OrderType,
+  zoneId?: string | null,
+  zones?: Zone[] | null,
+  prices?: Record<string, number> | null,
+): Totals {
   const subtotal = items.reduce((s, it) => {
     const m = findMenuItem(it.id);
-    return s + (m ? m.price * Math.max(0, Math.floor(it.qty)) : 0);
+    /* Fiyat priceOf'tan: panelden değiştirilmişse o, değilse koddaki. */
+    return s + (m ? priceOf(m, prices) * Math.max(0, Math.floor(it.qty)) : 0);
   }, 0);
   const zone = type === "delivery" ? findZone(zones, zoneId) : undefined;
   const fee = zone?.fee ?? 0;
@@ -172,7 +179,7 @@ export function computeTotals(items: { id: string; qty: number }[], type: OrderT
 
 export type ValidationError = { field: string; code: string };
 
-export function validateOrder(input: NewOrderInput, now: Date = defaultNow(), zones?: Zone[] | null): ValidationError[] {
+export function validateOrder(input: NewOrderInput, now: Date = defaultNow(), zones?: Zone[] | null, prices?: Record<string, number> | null): ValidationError[] {
   const errs: ValidationError[] = [];
   if (!isOpen(now)) errs.push({ field: "hours", code: "closed" });
   if (input.type !== "pickup" && input.type !== "delivery") errs.push({ field: "type", code: "invalid" });
@@ -191,7 +198,7 @@ export function validateOrder(input: NewOrderInput, now: Date = defaultNow(), zo
        ama doğrulama sunucuda da yapılır — istemciye güvenilmez). */
     else if (!zoneActive(z)) errs.push({ field: "zone", code: "closed" });
     if (!input.address || input.address.trim().length < 8) errs.push({ field: "address", code: "required" });
-    const t = computeTotals(input.items ?? [], "delivery", input.zone, zones);
+    const t = computeTotals(input.items ?? [], "delivery", input.zone, zones, prices);
     if (t.missing > 0) errs.push({ field: "items", code: "min-cart" });
   }
   if (typeof input.note === "string" && input.note.length > 300) errs.push({ field: "note", code: "too-long" });
@@ -205,7 +212,7 @@ export function newOrderId(): string {
 }
 
 /** `zones` verilmezse varsayılan liste kullanılır — ücret ve minimum sepet oradan gelir. */
-export function buildOrder(input: NewOrderInput, now: Date = defaultNow(), zones?: Zone[] | null): Order {
+export function buildOrder(input: NewOrderInput, now: Date = defaultNow(), zones?: Zone[] | null, prices?: Record<string, number> | null): Order {
   const items: OrderItem[] = input.items.map((it) => {
     const m = findMenuItem(it.id)!;
     /* removed: yalnızca üründe gerçekten bulunan ve çıkarılabilir olan malzemeler kabul edilir
@@ -215,13 +222,15 @@ export function buildOrder(input: NewOrderInput, now: Date = defaultNow(), zones
     return {
       id: m.id,
       name: m.name,
-      price: m.price,
+      /* O ANKİ fiyat satıra YAZILIR. Sonraki fiyat değişikliği bu siparişi
+         etkilemez — panel ve müşteri geçmişi hep sipariş anındaki tutarı gösterir. */
+      price: priceOf(m, prices),
       qty: it.qty,
       ...(it.note?.trim() ? { note: it.note.trim() } : {}),
       ...(removed.length ? { removed } : {}),
     };
   });
-  const t = computeTotals(items, input.type, input.zone, zones);
+  const t = computeTotals(items, input.type, input.zone, zones, prices);
   return {
     id: newOrderId(),
     created_at: now.toISOString(),

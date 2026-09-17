@@ -18,6 +18,7 @@ import Upsell from "./Upsell";
 import IngredientList from "./IngredientList";
 import { useSettings } from "@/lib/useSettings";
 import "./order.css";
+import { priceOf } from "@/lib/menu";
 
 const fmt = (s: string, vars: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ""));
 
@@ -60,7 +61,7 @@ export default function CheckoutPage() {
      koddaki varsayılana düşürüyor, yani liste hiçbir zaman boş kalmıyor. */
   const zones = settings.zones;
   const selected = findZone(zones, zone);
-  const totals = computeTotals(items, mode, zone, zones);
+  const totals = computeTotals(items, mode, zone, zones, settings.prices);
   const count = items.reduce((s, i) => s + i.qty, 0);
   const err = (f: string) => errors.find((e) => e.field === f);
   const soldOutInCart = items.filter((it) => settings.sold_out.includes(it.id)).map((it) => findMenuItem(it.id)?.name ?? it.id);
@@ -147,7 +148,7 @@ export default function CheckoutPage() {
                       +
                     </button>
                   </span>
-                  <span className="min-w-14 text-right font-bold text-sm">{formatPriceFor(locale, m.price * it.qty)}</span>
+                  <span className="min-w-14 text-right font-bold text-sm">{formatPriceFor(locale, priceOf(m, settings.prices) * it.qty)}</span>
                 </div>
                 {/* Malzeme listesi HER ZAMAN AÇIK — satırın tam genişliğinde, ürün adıyla aynı hizada */}
                 <IngredientList item={m} removed={it.removed} onChange={(next) => cartSetRemoved(it.key, next)} />

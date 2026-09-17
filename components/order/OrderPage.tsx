@@ -16,6 +16,7 @@ import Ingredients from "./Ingredients";
 import ProductImage from "./ProductImage";
 import ProductSheet from "./ProductSheet";
 import "./order.css";
+import { priceOf } from "@/lib/menu";
 
 const ORDER: Category[] = ["burger", "taco", "noodle", "yan", "sos", "icecek"];
 
@@ -129,7 +130,7 @@ export default function OrderPage() {
                           </p>
                         ) : null}
                         <div className="prow">
-                          <span className="price">{formatPriceFor(locale, m.price)}</span>
+                          <span className="price">{formatPriceFor(locale, priceOf(m, settings.prices))}</span>
                           <button
                             type="button"
                             className="addbtn"

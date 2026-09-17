@@ -7,6 +7,7 @@ import { formatPriceFor, itemName } from "@/lib/i18n";
 import { upsellItems } from "@/lib/menu";
 import ProductImage from "./ProductImage";
 import { useSettings } from "@/lib/useSettings";
+import { priceOf } from "@/lib/menu";
 
 /**
  * "YANINDA İYİ GİDER" — sepet özetinin altında içecek / yan ürün / sos önerileri.
@@ -44,7 +45,7 @@ export default function Upsell() {
             <li key={m.id} className={"upsell-card" + (out ? " soldout" : "")} data-upsell-item={m.id} data-sold-out={out || undefined}>
               <ProductImage m={m} name={name} size={72} />
               <div className="upsell-name">{name}</div>
-              <div className="upsell-price">{formatPriceFor(locale, m.price)}</div>
+              <div className="upsell-price">{formatPriceFor(locale, priceOf(m, settings.prices))}</div>
               {qty > 0 ? (
                 <span className="qty" data-upsell-qty>
                   <button type="button" aria-label={`${name} ${o.less}`} onClick={() => cartSet(m.id, qty - 1)}>

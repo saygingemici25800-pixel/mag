@@ -9,11 +9,13 @@ import { supabaseBrowser } from "@/lib/supabase";
 import OrderCard from "./OrderCard";
 import PanelSettings from "./PanelSettings";
 import PanelZones from "./PanelZones";
+import PanelPrices from "./PanelPrices";
 import PanelSummary from "./PanelSummary";
 import PushButton from "./PushButton";
 import "./panel.css";
 
-const t = getMessages("tr").panel;
+const MSG = getMessages("tr");
+const t = MSG.panel;
 type Gate = "loading" | "login" | "closed" | "ok";
 type Tab = "active" | "today" | "past" | "settings";
 type Mode = "supabase" | "key" | "open";
@@ -412,6 +414,8 @@ export default function PanelApp() {
           <PanelSettings t={t} apiFetch={apiFetch} onUnauthorized={() => setGate("login")} />
           {/* Teslimat bölgeleri: ekle/düzenle/sil/kapat/sırala (settings.zones) */}
           <PanelZones t={t} apiFetch={apiFetch} onUnauthorized={() => setGate("login")} />
+          {/* Ürün fiyatları: kategoriye göre gruplu, toplu kaydet (settings.prices) */}
+          <PanelPrices t={t} cats={MSG.categories} apiFetch={apiFetch} onUnauthorized={() => setGate("login")} />
         </>
       ) : lists[tab].length === 0 ? (
         <p className="text-dim">{t.empty}</p>

@@ -187,3 +187,22 @@ active`. `id` DEĞİŞMEZ (eski siparişlerin `zone` alanı ona bakar); ad deği
 sunucu da reddeder. Kayıt yoksa `lib/zones.ts` içindeki `ZONES` kullanılır.
 Ücret ve minimum sepet SUNUCUDA hesaplanır (`computeTotals(..., settings.zones)`),
 istemciden gelen tutara güvenilmez.
+
+### Ürün fiyatları
+`settings.prices` (jsonb) — ürün id → ₺, **seyrek harita**: yalnızca değiştirilen
+ürünler yazılır. Panel: `components/panel/PanelPrices.tsx` (kategoriye göre gruplu,
+toplu kaydet, kaydedilmemiş değişiklik uyarısı). Fiyat kuralı: **pozitif tam sayı**
+(boş/0/negatif/ondalık/harf reddedilir) — panelde ve yeniden **sunucuda** doğrulanır.
+Koddaki fiyat (`lib/menu.ts`) SİLİNMEZ; haritada olmayan ürün onu kullanır.
+
+Fiyat okuyan her yer `priceOf(m, settings.prices)` kullanır (lib/menu.ts). Doğrudan
+`m.price` okuyan kod panel değişikliğini GÖRMEZ.
+
+**Tutar güvenliği:** istemci yalnızca `{id, qty}` gönderir; fiyat/tutar göndermez.
+Toplam her zaman sunucuda `computeTotals(..., settings.prices)` ile hesaplanır.
+İstek yine de `price`/`total`/`subtotal`/`fee` taşıyorsa sunucunun hesabıyla
+karşılaştırılır; uyuşmazsa sipariş **422 `amount-mismatch`** ile reddedilir ve
+loglanır (sessizce yok sayılmaz).
+
+**Geçmiş siparişler:** `OrderItem.price` sipariş anındaki fiyatı satırda saklar;
+sonraki fiyat değişikliği eski siparişi etkilemez (test: `tests/e2e/fiyatlar.mjs`).

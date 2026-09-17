@@ -598,3 +598,87 @@
   font-size: 0.76rem;
   color: var(--mag-red);
 }
+
+/* ---- Ürün fiyatları (PanelPrices) ---- */
+.pr-group {
+  margin: 14px 0;
+}
+.pr-cat {
+  margin: 0 0 6px;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+}
+.pr-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 6px;
+}
+.pr-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 10px;
+  border: 1px solid color-mix(in srgb, var(--cream) 12%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+}
+/* değiştirilmiş ama kaydedilmemiş satır: kenarı vurgulu */
+.pr-row.dirty {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+/* geçersiz giriş: kırmızı kenar, kaydet düğmesi de kilitlenir */
+.pr-row.bad {
+  border-color: var(--mag-red);
+}
+.pr-name {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+.pr-def {
+  font-size: 0.66rem;
+  color: var(--dim);
+}
+.pr-in {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+.pr-in input {
+  width: 76px;
+  min-height: 36px;
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--cream) 20%, transparent);
+  border-radius: 8px;
+  background: var(--char);
+  color: var(--body);
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: right;
+}
+.pr-row.bad .pr-in input {
+  border-color: var(--mag-red);
+}
+.pr-in b {
+  color: var(--dim);
+  font-weight: 400;
+}
+.pr-ok {
+  margin: 6px 0;
+  font-size: 0.78rem;
+  color: var(--accent);
+}
+.pr-dirty {
+  margin: 6px 0;
+  font-size: 0.76rem;
+  color: var(--dim);
+}

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { buildOrder, validateOrder, type NewOrderInput } from "@/lib/orders";
+import { buildOrder, computeTotals, validateOrder, type NewOrderInput } from "@/lib/orders";
+import { priceById } from "@/lib/menu";
 import { isPanelAuthorized } from "@/lib/panel-auth";
 import { getPaymentProvider } from "@/lib/payments";
 import { siteUrl } from "@/lib/site";
@@ -24,8 +25,33 @@ export async function POST(req: Request) {
   if (!settings.ordering_open) return NextResponse.json({ errors: [{ field: "form", code: "ordering-closed" }] }, { status: 409 });
   /* Bölgeler PANELDEN gelir: ücret, minimum sepet ve "kapalı mı" bilgisi
      settings.zones'dan okunur. İstemcinin gönderdiği tutara güvenilmez. */
-  const errors = validateOrder(input, undefined, settings.zones);
+  /* Fiyatlar da PANELDEN: settings.prices. İstemci yalnızca {id, qty} gönderiyor
+     (tutar/fiyat göndermiyor); toplam SUNUCUDA bu haritayla hesaplanıyor. */
+  const errors = validateOrder(input, undefined, settings.zones, settings.prices);
   if (errors.length) return NextResponse.json({ errors }, { status: 422 });
+
+  /* TUTAR GÜVENLİĞİ — istemci fiyat/tutar göndermez; şema bu alanları taşımıyor.
+     Yine de gönderilmişse (manipülasyon denemesi) SESSİZCE YOK SAYMAK yerine
+     sunucunun hesabıyla KARŞILAŞTIRIP reddediyoruz: saldırı denemesi loglanır ve
+     istemci "kabul edildi" sanmaz. Uyuşuyorsa sipariş normal akar. */
+  const claimed = input as unknown as Record<string, unknown>;
+  const server = computeTotals(input.items, input.type, input.zone, settings.zones, settings.prices);
+  const uyumsuz: string[] = [];
+  const say = (v: unknown) => (typeof v === "number" ? v : typeof v === "string" && v.trim() !== "" ? Number(v) : undefined);
+  const ct = say(claimed.total), cs = say(claimed.subtotal), cf = say(claimed.fee);
+  if (ct !== undefined && ct !== server.total) uyumsuz.push(`total:${ct}≠${server.total}`);
+  if (cs !== undefined && cs !== server.subtotal) uyumsuz.push(`subtotal:${cs}≠${server.subtotal}`);
+  if (cf !== undefined && cf !== server.fee) uyumsuz.push(`fee:${cf}≠${server.fee}`);
+  for (const it of input.items) {
+    const p = say((it as unknown as Record<string, unknown>).price);
+    if (p === undefined) continue;
+    const gercek = priceById(it.id, settings.prices);
+    if (p !== gercek) uyumsuz.push(`price(${it.id}):${p}≠${gercek}`);
+  }
+  if (uyumsuz.length) {
+    console.warn("[güvenlik] tutar uyuşmazlığı, sipariş reddedildi:", uyumsuz.join(" "));
+    return NextResponse.json({ errors: [{ field: "total", code: "amount-mismatch", detail: uyumsuz }] }, { status: 422 });
+  }
   const soldOut = input.items.filter((i) => settings.sold_out.includes(i.id)).map((i) => i.id);
   if (soldOut.length) return NextResponse.json({ errors: soldOut.map((id) => ({ field: "items", code: "sold-out", id })) }, { status: 409 });
   let provider;
@@ -36,7 +62,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ errors: [{ field: "payment", code: "provider-unavailable" }] }, { status: 503 });
   }
   const store = getOrderStore();
-  const order = await store.create(buildOrder(input, undefined, settings.zones));
+  const order = await store.create(buildOrder(input, undefined, settings.zones, settings.prices));
   try {
     const { redirectUrl, ref } = await provider.createCheckout(order, { baseUrl: siteUrl() });
     await store.update(order.id, { payment_ref: ref });

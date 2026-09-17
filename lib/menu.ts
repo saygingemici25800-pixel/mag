@@ -251,3 +251,22 @@ export function splitTitle(name: string): [string, string] {
 export function formatPrice(price: number): string {
   return `₺${price}`;
 }
+
+/**
+ * Ürünün GEÇERLİ fiyatı — TEK KAYNAK.
+ *
+ * Sıra: panelden gelen harita (settings.prices) → koddaki m.price.
+ * Panel fiyatı yoksa kodunki geçerli, yani veritabanı boşken site çalışır.
+ * Fiyat gösteren/hesaplayan her yer bu fonksiyondan geçmeli; doğrudan `m.price`
+ * okuyan kod panel değişikliğini GÖRMEZ.
+ */
+export function priceOf(m: Pick<MenuItem, "id" | "price">, prices?: Record<string, number> | null): number {
+  const over = prices?.[m.id];
+  return typeof over === "number" && Number.isInteger(over) && over > 0 ? over : m.price;
+}
+
+/** id'den fiyat (ürün bulunamazsa 0 — çağıran zaten ürünü doğruluyor). */
+export function priceById(id: string, prices?: Record<string, number> | null): number {
+  const m = Object.values(MENU).flat().find((x) => x.id === id);
+  return m ? priceOf(m, prices) : 0;
+}

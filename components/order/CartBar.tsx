@@ -6,6 +6,7 @@ import { useLocale, useT } from "@/components/LocaleProvider";
 import { cartCount, useCart } from "@/lib/cart";
 import { computeTotals } from "@/lib/orders-shared";
 import { formatPriceFor, localePath, priceParts } from "@/lib/i18n";
+import { useSettings } from "@/lib/useSettings";
 
 /** Yapışkan sepet çubuğu: sepet doluyken altta fixed; belirirken yükselir, adet değişince rozet zıplar. */
 export default function CartBar() {
@@ -13,7 +14,9 @@ export default function CartBar() {
   const locale = useLocale();
   const cart = useCart();
   const count = cartCount(cart);
-  const totals = computeTotals(Object.entries(cart).map(([id, l]) => ({ id, qty: l.qty })), "pickup");
+  /* Fiyatlar panelden değişebiliyor: settings.prices toplamı etkiler. */
+  const settings = useSettings();
+  const totals = computeTotals(Object.entries(cart).map(([id, l]) => ({ id, qty: l.qty })), "pickup", null, null, settings.prices);
   const [bump, setBump] = useState(0);
   const prev = useRef(count);
   useEffect(() => {

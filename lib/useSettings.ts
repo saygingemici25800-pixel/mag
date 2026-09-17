@@ -23,7 +23,14 @@ async function refresh() {
        zones da karşılaştırılır: panelden mahalle eklenince/kapatılınca müşteri
        tarafı bir sonraki yoklamada (≤30 sn) veya sekmeye dönüşte görür. */
     const zonesKey = (x: Settings) => x.zones.map((z) => `${z.id}:${z.name}:${z.minCart}:${z.fee}:${z.etaMinutes ?? ""}:${z.active === false ? 0 : 1}`).join("|");
-    if (next.ordering_open !== snapshot.ordering_open || next.sold_out.join() !== snapshot.sold_out.join() || zonesKey(next) !== zonesKey(snapshot)) {
+    /* prices de karşılaştırılır: panelden fiyat değişince menü/sepet güncellensin. */
+    const pricesKey = (x: Settings) => Object.entries(x.prices).sort(([a], [b]) => (a < b ? -1 : 1)).map(([k, v]) => `${k}:${v}`).join("|");
+    if (
+      next.ordering_open !== snapshot.ordering_open ||
+      next.sold_out.join() !== snapshot.sold_out.join() ||
+      zonesKey(next) !== zonesKey(snapshot) ||
+      pricesKey(next) !== pricesKey(snapshot)
+    ) {
       snapshot = next;
       listeners.forEach((cb) => cb());
     }
