@@ -74,10 +74,17 @@
    ekranın TAM genişliği: yan siluetler arkada kalıyor, oklar burgerin üstüne
    biniyordu. Alt kenar 26vh → 34vh: küçülen ürün dikeyde yeniden ortalanır. */
 @media (max-width: 760px) {
+  /* 17 Eyl 2026 — BİR KEZ DAHA YARIYA. Odaktaki burger hâlâ ekranın çok büyük
+     kısmını kaplıyordu: 390×844'te kutu 203×164 px idi, şimdi 101×82 px.
+     DİKKAT — İKİ KAYNAK: bu değerlerin AYNISI stageMath.ts heroCard()'ta da var
+     (ok konumu ve sahne matematiği oradan hesaplanıyor). Biri değişip diğeri
+     kalırsa oklar ürünün üstüne biner. İkisi birlikte güncellenmeli.
+     bottom 34vh → 46vh: küçülen ürün dikeyde yukarı alındı, altında boşluk
+     kalmasın diye. Ürün adı/sayaç .hero-info'da, bundan etkilenmiyor. */
   .item {
-    width: min(29vh, 52vw);
-    height: min(23vh, 42vw);
-    bottom: 34vh;
+    width: min(14.5vh, 26vw);
+    height: min(11.5vh, 21vw);
+    bottom: 46vh;
   }
 }
 @media (max-width: 899px) {
@@ -343,8 +350,13 @@ html:not(.heroOn) .cchev {
   .cchev {
     width: 55px;
     height: 28px;
-    /* mobilde de iyice yakın: 15 → 4 px (kutu 28 px, grup 3×28 + 2×4 = 92 px) */
-    margin-top: 4px;
+    /* 17 Eyl 2026: grup içi aralık 4 → 2 px. Kutu 28 px yüksek ve aşağı bakan
+       çizgi kutunun üst ~13 px'inde duruyor; 2 px'te oklar HÂLÂ ayrı ayrı
+       seçiliyor (istenen alt sınır), tek bulanık kütleye dönüşmüyor.
+       Grup yüksekliği 3×28 + 2×2 = 88 px (önce 92 px).
+       Grubun sahnedeki konumu (.cnr top/left/right) DEĞİŞMEDİ; yalnız iç aralık
+       daraldı, iki grup da aynı değeri kullandığı için simetri korunuyor. */
+    margin-top: 2px;
     stroke-width: 2.2px;
   }
 }
