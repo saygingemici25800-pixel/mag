@@ -76,27 +76,30 @@ Görseller tek bir kurala göre durur: **dosya adı = ürün id'si** (`lib/menu.
 Türkçe karakter, boşluk ve büyük harf yok; hepsi küçük harf ve tire.
 
 ```
-public/
+public/                  İNTERNETE AÇIK — buraya yalnızca yayınlanacak dosya konur
   urun/<id>.webp         hero kesimi, saydam, 480 px
   urun/mobil/<id>.webp   aynı kesimin mobil kopyası, 300 px
-  urun/ham/<id>.jpg      ham fotoğraf (galeri), 1536 px
+  urun/ortak/            taco/noodle/çıtır'ın paylaştığı tek kart görseli
+  galeri/NN.webp         foto duvarı (liste: lib/gallery.ts)
   brand/                 logo ve marka varlıkları
   sounds/                ses dosyaları
-_arsiv/                  referanssız dosyalar — SİLİNMEDİ, karar bekliyor
-                         (public DIŞINDA: public altında olsaydı internete açılırdı)
-assets/                  SUNUCU tarafı, public'e çıkmaz
+assets/                  SUNUCU tarafı, public'e ÇIKMAZ, deploy paketine girmez
+  ham/<id>.jpg           kesimlerin ham kaynağı — yeni kesim/OG üretimi için
   og/<id>.png            OG görseli üretimi (app/api/og)
   fonts/                 Satori için TTF (woff2 okumuyor)
 ```
 
-Galeri görselleri ayrı bir klasörde değil: `urun/ham/` altındaki ham fotoğraflar
-kullanılıyor (liste `lib/gallery.ts`). Ayrı `public/galeri/` açmadım çünkü aynı
-fotoğraflar hem galeride hem ileride başka yerde kullanılacak; iki kopya tutmak
-senkron sorunu doğurur.
+17 Eyl 2026: `public/urun/ham/` → `assets/ham/` taşındı. Ham fotoğraflar
+yayınlanmıyor; `public/` altındaki her dosya internete açık ve deploy paketine
+giriyor, ham kaynakların orada işi yok. Aynı tarihte `_arsiv/` silindi
+(içeriği git geçmişinde duruyor).
+
+Galeri `public/galeri/` altında kendi karelerini kullanıyor (63 kare,
+`lib/gallery.ts` listeliyor) — ham fotoğraflarla ilgisi yok.
 
 ### Yeni ürün fotoğrafı gelince
 
-1. Ham fotoğrafı `public/urun/ham/<id>.jpg` olarak koy (1536 px yeter).
+1. Ham fotoğrafı `assets/ham/<id>.jpg` olarak koy (1536 px yeter, public DIŞI).
 2. Kesim üret: arka planı sil, alfa kutusuna kırp, 480 px yüksekliğe indir →
    `public/urun/<id>.webp`. Mobil kopyası 300 px → `public/urun/mobil/<id>.webp`.
 3. `components/stage/cutouts.ts` içine iki `import` ve iki kayıt ekle.

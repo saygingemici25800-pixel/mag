@@ -1,4 +1,4 @@
-// public/assets/og/<id>.png — OG görseli için PNG cutout (Satori WebP okumaz). 480px yükseklik.
+// assets/og/<id>.png — OG görseli için PNG cutout (Satori WebP okumaz). 480px yükseklik.
 import sharp from "sharp";
 import { readdir, mkdir } from "node:fs/promises";
 import path from "node:path";
