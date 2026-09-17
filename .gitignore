@@ -58,3 +58,9 @@ next-env.d.ts
 
 # canlı veritabanı yedekleri — kişisel veri içerebilir, ASLA commitlenmez
 /docs/backup
+
+# Doğrulama ekran görüntüleri — KOD DEĞİL, repoda tutulmuyor (17 Eyl 2026).
+# Dosyalar diskte kalmaya devam eder ve yeni kareler buraya yazılır; sadece git
+# izlemez. Geçmişteki eski kareler .git içinde duruyor (~496 MB) — onları
+# temizlemek geçmişi yeniden yazmak demek, bilerek YAPILMADI.
+/docs/screens
