@@ -39,5 +39,12 @@ export async function PATCH(req: Request) {
     patch.zones = z;
   }
   if (Object.keys(patch).length === 0) return NextResponse.json({ error: "empty-patch" }, { status: 422 });
-  return NextResponse.json(await getSettingsStore().patch(patch));
+  try {
+    return NextResponse.json(await getSettingsStore().patch(patch));
+  } catch (e) {
+    /* Şema eksikse (migration uygulanmamış) sessizce "kaydedildi" DEMEYİZ:
+       panel hatayı görsün, işletme veri kaybettiğini sanmasın. */
+    console.error("[panel settings]", (e as Error).message);
+    return NextResponse.json({ error: "save-failed", detail: (e as Error).message }, { status: 500 });
+  }
 }

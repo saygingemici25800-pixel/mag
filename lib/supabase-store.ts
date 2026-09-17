@@ -56,7 +56,17 @@ export class SupabaseSettingsStore implements SettingsStore {
   }
   async patch(p: Partial<Omit<Settings, "updated_at">>): Promise<Settings> {
     const next = normalizeSettings({ ...(await this.get()), ...p, updated_at: new Date().toISOString() });
-    const { data } = await supabaseAdmin().from("settings").upsert({ id: "singleton", ...next }).select().single();
+    /* YALNIZCA istenen alanlar yazılır (tüm satır değil). Neden: normalizeSettings
+       eksik alanları varsayılanla doldurur; tüm satırı göndermek, şemada HENÜZ
+       OLMAYAN bir kolonu (ör. migration uygulanmadan zones) her yazmaya iliştirip
+       "sipariş açık/kapalı" gibi ilgisiz işlemleri de bozuyordu. */
+    const row: Record<string, unknown> = { id: "singleton", updated_at: next.updated_at };
+    for (const k of Object.keys(p) as (keyof typeof p)[]) row[k] = next[k];
+    const { data, error } = await supabaseAdmin().from("settings").upsert(row).select().single();
+    /* 17 Eyl 2026: hata YUTULUYORDU; istenen değer "kaydedildi" gibi dönüyordu.
+       Migration uygulanmamışsa panel "Kaydedildi" der, veri sessizce kaybolurdu.
+       Artık hata yükseltiliyor → rota 500 döner, panelde görünür. */
+    if (error) throw new Error("supabase settings upsert: " + error.message);
     return normalizeSettings(data ?? next);
   }
 }
