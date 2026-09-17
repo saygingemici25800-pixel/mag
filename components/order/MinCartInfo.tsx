@@ -2,7 +2,8 @@
 
 import { useEffect } from "react";
 import type { Messages } from "@/lib/i18n";
-import { ZONES } from "@/lib/zones";
+import { useSettings } from "@/lib/useSettings";
+import { zoneActive } from "@/lib/zones";
 
 interface Props {
   t: Messages["order"];
@@ -11,6 +12,8 @@ interface Props {
 
 /** ⓘ → "Minimum sepet tutarları" tablosu (modal) */
 export default function MinCartInfo({ t, onClose }: Props) {
+  /* Tablo PANELDEN gelen listeyi gösterir; kapalı mahalleler işaretlenir. */
+  const zones = useSettings().zones;
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
@@ -34,9 +37,12 @@ export default function MinCartInfo({ t, onClose }: Props) {
             </tr>
           </thead>
           <tbody>
-            {ZONES.map((z) => (
-              <tr key={z.id}>
-                <td>{z.name}</td>
+            {zones.map((z) => (
+              <tr key={z.id} data-zone-row={z.id} style={zoneActive(z) ? undefined : { opacity: 0.5 }}>
+                <td>
+                  {z.name}
+                  {zoneActive(z) ? "" : ` · ${t.zoneClosedLabel}`}
+                </td>
                 <td>{z.minCart} ₺</td>
                 <td>{z.fee ? `${z.fee} ₺` : "—"}</td>
               </tr>

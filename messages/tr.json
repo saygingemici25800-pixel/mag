@@ -284,7 +284,10 @@
     "includedState": "içinde",
     "removedLabel": "Çıkarılan",
     "today": "bugün",
-    "tomorrow": "yarın"
+    "tomorrow": "yarın",
+    "zoneClosedLabel": "şu an kapalı",
+    "minCartWarn": "Bu mahalle için minimum sepet tutarı {min} ₺, sepetinizde {have} ₺ var.",
+    "zoneEtaLabel": "tahmini {min} dk"
   },
   "track": {
     "title": [
@@ -402,7 +405,25 @@
     "sumDate": "Tarih",
     "removedLabel": "Çıkarılan",
     "pushOff": "Bildirimleri kapat",
-    "pushIosNote": "iPhone'da bildirim için: Paylaş → Ana Ekrana Ekle, sonra buradan aç."
+    "pushIosNote": "iPhone'da bildirim için: Paylaş → Ana Ekrana Ekle, sonra buradan aç.",
+    "zonesTitle": "Teslimat Bölgeleri",
+    "zoneAdd": "Mahalle ekle",
+    "zoneName": "Mahalle adı",
+    "zoneMin": "Min. sepet (₺)",
+    "zoneFee": "Teslimat ücreti (₺)",
+    "zoneEta": "Süre (dk)",
+    "zoneSave": "Kaydet",
+    "zoneCancel": "Vazgeç",
+    "zoneEdit": "Düzenle",
+    "zoneDelete": "Sil",
+    "zoneDeleteSure": "{name} silinsin mi? Bu mahalleye artık teslimat yapılamaz.",
+    "zoneOpen": "Açık",
+    "zoneClosed": "Kapalı",
+    "zoneUp": "Yukarı",
+    "zoneDown": "Aşağı",
+    "zoneEmpty": "Henüz mahalle yok. Varsayılan liste kullanılıyor.",
+    "zoneNameRequired": "Mahalle adı gerekli.",
+    "zoneSaved": "Kaydedildi."
   },
   "cta": {
     "order": "Sipariş ver"

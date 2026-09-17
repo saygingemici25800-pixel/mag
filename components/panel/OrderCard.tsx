@@ -36,7 +36,8 @@ export default function OrderCard({ t, order: o, unseen, fresh, busy, onSeen, on
   const stage = panelStage(o);
   const next = stageAdvance(o);
   const done = stage === "closed" || stage === "cancelled";
-  const mapQ = encodeURIComponent(`${o.address ?? ""} ${getZone(o.zone)?.name ?? ""} Fethiye`);
+  /* Harita sorgusu: bölge adı çözülemezse id de olsa yazılsın (adres yine doğru). */
+  const mapQ = encodeURIComponent(`${o.address ?? ""} ${getZone(o.zone)?.name ?? o.zone ?? ""} Fethiye`);
 
   return (
     <article

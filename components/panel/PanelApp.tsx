@@ -8,6 +8,7 @@ import { isUnlocked, playOrderSound, setSoundPref, soundPref, unlockSound } from
 import { supabaseBrowser } from "@/lib/supabase";
 import OrderCard from "./OrderCard";
 import PanelSettings from "./PanelSettings";
+import PanelZones from "./PanelZones";
 import PanelSummary from "./PanelSummary";
 import PushButton from "./PushButton";
 import "./panel.css";
@@ -409,6 +410,8 @@ export default function PanelApp() {
         <>
           <PanelSummary t={t} apiFetch={apiFetch} onUnauthorized={() => setGate("login")} />
           <PanelSettings t={t} apiFetch={apiFetch} onUnauthorized={() => setGate("login")} />
+          {/* Teslimat bölgeleri: ekle/düzenle/sil/kapat/sırala (settings.zones) */}
+          <PanelZones t={t} apiFetch={apiFetch} onUnauthorized={() => setGate("login")} />
         </>
       ) : lists[tab].length === 0 ? (
         <p className="text-dim">{t.empty}</p>

@@ -491,3 +491,110 @@
   line-height: 1.35;
   color: var(--dim);
 }
+
+/* ---- Teslimat bölgeleri (PanelZones) ---- */
+.zn-list {
+  list-style: none;
+  margin: 12px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.zn-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--cream) 14%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+}
+/* kapalı bölge: sönük ama okunur — silinmiş değil, geçici kapalı */
+.zn-row.off {
+  opacity: 0.55;
+}
+.zn-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.zn-name {
+  font-size: 0.95rem;
+}
+.zn-row.off .zn-name {
+  text-decoration: line-through;
+}
+.zn-meta {
+  font-size: 0.72rem;
+  color: var(--dim);
+}
+.zn-acts {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.zn-b {
+  min-height: 34px;
+  padding: 4px 10px;
+  border: 1px solid color-mix(in srgb, var(--cream) 22%, transparent);
+  border-radius: 8px;
+  background: none;
+  color: var(--body);
+  font: inherit;
+  font-size: 0.74rem;
+  cursor: pointer;
+  transition: border-color 0.2s, opacity 0.2s;
+}
+.zn-b:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+.zn-b:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.zn-b.ok {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.zn-b.danger {
+  color: var(--mag-red);
+  border-color: color-mix(in srgb, var(--mag-red) 45%, transparent);
+}
+.zn-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border-radius: 10px;
+}
+.zn-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.72rem;
+  color: var(--dim);
+}
+.zn-form input {
+  min-height: 38px;
+  padding: 6px 10px;
+  border: 1px solid color-mix(in srgb, var(--cream) 20%, transparent);
+  border-radius: 8px;
+  background: var(--char);
+  color: var(--body);
+  font: inherit;
+  font-size: 0.85rem;
+}
+.zn-form .zn-acts {
+  grid-column: 1 / -1;
+}
+.zn-err {
+  margin: 6px 0;
+  font-size: 0.76rem;
+  color: var(--mag-red);
+}

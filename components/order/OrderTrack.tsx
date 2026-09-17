@@ -6,7 +6,8 @@ import { useLocale, useT } from "@/components/LocaleProvider";
 import { formatPriceFor, localePath } from "@/lib/i18n";
 import { STATUS_FLOW, shortId, type Order } from "@/lib/orders";
 
-import { getZone } from "@/lib/zones";
+import { findZone, getZone } from "@/lib/zones";
+import { useSettings } from "@/lib/useSettings";
 import { SITE } from "@/lib/site";
 import "./order.css";
 
@@ -14,6 +15,8 @@ const fmt = (s: string, vars: Record<string, string | number>) => s.replace(/\{(
 
 /** /siparis/[id] — durum: alındı → hazırlanıyor → hazır/yolda → teslim. Canlı (SSE). */
 export default function OrderTrack({ initial }: { initial: Order }) {
+  /* Bölge adını panel listesinden çözmek için (ad değişmiş olabilir) */
+  const settings = useSettings();
   const t = useT();
   const locale = useLocale();
   const [order, setOrder] = useState(initial);
@@ -152,7 +155,9 @@ export default function OrderTrack({ initial }: { initial: Order }) {
               <div className="ord-label mb-1">{order.type === "pickup" ? t.order.pickup : t.order.delivery}</div>
               {order.type === "delivery" ? (
                 <>
-                  {getZone(order.zone)?.name}
+                  {/* Bölge adı: panel listesi → varsayılan → id. Panelden SİLİNEN
+                      ya da adı değişen bölgede eski sipariş boş görünmesin. */}
+                  {findZone(settings.zones, order.zone)?.name ?? getZone(order.zone)?.name ?? order.zone}
                   <br />
                   {order.address}
                 </>

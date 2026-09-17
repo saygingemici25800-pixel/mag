@@ -293,7 +293,10 @@
     "removedLabel": "Убрано",
     "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek",
     "today": "сегодня",
-    "tomorrow": "завтра"
+    "tomorrow": "завтра",
+    "zoneClosedLabel": "сейчас закрыт",
+    "minCartWarn": "Минимальная корзина для этого района — {min} ₺, у вас {have} ₺.",
+    "zoneEtaLabel": "около {min} мин"
   },
   "track": {
     "metaTitle": "Отслеживание заказа",
@@ -412,7 +415,25 @@
     "sumDate": "Tarih",
     "removedLabel": "Çıkarılan",
     "pushOff": "Bildirimleri kapat",
-    "pushIosNote": "iPhone'da bildirim için: Paylaş → Ana Ekrana Ekle, sonra buradan aç."
+    "pushIosNote": "iPhone'da bildirim için: Paylaş → Ana Ekrana Ekle, sonra buradan aç.",
+    "zonesTitle": "Teslimat Bölgeleri",
+    "zoneAdd": "Mahalle ekle",
+    "zoneName": "Mahalle adı",
+    "zoneMin": "Min. sepet (₺)",
+    "zoneFee": "Teslimat ücreti (₺)",
+    "zoneEta": "Süre (dk)",
+    "zoneSave": "Kaydet",
+    "zoneCancel": "Vazgeç",
+    "zoneEdit": "Düzenle",
+    "zoneDelete": "Sil",
+    "zoneDeleteSure": "{name} silinsin mi? Bu mahalleye artık teslimat yapılamaz.",
+    "zoneOpen": "Açık",
+    "zoneClosed": "Kapalı",
+    "zoneUp": "Yukarı",
+    "zoneDown": "Aşağı",
+    "zoneEmpty": "Henüz mahalle yok. Varsayılan liste kullanılıyor.",
+    "zoneNameRequired": "Mahalle adı gerekli.",
+    "zoneSaved": "Kaydedildi."
   },
   "cta": {
     "order": "Заказать",

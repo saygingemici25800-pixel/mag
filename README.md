@@ -158,3 +158,32 @@ Kod seviyesinde de korunur: production'da `MAG_FAKE_NOW` yok sayılır (uyarı b
 `PAYMENT_PROVIDER=mock` ise hata fırlatır.
 
 Sonraki: iyzico hosted checkout (5) · katman animasyonu ve eksik ürün fotoğrafları (görseller gelince).
+
+## Panelden yönetilen ayarlar (altyapı)
+
+Panelden yönetilen TÜM veriler Supabase'deki `settings` **tekil satırında** durur
+(`id='singleton'`). Yeni bir ayar eklerken bu beş adımı izle:
+
+1. `lib/settings.ts` → `Settings` arayüzüne alan + `DEFAULT_SETTINGS`'e varsayılan.
+2. Aynı dosyada `normalizeSettings` içinde şemaya oturt — bozuk/eksik kayıt paneli
+   açmasın, geçersizse **koddaki varsayılana düş**. (Veritabanı boşken site çalışır.)
+3. `supabase/migrations/` → kolon ekle (`jsonb` çoğu iş için yeter).
+4. **Yazma:** yalnızca `PATCH /api/panel/settings`. Rota `isPanelAuthorized`
+   (PANEL_KEY çerezi) ister ve `service_role` ile yazar. Anahtar yalnızca sunucuda;
+   tarayıcıya ASLA gitmez. Gövde şeması sunucuda yeniden doğrulanır.
+5. **Okuma:** aynı rotanın `GET`'i herkese açık (yalnızca okuma). İstemci
+   `lib/useSettings.ts` ile okur: modül düzeyinde tek abonelik, 30 sn yoklama +
+   sekmeye dönüşte tazeleme. Yeni alanı `refresh()` içindeki karşılaştırmaya ekle,
+   yoksa değişiklik ekrana yansımaz.
+
+RLS: `settings` için `anon` **SELECT açık, INSERT/UPDATE kapalı** (0003 + 0007).
+Realtime yayınında `settings` var; panel ayar değişimini anında görür.
+
+### Teslimat bölgeleri
+`settings.zones` (jsonb) — panelden ekle/düzenle/sil/kapat/sırala
+(`components/panel/PanelZones.tsx`). Alanlar: `id, name, minCart, fee, etaMinutes,
+active`. `id` DEĞİŞMEZ (eski siparişlerin `zone` alanı ona bakar); ad değişebilir.
+`active:false` = "şu an bu mahalleye teslimat yok" — listede görünür, seçilemez,
+sunucu da reddeder. Kayıt yoksa `lib/zones.ts` içindeki `ZONES` kullanılır.
+Ücret ve minimum sepet SUNUCUDA hesaplanır (`computeTotals(..., settings.zones)`),
+istemciden gelen tutara güvenilmez.

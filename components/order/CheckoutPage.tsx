@@ -11,7 +11,7 @@ import { formatPriceFor, ingName, itemName, localePath } from "@/lib/i18n";
 import type { NewOrderInput, ValidationError } from "@/lib/orders";
 import { computeTotals, findMenuItem, normalizePhone, type OrderType } from "@/lib/orders-shared";
 import { useClockMinute } from "@/lib/useClock";
-import { ZONES, getZone } from "@/lib/zones";
+import { findZone, zoneActive } from "@/lib/zones";
 import ProductImage from "./ProductImage";
 import MinCartInfo from "./MinCartInfo";
 import Upsell from "./Upsell";
@@ -56,7 +56,11 @@ export default function CheckoutPage() {
     if (!el) return cartRemove(id);
     void animateLineOut(el).then(() => cartRemove(id));
   };
-  const totals = computeTotals(items, mode, zone);
+  /* Bölgeler PANELDEN: settings.zones. Veritabanı boşsa normalizeSettings
+     koddaki varsayılana düşürüyor, yani liste hiçbir zaman boş kalmıyor. */
+  const zones = settings.zones;
+  const selected = findZone(zones, zone);
+  const totals = computeTotals(items, mode, zone, zones);
   const count = items.reduce((s, i) => s + i.qty, 0);
   const err = (f: string) => errors.find((e) => e.field === f);
   const soldOutInCart = items.filter((it) => settings.sold_out.includes(it.id)).map((it) => findMenuItem(it.id)?.name ?? it.id);
@@ -66,7 +70,7 @@ export default function CheckoutPage() {
     const errs: ValidationError[] = [];
     if (form.name.trim().length < 2) errs.push({ field: "name", code: "required" });
     if (!normalizePhone(form.phone)) errs.push({ field: "phone", code: "invalid" });
-    if (mode === "delivery" && !getZone(zone)) errs.push({ field: "zone", code: "required" });
+    if (mode === "delivery" && !zoneActive(findZone(zones, zone))) errs.push({ field: "zone", code: "required" });
     if (mode === "delivery" && form.address.trim().length < 8) errs.push({ field: "address", code: "required" });
     setErrors(errs);
     if (errs.length) return;
@@ -161,7 +165,7 @@ export default function CheckoutPage() {
           <div className="flex justify-between text-dim">
             <span>
               {o.fee}
-              {getZone(zone) ? ` · ${getZone(zone)!.name}` : ""}
+              {selected ? ` · ${selected.name}` : ""}
             </span>
             <span>{totals.fee ? formatPriceFor(locale, totals.fee) : "—"}</span>
           </div>
@@ -223,17 +227,29 @@ export default function CheckoutPage() {
                   <div className="flex items-center gap-2">
                     <select className={"ctl" + (err("zone") ? " ctl-err" : "")} value={zone} onChange={(e) => setZone(e.target.value)} aria-label={o.zoneLabel}>
                       <option value="">{o.zonePlaceholder}</option>
-                      {ZONES.map((z) => (
-                        <option key={z.id} value={z.id}>
-                          {z.name} · min {z.minCart} ₺
-                        </option>
-                      ))}
+                      {zones.map((z) => {
+                        const kapali = !zoneActive(z);
+                        return (
+                          /* Kapalı mahalle listede GÖRÜNÜR ama seçilemez: müşteri
+                             "neden yok?" diye aramasın, durumu görsün. */
+                          <option key={z.id} value={z.id} disabled={kapali} data-zone-opt={z.id} data-zone-closed={kapali || undefined}>
+                            {z.name} · min {z.minCart} ₺{z.fee ? ` · +${z.fee} ₺` : ""}
+                            {kapali ? ` · ${o.zoneClosedLabel}` : z.etaMinutes ? ` · ${o.zoneEtaLabel.replace("{min}", String(z.etaMinutes))}` : ""}
+                          </option>
+                        );
+                      })}
                     </select>
                     <button type="button" className="ibtn" aria-label={o.minInfoAria} onClick={() => setInfo(true)}>
                       i
                     </button>
                   </div>
                   {err("zone") ? <span className="err">{o.err.zone}</span> : null}
+                  {/* Minimum sepet uyarısı: hangi mahalle, ne kadar gerekiyor, sepette ne var */}
+                  {selected && totals.missing > 0 ? (
+                    <span className="err" data-min-warn>
+                      {o.minCartWarn.replace("{min}", String(totals.minCart)).replace("{have}", String(totals.subtotal))}
+                    </span>
+                  ) : null}
                   <textarea
                     className={"ctl" + (err("address") ? " ctl-err" : "")}
                     rows={3}

@@ -22,7 +22,9 @@ export async function POST(req: Request) {
   /* Panel ayarları önce: dükkân kapalıysa form doğrulamasına hiç girme (kapalı cevabı net olsun) */
   const settings = await getSettingsStore().get();
   if (!settings.ordering_open) return NextResponse.json({ errors: [{ field: "form", code: "ordering-closed" }] }, { status: 409 });
-  const errors = validateOrder(input);
+  /* Bölgeler PANELDEN gelir: ücret, minimum sepet ve "kapalı mı" bilgisi
+     settings.zones'dan okunur. İstemcinin gönderdiği tutara güvenilmez. */
+  const errors = validateOrder(input, undefined, settings.zones);
   if (errors.length) return NextResponse.json({ errors }, { status: 422 });
   const soldOut = input.items.filter((i) => settings.sold_out.includes(i.id)).map((i) => i.id);
   if (soldOut.length) return NextResponse.json({ errors: soldOut.map((id) => ({ field: "items", code: "sold-out", id })) }, { status: 409 });
@@ -34,7 +36,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ errors: [{ field: "payment", code: "provider-unavailable" }] }, { status: 503 });
   }
   const store = getOrderStore();
-  const order = await store.create(buildOrder(input));
+  const order = await store.create(buildOrder(input, undefined, settings.zones));
   try {
     const { redirectUrl, ref } = await provider.createCheckout(order, { baseUrl: siteUrl() });
     await store.update(order.id, { payment_ref: ref });

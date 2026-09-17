@@ -19,8 +19,11 @@ async function refresh() {
     const r = await fetch("/api/panel/settings", { cache: "no-store" });
     if (!r.ok) return;
     const next = normalizeSettings(await r.json());
-    /* aynı değerse yeniden render tetikleme (useSyncExternalStore referans karşılaştırır) */
-    if (next.ordering_open !== snapshot.ordering_open || next.sold_out.join() !== snapshot.sold_out.join()) {
+    /* Aynı değerse yeniden render tetikleme (useSyncExternalStore referans karşılaştırır).
+       zones da karşılaştırılır: panelden mahalle eklenince/kapatılınca müşteri
+       tarafı bir sonraki yoklamada (≤30 sn) veya sekmeye dönüşte görür. */
+    const zonesKey = (x: Settings) => x.zones.map((z) => `${z.id}:${z.name}:${z.minCart}:${z.fee}:${z.etaMinutes ?? ""}:${z.active === false ? 0 : 1}`).join("|");
+    if (next.ordering_open !== snapshot.ordering_open || next.sold_out.join() !== snapshot.sold_out.join() || zonesKey(next) !== zonesKey(snapshot)) {
       snapshot = next;
       listeners.forEach((cb) => cb());
     }

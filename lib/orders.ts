@@ -4,7 +4,7 @@
  */
 import { DEFAULT_LOCALE, isLocale, type Locale } from "@/lib/i18n";
 import { MENU, type MenuItem } from "@/lib/menu";
-import { getZone } from "@/lib/zones";
+import { findZone, zoneActive, type Zone } from "@/lib/zones";
 import { defaultNow, isOpen, timeSlots } from "@/lib/hours";
 
 export type OrderType = "pickup" | "delivery";
@@ -157,12 +157,14 @@ export interface Totals {
   missing: number;
 }
 
-export function computeTotals(items: { id: string; qty: number }[], type: OrderType, zoneId?: string | null): Totals {
+/** Toplamlar. `zones` verilmezse lib/zones.ts varsayılanı kullanılır (findZone) —
+    böylece mevcut çağıranlar bozulmaz; panel listesini kullanmak isteyen geçirir. */
+export function computeTotals(items: { id: string; qty: number }[], type: OrderType, zoneId?: string | null, zones?: Zone[] | null): Totals {
   const subtotal = items.reduce((s, it) => {
     const m = findMenuItem(it.id);
     return s + (m ? m.price * Math.max(0, Math.floor(it.qty)) : 0);
   }, 0);
-  const zone = type === "delivery" ? getZone(zoneId) : undefined;
+  const zone = type === "delivery" ? findZone(zones, zoneId) : undefined;
   const fee = zone?.fee ?? 0;
   const minCart = zone?.minCart ?? 0;
   return { subtotal, fee, total: subtotal + fee, minCart, missing: Math.max(0, minCart - subtotal) };
@@ -170,7 +172,7 @@ export function computeTotals(items: { id: string; qty: number }[], type: OrderT
 
 export type ValidationError = { field: string; code: string };
 
-export function validateOrder(input: NewOrderInput, now: Date = defaultNow()): ValidationError[] {
+export function validateOrder(input: NewOrderInput, now: Date = defaultNow(), zones?: Zone[] | null): ValidationError[] {
   const errs: ValidationError[] = [];
   if (!isOpen(now)) errs.push({ field: "hours", code: "closed" });
   if (input.type !== "pickup" && input.type !== "delivery") errs.push({ field: "type", code: "invalid" });
@@ -183,9 +185,13 @@ export function validateOrder(input: NewOrderInput, now: Date = defaultNow()): V
   if (!input.name || input.name.trim().length < 2) errs.push({ field: "name", code: "required" });
   if (!normalizePhone(input.phone ?? "")) errs.push({ field: "phone", code: "invalid" });
   if (input.type === "delivery") {
-    if (!getZone(input.zone)) errs.push({ field: "zone", code: "required" });
+    const z = findZone(zones, input.zone);
+    if (!z) errs.push({ field: "zone", code: "required" });
+    /* Panelden KAPATILMIŞ bölgeye sipariş kabul edilmez (arayüz de seçtirmiyor,
+       ama doğrulama sunucuda da yapılır — istemciye güvenilmez). */
+    else if (!zoneActive(z)) errs.push({ field: "zone", code: "closed" });
     if (!input.address || input.address.trim().length < 8) errs.push({ field: "address", code: "required" });
-    const t = computeTotals(input.items ?? [], "delivery", input.zone);
+    const t = computeTotals(input.items ?? [], "delivery", input.zone, zones);
     if (t.missing > 0) errs.push({ field: "items", code: "min-cart" });
   }
   if (typeof input.note === "string" && input.note.length > 300) errs.push({ field: "note", code: "too-long" });
@@ -198,7 +204,8 @@ export function newOrderId(): string {
   return crypto.randomUUID(); // Supabase `orders.id uuid` ile aynı
 }
 
-export function buildOrder(input: NewOrderInput, now: Date = defaultNow()): Order {
+/** `zones` verilmezse varsayılan liste kullanılır — ücret ve minimum sepet oradan gelir. */
+export function buildOrder(input: NewOrderInput, now: Date = defaultNow(), zones?: Zone[] | null): Order {
   const items: OrderItem[] = input.items.map((it) => {
     const m = findMenuItem(it.id)!;
     /* removed: yalnızca üründe gerçekten bulunan ve çıkarılabilir olan malzemeler kabul edilir
@@ -214,7 +221,7 @@ export function buildOrder(input: NewOrderInput, now: Date = defaultNow()): Orde
       ...(removed.length ? { removed } : {}),
     };
   });
-  const t = computeTotals(items, input.type, input.zone);
+  const t = computeTotals(items, input.type, input.zone, zones);
   return {
     id: newOrderId(),
     created_at: now.toISOString(),
