@@ -51,7 +51,13 @@ export class SupabasePushStore implements PushStore {
 /* ---- Ayarlar — Supabase (settings tablosu, tek satır: id = 'singleton') ---- */
 export class SupabaseSettingsStore implements SettingsStore {
   async get(): Promise<Settings> {
-    const { data } = await supabaseAdmin().from("settings").select("*").eq("id", "singleton").maybeSingle();
+    const { data, error } = await supabaseAdmin().from("settings").select("*").eq("id", "singleton").maybeSingle();
+    /* 18 Eyl 2026: hata YUTULUYORDU. Okuma başarısızsa (yanlış anahtar/proje, ağ,
+       eksik kolon) sessizce VARSAYILANA düşülüyordu: panel "sipariş kapalı" dese
+       bile site açık görünüyor, panelden girilen bölge/fiyat hiç yansımıyordu —
+       hepsi hatasız gibi. Artık loglanıyor; davranış aynı kalıyor (varsayılana
+       düşmek doğru: site ayakta kalmalı) ama SEBEP görünür oluyor. */
+    if (error) console.error("[settings okunamadı — VARSAYILAN kullanılıyor]", error.message);
     return normalizeSettings(data ?? undefined);
   }
   async patch(p: Partial<Omit<Settings, "updated_at">>): Promise<Settings> {
