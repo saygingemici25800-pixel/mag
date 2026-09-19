@@ -106,6 +106,17 @@ export function ScrollHint({ label }: { label: string }) {
   const [gone, setGone] = useState(false);
   useEffect(() => {
     if (window.scrollY > 4) {
+      /* Mount anında sayfa ZATEN kaydırılmış (reload / geri gelme): ipucu hiç
+         gösterilmemeli. Kural render-sonra-düzelt'i uyarıyor, haklı — ama buradaki
+         alternatifler daha kötü:
+           · useSyncExternalStore: getSnapshot SAF olmak zorunda, oysa kural
+             "bir kez kaydırılınca BİR DAHA görünmez" (mandal). Mandal snapshot'a
+             konamıyor, abonelikte tutulunca da bildirim yolu kırılıyor — denendi,
+             ipucu kaydırmaya hiç tepki vermedi.
+           · Lazy useState: window sunucu render'ında yok, hydration uyumsuzluğu.
+         Pratikte görsel fark yok: ipucu hero alanında, sayfa kaydırılmışken zaten
+         ekran dışında; ölçtüm, flaş gözlemlenmiyor. Bir render'lık düzeltme kalıyor. */
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- yukarıdaki not
       setGone(true);
       return;
     }
