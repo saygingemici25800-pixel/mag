@@ -2,7 +2,8 @@
 
 import type { Messages } from "@/lib/i18n";
 import { useClockMinute } from "@/lib/useClock";
-import { groupedHours, isOpen, nextOpeningLabel, todayRangeLabel, istanbulNow } from "@/lib/hours";
+import { defaultNow, groupedHours, isOpen, istanbulDateKey, istanbulNow, nextOpeningParts, specialFor, todayRangeLabel } from "@/lib/hours";
+import { useSettings } from "@/lib/useSettings";
 
 /**
  * Çalışma saatleri bloğu — İLETİŞİM katmanı ve footer aynı bileşeni kullanır.
@@ -19,10 +20,16 @@ import { groupedHours, isOpen, nextOpeningLabel, todayRangeLabel, istanbulNow } 
  */
 export default function Hours({ t, variant = "rows" }: { t: Messages["contact"]; variant?: "rows" | "compact" }) {
   const minute = useClockMinute();
+  /* Program PANELDEN gelir (settings.schedule); kayıt yoksa koddaki varsayılan. */
+  const sch = useSettings().schedule;
   /* minute < 0 → sunucu/hydration: durumu henüz bilmiyoruz, yazma. */
   const known = minute >= 0;
-  const open = known ? isOpen() : null;
-  const groups = groupedHours();
+  const open = known ? isOpen(undefined, sch) : null;
+  const groups = groupedHours(sch);
+  /* Bugüne özel gün var mı (tatil) — kapalıysa ayrıca söylenir. */
+  /* defaultNow(): isOpen/nextOpening ile AYNI ana bakılsın — "bugün özel gün mü"
+     sorusu farklı bir zamandan okunursa tatil günü açık görünebiliyordu. */
+  const ozel = known ? specialFor(sch, istanbulDateKey(defaultNow())) : undefined;
   const days = t.weekdays;
   const short = t.weekdaysShort;
 
@@ -34,7 +41,7 @@ export default function Hours({ t, variant = "rows" }: { t: Messages["contact"];
     /* Footer: tek satır — bugünün aralığı + durum. */
     return (
       <div className="hrsCompact" data-hours-compact>
-        <span data-hours-today>{known ? todayRangeLabel() : null}</span>
+        <span data-hours-today>{known ? (ozel?.closed ? t.todayClosed : todayRangeLabel(undefined, sch)) : null}</span>
         {open === null ? null : (
           <b className={open ? "hrsOpen" : "hrsClosed"} data-hours-state={open ? "open" : "closed"}>
             {open ? t.openNow : t.closedNow}
@@ -50,12 +57,26 @@ export default function Hours({ t, variant = "rows" }: { t: Messages["contact"];
       {groups.map((g) => (
         <div key={g.label + g.days.join()} className={"hrsRow" + (g.days.includes(todayIdx) ? " today" : "")} data-hours-row>
           <span>{label(g)}</span>
-          <i>{g.label}</i>
+          <i>{g.closed ? t.hoursClosedShort : g.label}</i>
         </div>
       ))}
       {open === null ? null : (
         <div className={"hrsState " + (open ? "hrsOpen" : "hrsClosed")} data-hours-state={open ? "open" : "closed"}>
-          {open ? t.openNow : `${t.closedNow} · ${nextOpeningLabel()}`}
+          {open ? (
+            t.openNow
+          ) : (
+            <>
+              {ozel?.closed ? t.todayClosed : t.closedNow} ·{" "}
+              {/* "Yarın 12:00'de açılıyoruz" — gün adı göreli (bugün/yarın) ya da gerçek gün */}
+              <span data-next-open>
+                {(() => {
+                  const n = nextOpeningParts(undefined, sch);
+                  const gun = n.relDay === 0 ? t.today : n.relDay === 1 ? t.tomorrow : t.weekdays[n.day];
+                  return t.nextOpen.replace("{day}", gun).replace("{open}", n.open);
+                })()}
+              </span>
+            </>
+          )}
         </div>
       )}
     </div>

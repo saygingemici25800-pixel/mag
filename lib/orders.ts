@@ -5,7 +5,7 @@
 import { DEFAULT_LOCALE, isLocale, type Locale } from "@/lib/i18n";
 import { MENU, priceOf, type MenuItem } from "@/lib/menu";
 import { findZone, zoneActive, type Zone } from "@/lib/zones";
-import { defaultNow, isOpen, timeSlots } from "@/lib/hours";
+import { defaultNow, isOpen, timeSlots, type Schedule } from "@/lib/hours";
 
 export type OrderType = "pickup" | "delivery";
 export type Payment = "online"; // karar 3 Eyl 2026: yalnızca online
@@ -179,9 +179,9 @@ export function computeTotals(
 
 export type ValidationError = { field: string; code: string };
 
-export function validateOrder(input: NewOrderInput, now: Date = defaultNow(), zones?: Zone[] | null, prices?: Record<string, number> | null): ValidationError[] {
+export function validateOrder(input: NewOrderInput, now: Date = defaultNow(), zones?: Zone[] | null, prices?: Record<string, number> | null, sch?: Schedule | null): ValidationError[] {
   const errs: ValidationError[] = [];
-  if (!isOpen(now)) errs.push({ field: "hours", code: "closed" });
+  if (!isOpen(now, sch)) errs.push({ field: "hours", code: "closed" });
   if (input.type !== "pickup" && input.type !== "delivery") errs.push({ field: "type", code: "invalid" });
   if (!Array.isArray(input.items) || input.items.length === 0) errs.push({ field: "items", code: "empty" });
   else
@@ -202,7 +202,7 @@ export function validateOrder(input: NewOrderInput, now: Date = defaultNow(), zo
     if (t.missing > 0) errs.push({ field: "items", code: "min-cart" });
   }
   if (typeof input.note === "string" && input.note.length > 300) errs.push({ field: "note", code: "too-long" });
-  const slots = timeSlots(now);
+  const slots = timeSlots(now, sch);
   if (!slots.includes(input.requested_at)) errs.push({ field: "requested_at", code: "invalid" });
   return errs;
 }

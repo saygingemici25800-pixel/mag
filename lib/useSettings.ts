@@ -24,6 +24,9 @@ async function refresh() {
        tarafı bir sonraki yoklamada (≤30 sn) veya sekmeye dönüşte görür. */
     const zonesKey = (x: Settings) => x.zones.map((z) => `${z.id}:${z.name}:${z.minCart}:${z.fee}:${z.etaMinutes ?? ""}:${z.active === false ? 0 : 1}`).join("|");
     /* prices de karşılaştırılır: panelden fiyat değişince menü/sepet güncellensin. */
+    const schKey = (x: Settings) =>
+      x.schedule.week.map((d) => `${d.day}:${d.openMin}-${d.closeMin}`).join(",") +
+      "|" + x.schedule.special.map((p) => `${p.date}:${p.closed ? "x" : `${p.openMin}-${p.closeMin}`}`).join(",");
     const pricesKey = (x: Settings) => Object.entries(x.prices).sort(([a], [b]) => (a < b ? -1 : 1)).map(([k, v]) => `${k}:${v}`).join("|");
     if (
       next.ordering_open !== snapshot.ordering_open ||
@@ -31,7 +34,8 @@ async function refresh() {
       next.pickup_open !== snapshot.pickup_open ||
       next.sold_out.join() !== snapshot.sold_out.join() ||
       zonesKey(next) !== zonesKey(snapshot) ||
-      pricesKey(next) !== pricesKey(snapshot)
+      pricesKey(next) !== pricesKey(snapshot) ||
+      schKey(next) !== schKey(snapshot)
     ) {
       snapshot = next;
       listeners.forEach((cb) => cb());

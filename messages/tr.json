@@ -443,7 +443,24 @@
     "svcSummary": "Kurye {d} · Gel-al {p}",
     "svcOn": "açık",
     "svcOff": "kapalı",
-    "svcAllClosed": "Sipariş alınmıyor."
+    "svcAllClosed": "Sipariş alınmıyor.",
+    "hoursTitle": "Çalışma Saatleri",
+    "hoursOpenLbl": "Açık",
+    "hoursClosedLbl": "Kapalı",
+    "hoursFrom": "Açılış",
+    "hoursTo": "Kapanış",
+    "hoursSave": "Kaydet",
+    "hoursSaved": "Kaydedildi.",
+    "hoursInvalid": "Kapanış açılıştan sonra olmalı (00:00 gece yarısı sayılır).",
+    "hoursBadFormat": "Saat biçimi geçersiz (SS:DD).",
+    "specialTitle": "Özel günler / tatil",
+    "specialAdd": "Özel gün ekle",
+    "specialDate": "Tarih",
+    "specialClosedAll": "Gün boyu kapalı",
+    "specialNote": "Not (bayram vb.)",
+    "specialDel": "Sil",
+    "specialNone": "Özel gün yok.",
+    "specialPast": "Geçmiş özel günler listeden düşer."
   },
   "cta": {
     "order": "Sipariş ver"
@@ -487,7 +504,13 @@
       "Cmt"
     ],
     "rangeSep": "–",
-    "daysJoin": "–"
+    "daysJoin": "–",
+    "nextOpen": "{day} {open}'de açılıyoruz",
+    "todayClosed": "Bugün kapalıyız",
+    "specialClosed": "özel gün",
+    "today": "bugün",
+    "tomorrow": "yarın",
+    "hoursClosedShort": "kapalı"
   },
   "categories": {
     "burger": "Burger",

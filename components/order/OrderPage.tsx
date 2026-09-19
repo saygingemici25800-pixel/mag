@@ -32,7 +32,7 @@ export default function OrderPage() {
   const [activeCat, setActiveCat] = useState<Category>("burger");
   const cartHasItems = Object.keys(cart).length > 0;
   const minute = useClockMinute();
-  const open = minute < 0 ? null : isOpen();
+  const open = minute < 0 ? null : isOpen(undefined, settings.schedule);
   const chipsRef = useRef<HTMLDivElement>(null);
 
   /* gsap yalnızca bu rotada yüklenir; boşta arka planda hazırla ki ilk tıklama beklemesin */
@@ -74,7 +74,7 @@ export default function OrderPage() {
     <main className={"ord ord-list" + (cartHasItems ? " has-cartbar" : "")}>
       <div className="mx-auto max-w-3xl">
         <header className="mb-4 flex flex-col gap-4">
-          <div className="ord-label">{open === false ? closedShortLabel(t) : todayHoursLabel(t)}</div>
+          <div className="ord-label">{open === false ? closedShortLabel(t, undefined, settings.schedule) : todayHoursLabel(t, undefined, settings.schedule)}</div>
           <h1 className="big in">
             <span>
               <i>{o.title[0]}</i>

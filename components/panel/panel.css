@@ -711,3 +711,66 @@
   font-size: 0.82rem;
   color: var(--mag-red);
 }
+
+/* ---- Çalışma saatleri (PanelHours) ---- */
+.hp-list {
+  list-style: none;
+  margin: 10px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.hp-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 7px 10px;
+  border: 1px solid color-mix(in srgb, var(--cream) 12%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+}
+/* kapalı gün sönük; geçersiz giriş kırmızı kenar */
+.hp-row.off {
+  opacity: 0.6;
+}
+.hp-row.bad {
+  border-color: var(--mag-red);
+}
+.hp-name {
+  min-width: 96px;
+  font-size: 0.85rem;
+}
+.hp-times {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.hp-times input,
+.hp-date,
+.hp-note {
+  min-height: 34px;
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--cream) 20%, transparent);
+  border-radius: 8px;
+  background: var(--char);
+  color: var(--body);
+  font: inherit;
+  font-size: 0.82rem;
+}
+.hp-times input {
+  width: 68px;
+  text-align: center;
+}
+.hp-times input:disabled {
+  opacity: 0.4;
+}
+.hp-note {
+  flex: 1 1 140px;
+  min-width: 0;
+}
+.hp-times b {
+  color: var(--dim);
+  font-weight: 400;
+}

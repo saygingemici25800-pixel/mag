@@ -1,5 +1,5 @@
 import type { Messages } from "@/lib/i18n";
-import { nextOpeningParts, todayRangeLabel } from "@/lib/hours";
+import { nextOpeningParts, todayRangeLabel, type Schedule } from "@/lib/hours";
 
 /**
  * Sipariş arayüzündeki saat metinleri — TR/EN/RU aynı yerden kurulur.
@@ -20,18 +20,18 @@ function dayWord(t: Messages, relDay: number, day: number): string {
 const fill = (s: string, v: Record<string, string>) => s.replace(/\{(\w+)\}/g, (_, k) => v[k] ?? `{${k}}`);
 
 /** "Şu an kapalıyız — yarın 12:00'da açılıyoruz." */
-export function closedLabel(t: Messages, now?: Date): string {
-  const n = nextOpeningParts(now);
+export function closedLabel(t: Messages, now?: Date, sch?: Schedule | null): string {
+  const n = nextOpeningParts(now, sch);
   return fill(t.order.closed, { open: n.open, day: dayWord(t, n.relDay, n.day) });
 }
 
 /** "Kapalı · yarın 12:00'da açılıyoruz" (kısa başlık) */
-export function closedShortLabel(t: Messages, now?: Date): string {
-  const n = nextOpeningParts(now);
+export function closedShortLabel(t: Messages, now?: Date, sch?: Schedule | null): string {
+  const n = nextOpeningParts(now, sch);
   return fill(t.order.closedShort, { open: n.open, day: dayWord(t, n.relDay, n.day) });
 }
 
 /** "Bugün 12:00–00:00" — açıkken gösterilen bugünün aralığı. */
-export function todayHoursLabel(t: Messages, now?: Date): string {
-  return fill(t.order.hours, { range: todayRangeLabel(now) });
+export function todayHoursLabel(t: Messages, now?: Date, sch?: Schedule | null): string {
+  return fill(t.order.hours, { range: todayRangeLabel(now, sch) });
 }

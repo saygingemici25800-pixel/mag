@@ -40,7 +40,60 @@ export const HOURS: readonly DayHours[] = [
   { day: 6, openMin: H(12), closeMin: H(24) }, // Cumartesi 12:00–00:00
 ] as const;
 
-export const hoursFor = (day: number): DayHours => HOURS[((day % 7) + 7) % 7];
+/**
+ * ÖZEL GÜN (tatil/bayram): belirli bir TARİHTE haftalık programı ezer.
+ * date "YYYY-MM-DD" — Istanbul takvim günü. closed:true ise o gün kapalı;
+ * değilse openMin/closeMin o güne özel pencereyi verir (gece yarısını geçebilir).
+ */
+export interface SpecialDay {
+  /** "YYYY-MM-DD" (Istanbul) */
+  date: string;
+  closed: boolean;
+  openMin?: number;
+  closeMin?: number;
+  /** panelde görünen not (bayram adı vb.) — hesaba girmez */
+  note?: string;
+}
+
+/** Panelden yönetilen program. Verilmezse koddaki HOURS + özel gün yok. */
+export interface Schedule {
+  week: readonly DayHours[];
+  special: readonly SpecialDay[];
+}
+
+export const DEFAULT_SCHEDULE: Schedule = { week: HOURS, special: [] };
+
+/** Bir günün penceresi — program verilmezse koddaki varsayılan. */
+export const hoursFor = (day: number, sch?: Schedule | null): DayHours => {
+  const w = sch?.week?.length === 7 ? sch.week : HOURS;
+  return w[((day % 7) + 7) % 7];
+};
+
+/** Istanbul takvim günü "YYYY-MM-DD" (sunucunun saat diliminden BAĞIMSIZ). */
+export function istanbulDateKey(now: Date, offsetDays = 0): string {
+  const d = new Date(now.getTime() + offsetDays * 86400000);
+  /* en-CA biçimi zaten YYYY-MM-DD verir; timeZone ile Istanbul takvimine çevrilir. */
+  return new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+}
+
+/** O tarihte özel gün var mı? */
+export function specialFor(sch: Schedule | null | undefined, dateKey: string): SpecialDay | undefined {
+  return sch?.special?.find((x) => x.date === dateKey);
+}
+
+/** Belirli bir TARİHİN geçerli penceresi: özel gün varsa o, yoksa haftalık program.
+    Kapalı gün için openMin === closeMin döner (pencere yok). */
+export function windowForDate(sch: Schedule | null | undefined, now: Date, offsetDays: number): DayHours {
+  const key = istanbulDateKey(now, offsetDays);
+  const sp = specialFor(sch, key);
+  const day = (istanbulNow(now).day + offsetDays) % 7;
+  const d = ((day % 7) + 7) % 7;
+  if (sp) {
+    if (sp.closed) return { day: d, openMin: 0, closeMin: 0 };
+    if (typeof sp.openMin === "number" && typeof sp.closeMin === "number") return { day: d, openMin: sp.openMin, closeMin: sp.closeMin };
+  }
+  return hoursFor(d, sch);
+}
 
 /** "HH:MM" — 1440 (gece yarısı) "00:00" olarak yazılır. */
 export function fmtMin(min: number): string {
@@ -93,47 +146,46 @@ export function istanbulNow(now: Date = defaultNow()): { day: number; hour: numb
  * 00:10'da dünün penceresi (12:00–00:00 → 1440'ta biter) artık kapanmıştır, bugünün
  * penceresi de henüz açılmamıştır → kapalı. 23:50'de bugünün penceresi sürer → açık.
  */
-export function isOpen(now: Date = defaultNow()): boolean {
-  const { day, min } = istanbulNow(now);
-  // bugünün penceresi
-  const today = hoursFor(day);
-  if (min >= today.openMin && min < today.closeMin) return true;
+export function isOpen(now: Date = defaultNow(), sch?: Schedule | null): boolean {
+  const { min } = istanbulNow(now);
+  // bugünün penceresi (özel gün varsa o ezer)
+  const today = windowForDate(sch, now, 0);
+  if (today.closeMin > today.openMin && min >= today.openMin && min < today.closeMin) return true;
   /* Dünün gece yarısını AŞAN penceresi bugüne sarkar (closeMin > 1440).
      Şu anki saatlerde bu dal çalışmaz: 12:00–00:00 tam gece yarısında biter
      (closeMin === 1440), yani 00:00 itibarıyla kapalıdır — doğrulandı:
      Cmt 23:59 açık, Paz 00:00 kapalı. Dal, kapanış 01:00'e çekilirse
      (closeMin 1500) hazır olsun diye duruyor. */
-  const y = hoursFor(day - 1);
+  const y = windowForDate(sch, now, -1);
   if (y.closeMin > 1440 && min < y.closeMin - 1440) return true;
   return false;
 }
 
 /** Bir sonraki açılış: { day, min, todayTomorrow } — gün adı çağıran tarafta çevrilir. */
-export function nextOpening(now: Date = defaultNow()): { day: number; min: number; daysAhead: number } {
+export function nextOpening(now: Date = defaultNow(), sch?: Schedule | null): { day: number; min: number; daysAhead: number } {
   const { day, min } = istanbulNow(now);
-  // bugün henüz açılmadıysa bugün
-  const today = hoursFor(day);
-  if (min < today.openMin) return { day, min: today.openMin, daysAhead: 0 };
+  // bugün henüz açılmadıysa bugün (özel gün kapalıysa bugün atlanır)
+  const today = windowForDate(sch, now, 0);
+  if (today.closeMin > today.openMin && min < today.openMin) return { day, min: today.openMin, daysAhead: 0 };
   /* Bugünün açılışı geçtiyse sonraki günlere bakılır. Şu an her gün açık, yani ilk
      aday yarındır; ama bir gün TAMAMEN kapatılırsa (openMin === closeMin) atlanması
      gerekir — döngü bu yüzden gerçekten arar, ilk turda dönmez. */
-  for (let i = 1; i <= 7; i++) {
-    const d = (day + i) % 7;
-    const h = hoursFor(d);
-    if (h.closeMin > h.openMin) return { day: d, min: h.openMin, daysAhead: i };
+  /* 14 gün ileri bakılır: arka arkaya özel-gün kapanışları olabilir. */
+  for (let i = 1; i <= 14; i++) {
+    const h = windowForDate(sch, now, i);
+    if (h.closeMin > h.openMin) return { day: (day + i) % 7, min: h.openMin, daysAhead: i };
   }
   return { day, min: today.openMin, daysAhead: 0 };
 }
 
 /** "12:00" gibi — bir sonraki açılış saati. Arayüzde "yarın {open}'da açılıyoruz" için. */
-export function nextOpeningLabel(now: Date = defaultNow()): string {
-  return fmtMin(nextOpening(now).min);
+export function nextOpeningLabel(now: Date = defaultNow(), sch?: Schedule | null): string {
+  return fmtMin(nextOpening(now, sch).min);
 }
 
 /** Bugünün penceresi "12:00–00:00" biçiminde. */
-export function todayRangeLabel(now: Date = defaultNow()): string {
-  const { day } = istanbulNow(now);
-  const h = hoursFor(day);
+export function todayRangeLabel(now: Date = defaultNow(), sch?: Schedule | null): string {
+  const h = windowForDate(sch, now, 0);
   return `${fmtMin(h.openMin)}–${fmtMin(h.closeMin)}`;
 }
 
@@ -141,13 +193,13 @@ export function todayRangeLabel(now: Date = defaultNow()): string {
  * "simdi" + kapanışa kadar 30 dk'lık dilimler ("HH:MM"). Kapalıysa boş liste.
  * Gece yarısını geçen aralıkta son dilim 23:30'dur (kapanış 00:00).
  */
-export function timeSlots(now: Date = defaultNow()): string[] {
-  if (!isOpen(now)) return [];
-  const { day, min } = istanbulNow(now);
+export function timeSlots(now: Date = defaultNow(), sch?: Schedule | null): string[] {
+  if (!isOpen(now, sch)) return [];
+  const { min } = istanbulNow(now);
   // hangi pencerenin içindeyiz: bugünün mü, dünün sarkanı mı?
-  const today = hoursFor(day);
-  const inToday = min >= today.openMin && min < today.closeMin;
-  const closeMin = inToday ? today.closeMin : hoursFor(day - 1).closeMin - 1440;
+  const today = windowForDate(sch, now, 0);
+  const inToday = today.closeMin > today.openMin && min >= today.openMin && min < today.closeMin;
+  const closeMin = inToday ? today.closeMin : windowForDate(sch, now, -1).closeMin - 1440;
   const slots: string[] = ["simdi"];
   // en erken dilim: şimdi + 30 dk, yarım saate yuvarlanmış
   let m = Math.ceil((min + 30) / 30) * 30;
@@ -160,14 +212,15 @@ export function timeSlots(now: Date = defaultNow()): string[] {
 export const WEEK_ORDER: readonly number[] = [1, 2, 3, 4, 5, 6, 0] as const;
 
 /** Ardışık aynı saatli günleri grupla: [{ days:[1..6], label:"12:00–00:00" }, { days:[0], … }] */
-export function groupedHours(): { days: number[]; label: string }[] {
-  const out: { days: number[]; label: string }[] = [];
+export function groupedHours(sch?: Schedule | null): { days: number[]; label: string; closed?: boolean }[] {
+  const out: { days: number[]; label: string; closed?: boolean }[] = [];
   for (const d of WEEK_ORDER) {
-    const h = hoursFor(d);
-    const label = `${fmtMin(h.openMin)}–${fmtMin(h.closeMin)}`;
+    const h = hoursFor(d, sch);
+    const kapali = h.closeMin <= h.openMin;
+    const label = kapali ? "" : `${fmtMin(h.openMin)}–${fmtMin(h.closeMin)}`;
     const last = out.at(-1);
     if (last && last.label === label) last.days.push(d);
-    else out.push({ days: [d], label });
+    else out.push({ days: [d], label, ...(kapali ? { closed: true } : {}) });
   }
   return out;
 }
@@ -180,7 +233,7 @@ export const OPENS_AT_LABEL = fmtMin(hoursFor(1).openMin); // 12:00 (Pzt–Cmt)
  * relDay: 0 → "bugün", 1 → "yarın", 2+ → gerçek gün adı kullanılmalı (çağıran çevirir).
  * Şu an her gün açık olduğundan pratikte 0 veya 1 döner.
  */
-export function nextOpeningParts(now: Date = defaultNow()): { open: string; relDay: number; day: number } {
-  const n = nextOpening(now);
+export function nextOpeningParts(now: Date = defaultNow(), sch?: Schedule | null): { open: string; relDay: number; day: number } {
+  const n = nextOpening(now, sch);
   return { open: fmtMin(n.min), relDay: n.daysAhead, day: n.day };
 }

@@ -39,7 +39,7 @@ export async function POST(req: Request) {
      settings.zones'dan okunur. İstemcinin gönderdiği tutara güvenilmez. */
   /* Fiyatlar da PANELDEN: settings.prices. İstemci yalnızca {id, qty} gönderiyor
      (tutar/fiyat göndermiyor); toplam SUNUCUDA bu haritayla hesaplanıyor. */
-  const errors = validateOrder(input, undefined, settings.zones, settings.prices);
+  const errors = validateOrder(input, undefined, settings.zones, settings.prices, settings.schedule);
   if (errors.length) return NextResponse.json({ errors }, { status: 422 });
 
   /* TUTAR GÜVENLİĞİ — istemci fiyat/tutar göndermez; şema bu alanları taşımıyor.

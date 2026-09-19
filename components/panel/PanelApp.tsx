@@ -10,6 +10,7 @@ import OrderCard from "./OrderCard";
 import PanelSettings from "./PanelSettings";
 import PanelZones from "./PanelZones";
 import PanelPrices from "./PanelPrices";
+import PanelHours from "./PanelHours";
 import PanelSummary from "./PanelSummary";
 import PushButton from "./PushButton";
 import "./panel.css";
@@ -416,6 +417,8 @@ export default function PanelApp() {
           <PanelZones t={t} apiFetch={apiFetch} onUnauthorized={() => setGate("login")} />
           {/* Ürün fiyatları: kategoriye göre gruplu, toplu kaydet (settings.prices) */}
           <PanelPrices t={t} cats={MSG.categories} apiFetch={apiFetch} onUnauthorized={() => setGate("login")} />
+          {/* Çalışma saatleri + özel günler (settings.schedule) */}
+          <PanelHours t={t} weekdays={MSG.contact.weekdays} apiFetch={apiFetch} onUnauthorized={() => setGate("login")} />
         </>
       ) : lists[tab].length === 0 ? (
         <p className="text-dim">{t.empty}</p>

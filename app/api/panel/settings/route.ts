@@ -3,7 +3,8 @@ import { isPanelAuthorized } from "@/lib/panel-auth";
 import type { Settings } from "@/lib/settings";
 import { getSettingsStore } from "@/lib/store";
 import { normalizeZones } from "@/lib/zones";
-import { normalizePrices } from "@/lib/settings";
+import { normalizePrices, normalizeSchedule, pruneSpecial } from "@/lib/settings";
+import { defaultNow, istanbulDateKey } from "@/lib/hours";
 import { findMenuItem } from "@/lib/orders";
 
 export const runtime = "nodejs";
@@ -17,16 +18,16 @@ export async function GET() {
 
 /** PATCH /api/panel/settings — YALNIZCA panel (PANEL_KEY). Yazma buradan geçer;
     service_role yalnızca sunucuda kullanılır, tarayıcıya hiç gitmez.
-    Gövde: { ordering_open?, delivery_open?, pickup_open?, sold_out?, zones?, prices? } */
+    Gövde: { ordering_open?, delivery_open?, pickup_open?, sold_out?, zones?, prices?, schedule? } */
 export async function PATCH(req: Request) {
   if (!(await isPanelAuthorized(req))) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  let body: Partial<Pick<Settings, "ordering_open" | "delivery_open" | "pickup_open" | "sold_out" | "zones" | "prices">>;
+  let body: Partial<Pick<Settings, "ordering_open" | "delivery_open" | "pickup_open" | "sold_out" | "zones" | "prices" | "schedule">>;
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "invalid-json" }, { status: 400 });
   }
-  const patch: Partial<Pick<Settings, "ordering_open" | "delivery_open" | "pickup_open" | "sold_out" | "zones" | "prices">> = {};
+  const patch: Partial<Pick<Settings, "ordering_open" | "delivery_open" | "pickup_open" | "sold_out" | "zones" | "prices" | "schedule">> = {};
   if (typeof body.ordering_open === "boolean") patch.ordering_open = body.ordering_open;
   if (typeof body.delivery_open === "boolean") patch.delivery_open = body.delivery_open;
   if (typeof body.pickup_open === "boolean") patch.pickup_open = body.pickup_open;
@@ -57,6 +58,17 @@ export async function PATCH(req: Request) {
     }
     if (bad.length) return NextResponse.json({ error: "prices-invalid", fields: bad }, { status: 422 });
     patch.prices = normalizePrices(body.prices);
+  }
+  /* Program: şema SUNUCUDA doğrulanır (normalizeSchedule) — bozuk pencere
+     varsayılana düşer, geçersiz özel gün atılır. Geçmiş tarihli özel günler
+     her yazmada AYIKLANIR ki liste şişmesin.
+     "Bugün" defaultNow()'dan okunur (new Date() DEĞİL): uygulamanın geri kalanı
+     da ondan okuyor. Aksi halde test ortamında (MAG_FAKE_NOW ile zaman donmuşken)
+     sunucunun yaşadığı güne özel gün eklenemiyordu — iki farklı "bugün" oluşuyordu.
+     Canlıda MAG_FAKE_NOW yok sayıldığı için davranış değişmez. */
+  if (body.schedule !== undefined) {
+    const sch = normalizeSchedule(body.schedule);
+    patch.schedule = { week: sch.week, special: pruneSpecial(sch.special, istanbulDateKey(defaultNow())) };
   }
   if (Object.keys(patch).length === 0) return NextResponse.json({ error: "empty-patch" }, { status: 422 });
   try {

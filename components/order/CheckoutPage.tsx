@@ -38,8 +38,8 @@ export default function CheckoutPage() {
   /* panel ayarları: sipariş kapalıysa ya da sepette tükenen ürün varsa ödeme yapılamaz */
   const settings = useSettings();
   const minute = useClockMinute();
-  const open = minute < 0 ? null : isOpen();
-  const slots = useMemo(() => (minute < 0 ? ["simdi"] : timeSlots()), [minute]);
+  const open = minute < 0 ? null : isOpen(undefined, settings.schedule);
+  const slots = useMemo(() => (minute < 0 ? ["simdi"] : timeSlots(undefined, settings.schedule)), [minute, settings.schedule]);
 
   /* key = satır kimliği (ürün + çıkarılanlar); id = menü araması için ürün kimliği */
   const items = useMemo(
@@ -331,7 +331,7 @@ export default function CheckoutPage() {
 
             {open === false ? (
               <div className="warn" data-hours-closed>
-                {closedLabel(t)}
+                {closedLabel(t, undefined, settings.schedule)}
               </div>
             ) : null}
             {err("hours") ? <span className="err">{o.err.hours}</span> : null}
