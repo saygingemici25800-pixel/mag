@@ -842,8 +842,12 @@
   font-size: 0.66rem;
   color: color-mix(in srgb, var(--cream) 55%, transparent);
 }
+/* İptal kartı: paletten TÜRETİLMİŞ açık kırmızı — sabit hex YOK.
+   Düz var(--mag-red) kullanılamıyor: o renk panelin ZEMİNİ (#c72d1b), aynı
+   renk yazı okunmuyor. Krem ile karıştırılıp zeminden ayrılan bir ton elde
+   ediliyor; kontrast ölçüldü (bkz. raporlar paketi). */
 .rp-card.danger > b {
-  color: #ff9a8b;
+  color: color-mix(in srgb, var(--mag-red) 35%, var(--cream));
 }
 
 /* Ürün / mahalle listeleri */
