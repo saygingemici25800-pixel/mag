@@ -56,7 +56,7 @@ components/
     stage.css             # proto CSS'i, ölçüler aynen
 lib/
   menu.ts                 # ÜRÜN VERİSİ — tek kaynak (spec §5)
-  zones.ts · hours.ts     # teslimat bölgeleri (AÇIK) · çalışma saatleri
+  zones.ts · hours.ts     # teslimat bölgeleri · çalışma saatleri (ikisi de panelden)
   orders.ts               # sipariş modeli + sunucu doğrulama + OrderStore/PushStore arayüzleri
   store.ts                # env'e göre depo seçimi: Supabase (supabase-store.ts) ya da stub (orders-store.ts)
   panel-auth.ts           # panel yetkisi: Supabase Bearer · PANEL_KEY çerez/başlık
@@ -228,3 +228,34 @@ mesajı yalnızca saat açıkken görünür.
 **Sunucu reddi** (`app/api/orders/route.ts`): kapalı türle gelen sipariş
 `409 delivery-closed` / `409 pickup-closed`, ana şalter kapalıysa
 `409 ordering-closed`. Arayüz engeli yeterli sayılmaz.
+
+### Çalışma saatleri ve özel günler (tatil)
+`settings.schedule` (jsonb, 0010_schedule.sql):
+
+```jsonc
+{
+  "week": [ { "day": 0, "openMin": 960, "closeMin": 1380 }, /* … 7 gün */ ],
+  "special": [ { "date": "2026-09-30", "closed": true, "note": "Bayram" } ]
+}
+```
+
+Saat **DAKİKA** cinsinden (12:00 → 720). Kapanış `00:00` → **1440**; gece yarısını
+geçen pencere ancak böyle temsil edilebiliyor, yoksa 12:00–00:00 aralığında
+kapanış açılıştan küçük görünürdü. Kapalı gün: `openMin === closeMin === 0`.
+`day` alanı `Date.getDay()` ile aynı (0 = Pazar).
+
+`special[]` haftalık programı O GÜN için EZER: `closed:true` gün boyu kapalı,
+`closed:false` + `openMin/closeMin` özel saat. `note` yalnızca panelde görünür,
+hesaba girmez. `schedule` NULL ise koddaki varsayılan (`lib/hours.ts` HOURS).
+
+**Saat dilimi:** tüm hesap `Europe/Istanbul` üzerinden (`Intl.DateTimeFormat`),
+sunucu UTC'de koşsa da doğru. "Şimdi"yi okuyan her yer `defaultNow()` kullanır —
+`new Date()` ÇAĞIRMA, test zamanı donduğunda (`MAG_FAKE_NOW`) sapma yaratır.
+`MAG_FAKE_NOW` production'da yok sayılır (lib/hours.ts içinde guard).
+
+`nextOpening` **14 gün** tarar: arka arkaya tatillerde de doğru günü bulsun.
+Geçmiş tarihli özel günler her yazmada sunucuda ayıklanır (`pruneSpecial`).
+
+**Sunucu reddi** (`app/api/orders/route.ts`): kapalı saatte gelen sipariş
+`422 {field:"hours", code:"closed"}`. Arayüz engeli yeterli sayılmaz.
+Test: `tests/e2e/saat-panel.mjs` (18 kontrol) + `tests/e2e/saatler.mjs` (58).
