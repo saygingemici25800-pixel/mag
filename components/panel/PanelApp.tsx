@@ -12,13 +12,14 @@ import PanelZones from "./PanelZones";
 import PanelPrices from "./PanelPrices";
 import PanelHours from "./PanelHours";
 import PanelSummary from "./PanelSummary";
+import PanelReports from "./PanelReports";
 import PushButton from "./PushButton";
 import "./panel.css";
 
 const MSG = getMessages("tr");
 const t = MSG.panel;
 type Gate = "loading" | "login" | "closed" | "ok";
-type Tab = "active" | "today" | "past" | "settings";
+type Tab = "active" | "today" | "past" | "reports" | "settings";
 type Mode = "supabase" | "key" | "open";
 const SEEN_KEY = "mag:panel-seen";
 const REPEAT_MS = 20_000;
@@ -367,6 +368,8 @@ export default function PanelApp() {
     active: all.filter((o) => OPEN_STATUSES.includes(o.status)),
     today: all.filter((o) => istanbulDay(o.created_at) === today),
     past: all.filter((o) => !OPEN_STATUSES.includes(o.status)),
+    /* Liste sekmesi değil (rozet göstermiyorlar) ama Record tipi bütün olsun. */
+    reports: [],
     settings: [],
   };
 
@@ -401,15 +404,19 @@ export default function PanelApp() {
       </header>
 
       <div className="tabs" role="tablist">
-        {(["active", "today", "past", "settings"] as Tab[]).map((k) => (
+        {(["active", "today", "past", "reports", "settings"] as Tab[]).map((k) => (
           <button key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)}>
             {t.tabs[k]}
-            <b>{lists[k].length}</b>
+            {/* Raporlar bir liste değil: sayı rozeti yalnızca sipariş sekmelerinde */}
+            {k === "reports" || k === "settings" ? null : <b>{lists[k].length}</b>}
           </button>
         ))}
       </div>
 
-      {tab === "settings" ? (
+      {tab === "reports" ? (
+        /* Geçmiş sipariş raporları — toplama sunucuda (bkz. /api/panel/reports) */
+        <PanelReports t={t} apiFetch={apiFetch} onUnauthorized={() => setGate("login")} />
+      ) : tab === "settings" ? (
         <>
           <PanelSummary t={t} apiFetch={apiFetch} onUnauthorized={() => setGate("login")} />
           <PanelSettings t={t} apiFetch={apiFetch} onUnauthorized={() => setGate("login")} />

@@ -774,3 +774,146 @@
   color: var(--dim);
   font-weight: 400;
 }
+
+/* ---- Raporlar ---- */
+.rp-shorts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.rp-range {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.rp-range label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.72rem;
+  color: var(--body);
+}
+.rp-range input {
+  padding: 7px 9px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--cream) 20%, transparent);
+  background: color-mix(in srgb, var(--cream) 5%, transparent);
+  color: var(--cream);
+  font: inherit;
+}
+.rp-span {
+  font-size: 0.72rem;
+  color: var(--body);
+  margin: 0 0 8px;
+}
+.rp-note {
+  font-size: 0.7rem;
+  margin: 6px 0 14px;
+}
+
+/* Özet kartlar — grafik kütüphanesi yok, sade kutular */
+.rp-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: 8px;
+}
+.rp-card {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--cream) 16%, transparent);
+  background: color-mix(in srgb, var(--cream) 4%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.rp-card > b {
+  font-size: 1.15rem;
+  color: var(--cream);
+  line-height: 1.1;
+}
+.rp-card > span {
+  font-size: 0.7rem;
+  color: var(--body);
+}
+.rp-card > small {
+  font-size: 0.66rem;
+  color: color-mix(in srgb, var(--cream) 55%, transparent);
+}
+.rp-card.danger > b {
+  color: #ff9a8b;
+}
+
+/* Ürün / mahalle listeleri */
+.rp-items {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  counter-reset: rp;
+}
+.rp-items > li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 10px;
+  align-items: baseline;
+  padding: 6px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--cream) 10%, transparent);
+  font-size: 0.8rem;
+}
+.rp-items > li:last-child {
+  border-bottom: 0;
+}
+.rp-nm {
+  color: var(--cream);
+}
+.rp-qt {
+  color: var(--body);
+  font-variant-numeric: tabular-nums;
+}
+.rp-rv {
+  color: var(--cream);
+  font-variant-numeric: tabular-nums;
+  min-width: 68px;
+  text-align: right;
+}
+
+/* Günlük / saatlik çubuklar — CSS genişliği, kütüphane yok */
+.rp-bars {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+}
+.rp-bars > li {
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 3px 0;
+  font-size: 0.72rem;
+}
+.rp-lb {
+  color: var(--body);
+  font-variant-numeric: tabular-nums;
+}
+.rp-bar {
+  display: block;
+  height: 10px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--cream) 10%, transparent);
+  overflow: hidden;
+}
+.rp-bar > i {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  border-radius: 5px;
+  background: var(--cream);
+}
+.rp-vl {
+  color: var(--cream);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  min-width: 82px;
+}

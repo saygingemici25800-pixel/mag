@@ -259,3 +259,36 @@ Geçmiş tarihli özel günler her yazmada sunucuda ayıklanır (`pruneSpecial`)
 **Sunucu reddi** (`app/api/orders/route.ts`): kapalı saatte gelen sipariş
 `422 {field:"hours", code:"closed"}`. Arayüz engeli yeterli sayılmaz.
 Test: `tests/e2e/saat-panel.mjs` (18 kontrol) + `tests/e2e/saatler.mjs` (58).
+
+### Raporlar (geçmiş sipariş verisi)
+Panel → **Raporlar** sekmesi. Tarih aralığı kısayolları (Bugün / Dün / Son 7 gün /
+Bu ay / Geçen ay) + özel aralık; özet kartlar, en çok satan 10 ürün, günlük ve
+saatlik kırılım, mahalle dağılımı, CSV dışa aktarma.
+
+**TOPLAMA VERİTABANINDA.** Supabase yolunda `panel_report(from,to)` SQL fonksiyonu
+(0011_reports.sql) satırları Postgres'te toplar; tarayıcıya sipariş listesi DEĞİL
+yalnızca özet gider (birkaç yüz bayt). Sipariş sayısı büyüdükçe panel yavaşlamasın
+diye. Stub yolunda (testler) `lib/reports.ts` içindeki `hesapla()` aynı sonucu
+üretir — ikisi `raporlar` paketinde AYNI beklenen rakamlara karşı doğrulanır ki
+zamanla birbirinden sapmasınlar.
+
+**Saat dilimi:** gün/saat kırılımı `at time zone 'Europe/Istanbul'` ile. UTC'ye
+göre gruplansaydı gece 00:10'daki sipariş bir ÖNCEKİ güne yazılırdı (TR = UTC+3).
+Test bunu 23:50 ve 00:10 kayıtlarıyla doğruluyor.
+
+**İptal ve ödenmemiş siparişler ciroya GİRMEZ** (`status <> 'cancelled'` +
+`payment_status = 'paid'`); iptal ayrı kart olarak sayı ve oranla gösterilir.
+CSV'de ise iptaller de listelenir — muhasebe hepsini görmeli.
+
+**İndeks:** `orders_created_status_idx (created_at desc, status)` eklendi (0011).
+50.000 satırda aralık sorgusu Seq Scan → Bitmap Heap Scan'e geçiyor. `items` için
+GIN indeksi 0003'te zaten vardı, ikincisi EKLENMEDİ (yazma maliyeti boşuna artardı).
+
+**Yetki:** `/api/panel/reports` PANEL_KEY korumalı. SQL fonksiyonları
+`security definer` olduğu için anon/authenticated'a açılmaz, yalnızca
+`service_role` çağırabilir.
+
+**CSV:** UTF-8 **BOM** + `sep=;` satırı — Excel'de Türkçe karakter bozulmasın ve
+tek sütuna düşmesin. Telefon `="05..."` formülü olarak yazılır, yoksa Excel
+baştaki sıfırı siler. Kolonlar: tarih/saat, sipariş no, müşteri, telefon,
+teslimat türü, mahalle, ürünler, tutar, durum.

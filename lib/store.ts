@@ -1,11 +1,12 @@
 /** Depo seçimi — env'e göre: Supabase anahtarları varsa Supabase, yoksa yerel stub. Kod değişmez. */
 import { hasSupabaseServer } from "@/lib/env";
 import type { OrderStore, PushStore } from "@/lib/orders";
+import type { ReportStore } from "@/lib/reports";
 import type { SettingsStore } from "@/lib/settings";
-import { FileOrderStore, FilePushStore, FileSettingsStore } from "@/lib/orders-store";
-import { SupabaseOrderStore, SupabasePushStore, SupabaseSettingsStore } from "@/lib/supabase-store";
+import { FileOrderStore, FilePushStore, FileReportStore, FileSettingsStore } from "@/lib/orders-store";
+import { SupabaseOrderStore, SupabasePushStore, SupabaseReportStore, SupabaseSettingsStore } from "@/lib/supabase-store";
 
-const g = globalThis as unknown as { __magOrderStore?: OrderStore; __magPushStore?: PushStore; __magSettingsStore?: SettingsStore; __magStoreMode?: "supabase" | "stub" };
+const g = globalThis as unknown as { __magOrderStore?: OrderStore; __magPushStore?: PushStore; __magSettingsStore?: SettingsStore; __magReportStore?: ReportStore; __magStoreMode?: "supabase" | "stub" };
 
 export function storeMode(): "supabase" | "stub" {
   return hasSupabaseServer() ? "supabase" : "stub";
@@ -16,6 +17,7 @@ export function getOrderStore(): OrderStore {
     g.__magOrderStore = g.__magStoreMode === "supabase" ? new SupabaseOrderStore() : new FileOrderStore();
     g.__magPushStore = g.__magStoreMode === "supabase" ? new SupabasePushStore() : new FilePushStore();
     g.__magSettingsStore = g.__magStoreMode === "supabase" ? new SupabaseSettingsStore() : new FileSettingsStore();
+    g.__magReportStore = g.__magStoreMode === "supabase" ? new SupabaseReportStore() : new FileReportStore();
   }
   return g.__magOrderStore;
 }
@@ -26,4 +28,8 @@ export function getPushStore(): PushStore {
 export function getSettingsStore(): SettingsStore {
   getOrderStore();
   return g.__magSettingsStore!;
+}
+export function getReportStore(): ReportStore {
+  getOrderStore();
+  return g.__magReportStore!;
 }

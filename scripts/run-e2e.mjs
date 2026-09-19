@@ -43,7 +43,13 @@ const files = readdirSync("tests/e2e")
    düşüyor: MAG_FAKE_NOW zamanı dondurduğu için tüm kayıtlar aynı created_at'i
    alıyor ve yeni sipariş listede beklenen yerde çıkmıyor. Bu testlerden önce
    sunucu temiz depoyla yeniden başlatılır. */
-const NEEDS_CLEAN = new Set(["panel", "faz3", "faz5-mobile-payment", "supabase-proof"]);
+/* raporlar: .data/orders.json'a SABİT veri yazıp okuyor. Stub dosyayı bellekte
+   önbelleğe aldığı için sunucunun o dosyayı HENÜZ okumamış olması gerekiyor —
+   temiz yeniden başlatma bunu garantiliyor. Ayrıca kendi kayıtlarını bırakıp
+   sonraki paketleri bozmasın diye sonrasında da depo sıfırlanmalı. */
+const NEEDS_CLEAN = new Set(["panel", "faz3", "faz5-mobile-payment", "supabase-proof", "raporlar"]);
+/* Kendi verisini bırakan paketler: sonrasında depo sıfırlanır. */
+const DIRTIES = new Set(["raporlar"]);
 
 async function restartServerClean() {
   spawnSync("bash", ["-c", "kill -9 $(lsof -tiTCP:3112 -sTCP:LISTEN) 2>/dev/null; true"]);
@@ -75,6 +81,9 @@ for (const n of files) {
   rows.push({ n, code: r.status, pass, fail, skipped, out });
   const tag = skipped ? "ATLANDI" : r.status === 0 ? "GEÇTİ" : "DÜŞTÜ";
   console.log(`${n.padEnd(24)} ${String(tag).padEnd(8)} PASS=${String(pass).padEnd(4)} FAIL=${fail}`);
+  /* Kendi verisini bırakan paketten SONRA depoyu sıfırla: sonraki paketler
+     (cart-fx, panel…) dolu depoda düşüyordu. */
+  if (DIRTIES.has(n) && !process.env.MAG_KEEP_DATA) await restartServerClean();
 }
 
 const bad = rows.filter((r) => r.code !== 0 && !r.skipped);

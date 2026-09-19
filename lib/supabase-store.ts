@@ -2,6 +2,7 @@
 import type { Order, OrderStore, PushStore, PushSubscriptionRow } from "@/lib/orders";
 import { supabaseAdmin } from "@/lib/supabase";
 import { normalizeSettings, type Settings, type SettingsStore } from "@/lib/settings";
+import type { Report, ReportStore } from "@/lib/reports";
 
 export class SupabaseOrderStore implements OrderStore {
   async create(order: Order): Promise<Order> {
@@ -74,5 +75,21 @@ export class SupabaseSettingsStore implements SettingsStore {
        Artık hata yükseltiliyor → rota 500 döner, panelde görünür. */
     if (error) throw new Error("supabase settings upsert: " + error.message);
     return normalizeSettings(data ?? next);
+  }
+}
+
+/* ---- Raporlar — toplama VERİTABANINDA (0011_reports.sql) ---- */
+export class SupabaseReportStore implements ReportStore {
+  async report(from: string, to: string): Promise<Report> {
+    /* Tek RPC: özet + günlük + saatlik + ürün + mahalle aynı taramadan çıkar.
+       Satırlar Postgres'te toplanır; tarayıcıya yalnızca özet gider. */
+    const { data, error } = await supabaseAdmin().rpc("panel_report", { p_from: from, p_to: to });
+    if (error) throw new Error("supabase panel_report: " + error.message);
+    return data as Report;
+  }
+  async rows(from: string, to: string): Promise<Order[]> {
+    const { data, error } = await supabaseAdmin().rpc("panel_report_rows", { p_from: from, p_to: to });
+    if (error) throw new Error("supabase panel_report_rows: " + error.message);
+    return (data ?? []) as Order[];
   }
 }

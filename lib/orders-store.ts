@@ -6,6 +6,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { Order, OrderStore, PushStore, PushSubscriptionRow } from "@/lib/orders";
+import { hesapla, istanbulGun, type Report, type ReportStore } from "@/lib/reports";
 import { DEFAULT_SETTINGS, normalizeSettings, type Settings, type SettingsStore } from "@/lib/settings";
 
 const DIR = path.join(process.cwd(), ".data");
@@ -130,5 +131,25 @@ export class FileSettingsStore implements SettingsStore {
   async patch(p: Partial<Omit<Settings, "updated_at">>): Promise<Settings> {
     const cur = await this.get();
     return this.doc.write(normalizeSettings({ ...cur, ...p, updated_at: new Date().toISOString() }));
+  }
+}
+
+/* ---- Raporlar — stub yolu ----
+   SQL fonksiyonunun (0011_reports.sql) JS eşleniği. Aynı girdi → aynı çıktı
+   olmalı; `raporlar` e2e paketi ikisini de aynı beklenen rakamlara karşı
+   doğruluyor ki zamanla birbirinden sapmasınlar. */
+export class FileReportStore implements ReportStore {
+  private db = new JsonFile<Order>("orders.json");
+  async report(from: string, to: string): Promise<Report> {
+    return hesapla(await this.db.load(), from, to);
+  }
+  async rows(from: string, to: string): Promise<Order[]> {
+    const all = await this.db.load();
+    return all
+      .filter((o) => {
+        const g = istanbulGun(o.created_at);
+        return g >= from && g <= to;
+      })
+      .sort((a, b) => b.created_at.localeCompare(a.created_at));
   }
 }
