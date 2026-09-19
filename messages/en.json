@@ -388,7 +388,10 @@
     "tomorrow": "tomorrow",
     "zoneClosedLabel": "currently closed",
     "minCartWarn": "Minimum basket for this zone is {min} ₺; your basket is {have} ₺.",
-    "zoneEtaLabel": "approx. {min} min"
+    "zoneEtaLabel": "approx. {min} min",
+    "deliveryClosedNote": "Courier is currently closed",
+    "pickupClosedNote": "Pickup is currently closed",
+    "allClosedTitle": "We can't take orders right now."
   },
   "track": {
     "metaTitle": "Order tracking",
@@ -552,7 +555,15 @@
     "priceLeaveWarn": "Kaydedilmemiş fiyat değişikliği var. Sayfadan çıkılsın mı?",
     "priceInvalid": "Fiyat pozitif tam sayı olmalı (0 ve boş olamaz).",
     "priceChanged": "değişti",
-    "priceDefault": "kodda: ₺{n}"
+    "priceDefault": "kodda: ₺{n}",
+    "deliveryOpen": "Kurye teslimatı açık",
+    "deliveryClosed": "Kurye teslimatı kapalı",
+    "pickupOpenLbl": "Gel-al açık",
+    "pickupClosedLbl": "Gel-al kapalı",
+    "svcSummary": "Kurye {d} · Gel-al {p}",
+    "svcOn": "açık",
+    "svcOff": "kapalı",
+    "svcAllClosed": "Sipariş alınmıyor."
   },
   "payment": {
     "status": {

@@ -206,3 +206,25 @@ loglanır (sessizce yok sayılmaz).
 
 **Geçmiş siparişler:** `OrderItem.price` sipariş anındaki fiyatı satırda saklar;
 sonraki fiyat değişikliği eski siparişi etkilemez (test: `tests/e2e/fiyatlar.mjs`).
+
+### Servis şalterleri (kurye / gel-al)
+`settings.ordering_open` + `delivery_open` + `pickup_open` (0009_service_toggles.sql).
+Mantık **tek yerde**, `lib/settings.ts`: `deliveryOpen()` · `pickupOpen()` ·
+`allClosed()` · `typeOpen()`. Kural:
+
+| ordering_open | delivery_open | pickup_open | Sonuç |
+|---|---|---|---|
+| false | (fark etmez) | (fark etmez) | ikisi de KAPALI |
+| true | true | true | ikisi de açık |
+| true | false | true | yalnız gel-al |
+| true | true | false | yalnız kurye |
+
+`ordering_open` ANA ŞALTER: kapalıyken tür şalterlerine bakılmaz (panelde de
+pasif çizilirler). Müşteri tarafında kapalı tür `disabled` + üstü çizili, altında
+sebebi yazar; tek tür açıksa `etkinMode` ile OTOMATİK seçilir (state effect'te
+değiştirilmez). Mesaj sırası: **saat kapalıysa saat mesajı önce** gelir, servis
+mesajı yalnızca saat açıkken görünür.
+
+**Sunucu reddi** (`app/api/orders/route.ts`): kapalı türle gelen sipariş
+`409 delivery-closed` / `409 pickup-closed`, ana şalter kapalıysa
+`409 ordering-closed`. Arayüz engeli yeterli sayılmaz.

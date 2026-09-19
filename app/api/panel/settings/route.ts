@@ -17,17 +17,19 @@ export async function GET() {
 
 /** PATCH /api/panel/settings — YALNIZCA panel (PANEL_KEY). Yazma buradan geçer;
     service_role yalnızca sunucuda kullanılır, tarayıcıya hiç gitmez.
-    Gövde: { ordering_open?, sold_out?, zones?, prices? } */
+    Gövde: { ordering_open?, delivery_open?, pickup_open?, sold_out?, zones?, prices? } */
 export async function PATCH(req: Request) {
   if (!(await isPanelAuthorized(req))) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  let body: Partial<Pick<Settings, "ordering_open" | "sold_out" | "zones" | "prices">>;
+  let body: Partial<Pick<Settings, "ordering_open" | "delivery_open" | "pickup_open" | "sold_out" | "zones" | "prices">>;
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "invalid-json" }, { status: 400 });
   }
-  const patch: Partial<Pick<Settings, "ordering_open" | "sold_out" | "zones" | "prices">> = {};
+  const patch: Partial<Pick<Settings, "ordering_open" | "delivery_open" | "pickup_open" | "sold_out" | "zones" | "prices">> = {};
   if (typeof body.ordering_open === "boolean") patch.ordering_open = body.ordering_open;
+  if (typeof body.delivery_open === "boolean") patch.delivery_open = body.delivery_open;
+  if (typeof body.pickup_open === "boolean") patch.pickup_open = body.pickup_open;
   if (Array.isArray(body.sold_out)) patch.sold_out = body.sold_out.filter((x): x is string => typeof x === "string");
   /* Bölgeler: ŞEMA SUNUCUDA doğrulanır (normalizeZones) — tarayıcıdan gelen ham
      veriye güvenilmez. Geçerli kayıt kalmazsa 422; boş liste kazayla tüm

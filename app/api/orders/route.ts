@@ -5,6 +5,7 @@ import { isPanelAuthorized } from "@/lib/panel-auth";
 import { getPaymentProvider } from "@/lib/payments";
 import { siteUrl } from "@/lib/site";
 import { getOrderStore, getSettingsStore } from "@/lib/store";
+import { typeOpen } from "@/lib/settings";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,6 +24,17 @@ export async function POST(req: Request) {
   /* Panel ayarları önce: dükkân kapalıysa form doğrulamasına hiç girme (kapalı cevabı net olsun) */
   const settings = await getSettingsStore().get();
   if (!settings.ordering_open) return NextResponse.json({ errors: [{ field: "form", code: "ordering-closed" }] }, { status: 409 });
+  /* Tür bazlı kapı: kurye ve gel-al bağımsız kapatılabiliyor. Arayüz kapalı türü
+     zaten seçtirmiyor ama İSTEMCİYE GÜVENİLMEZ — doğrudan API'ye gönderilen
+     kapalı türlü sipariş burada reddedilir. */
+  if (input.type === "delivery" || input.type === "pickup") {
+    if (!typeOpen(settings, input.type)) {
+      return NextResponse.json(
+        { errors: [{ field: "type", code: input.type === "delivery" ? "delivery-closed" : "pickup-closed" }] },
+        { status: 409 },
+      );
+    }
+  }
   /* Bölgeler PANELDEN gelir: ücret, minimum sepet ve "kapalı mı" bilgisi
      settings.zones'dan okunur. İstemcinin gönderdiği tutara güvenilmez. */
   /* Fiyatlar da PANELDEN: settings.prices. İstemci yalnızca {id, qty} gönderiyor

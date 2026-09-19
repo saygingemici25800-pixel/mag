@@ -682,3 +682,32 @@
   font-size: 0.76rem;
   color: var(--dim);
 }
+
+/* ---- Servis şalterleri (kurye / gel-al) ---- */
+.svc-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.svc-row .act {
+  flex: 1 1 180px;
+}
+/* ana şalter kapalıyken tür şalterleri etkisiz: sönük ve tıklanamaz */
+.svc-row .act:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.svc-sum {
+  margin: 8px 0 0;
+  font-size: 0.78rem;
+  color: var(--dim);
+}
+.svc-warn {
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  border: 1px solid var(--mag-red);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: var(--mag-red);
+}

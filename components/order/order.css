@@ -1199,3 +1199,16 @@ select.ctl {
   line-height: 1.4;
   color: var(--accent);
 }
+
+/* ---- Kapalı servis türü (kurye / gel-al) ---- */
+.seg button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+.svc-note {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.72rem;
+  color: var(--dim);
+}

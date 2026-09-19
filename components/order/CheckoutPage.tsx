@@ -17,6 +17,7 @@ import MinCartInfo from "./MinCartInfo";
 import Upsell from "./Upsell";
 import IngredientList from "./IngredientList";
 import { useSettings } from "@/lib/useSettings";
+import { allClosed, deliveryOpen, pickupOpen, typeOpen } from "@/lib/settings";
 import "./order.css";
 import { priceOf } from "@/lib/menu";
 
@@ -59,30 +60,45 @@ export default function CheckoutPage() {
   };
   /* Bölgeler PANELDEN: settings.zones. Veritabanı boşsa normalizeSettings
      koddaki varsayılana düşürüyor, yani liste hiçbir zaman boş kalmıyor. */
+  /* Servis şalterleri: kurye ve gel-al bağımsız kapanabilir (ana şalter ikisini de kapatır) */
+  const dOpen = deliveryOpen(settings);
+  const pOpen = pickupOpen(settings);
+  const hepsiKapali = allClosed(settings);
+  /* Yalnız bir tür açıksa kullanıcı seçim yapmak zorunda kalmasın: SEÇİLİ tür
+     hesapla, state'i effect içinde değiştirme (cascading render uyarısı).
+     `mode` kullanıcının tercihi; `etkinMode` ekranda ve gönderimde geçerli olan.
+     Kapalı türde kalınmışsa açık olana kayar. */
+  const etkinMode: OrderType = hepsiKapali
+    ? mode
+    : mode === "delivery" && !dOpen && pOpen
+      ? "pickup"
+      : mode === "pickup" && !pOpen && dOpen
+        ? "delivery"
+        : mode;
   const zones = settings.zones;
   const selected = findZone(zones, zone);
-  const totals = computeTotals(items, mode, zone, zones, settings.prices);
+  const totals = computeTotals(items, etkinMode, zone, zones, settings.prices);
   const count = items.reduce((s, i) => s + i.qty, 0);
   const err = (f: string) => errors.find((e) => e.field === f);
   const soldOutInCart = items.filter((it) => settings.sold_out.includes(it.id)).map((it) => findMenuItem(it.id)?.name ?? it.id);
-  const canSubmit = open === true && settings.ordering_open && soldOutInCart.length === 0 && count > 0 && totals.missing === 0 && !submitting;
+  const canSubmit = open === true && settings.ordering_open && typeOpen(settings, etkinMode) && soldOutInCart.length === 0 && count > 0 && totals.missing === 0 && !submitting;
 
   const submit = async () => {
     const errs: ValidationError[] = [];
     if (form.name.trim().length < 2) errs.push({ field: "name", code: "required" });
     if (!normalizePhone(form.phone)) errs.push({ field: "phone", code: "invalid" });
-    if (mode === "delivery" && !zoneActive(findZone(zones, zone))) errs.push({ field: "zone", code: "required" });
-    if (mode === "delivery" && form.address.trim().length < 8) errs.push({ field: "address", code: "required" });
+    if (etkinMode === "delivery" && !zoneActive(findZone(zones, zone))) errs.push({ field: "zone", code: "required" });
+    if (etkinMode === "delivery" && form.address.trim().length < 8) errs.push({ field: "address", code: "required" });
     setErrors(errs);
     if (errs.length) return;
     const body: NewOrderInput = {
-      type: mode,
-      zone: mode === "delivery" ? zone : null,
+      type: etkinMode,
+      zone: etkinMode === "delivery" ? zone : null,
       /* Sunucuya yalnızca sözleşmedeki alanlar: satır kimliği (key) istemci detayı, gitmez. */
       items: items.map((it) => ({ id: it.id, qty: it.qty, ...(it.note ? { note: it.note } : {}), ...(it.removed.length ? { removed: it.removed } : {}) })),
       name: form.name,
       phone: form.phone,
-      address: mode === "delivery" ? form.address : null,
+      address: etkinMode === "delivery" ? form.address : null,
       requested_at: slots.includes(form.requested_at) ? form.requested_at : "simdi",
       note: form.note,
       locale,
@@ -162,7 +178,7 @@ export default function CheckoutPage() {
           <span>{o.subtotal}</span>
           <span>{formatPriceFor(locale, totals.subtotal)}</span>
         </div>
-        {mode === "delivery" ? (
+        {etkinMode === "delivery" ? (
           <div className="flex justify-between text-dim">
             <span>
               {o.fee}
@@ -176,7 +192,7 @@ export default function CheckoutPage() {
           <span>{formatPriceFor(locale, totals.total)}</span>
         </div>
       </div>
-      {mode === "delivery" && totals.minCart > 0 && totals.missing > 0 ? <div className="warn">{fmt(o.minWarn, { min: totals.minCart, missing: totals.missing })}</div> : null}
+      {etkinMode === "delivery" && totals.minCart > 0 && totals.missing > 0 ? <div className="warn">{fmt(o.minWarn, { min: totals.minCart, missing: totals.missing })}</div> : null}
     </section>
   );
 
@@ -216,14 +232,33 @@ export default function CheckoutPage() {
                 {o.deliveryInfo}
               </h2>
               <div className="seg" role="group" aria-label={`${o.pickup} / ${o.delivery}`}>
-                <button type="button" aria-pressed={mode === "pickup"} onClick={() => setMode("pickup")}>
+                <button
+                  type="button"
+                  aria-pressed={etkinMode === "pickup"}
+                  disabled={!pOpen}
+                  data-mode-pickup
+                  data-mode-closed={!pOpen || undefined}
+                  title={pOpen ? undefined : o.pickupClosedNote}
+                  onClick={() => setMode("pickup")}
+                >
                   {o.pickup}
                 </button>
-                <button type="button" aria-pressed={mode === "delivery"} onClick={() => setMode("delivery")}>
+                <button
+                  type="button"
+                  aria-pressed={etkinMode === "delivery"}
+                  disabled={!dOpen}
+                  data-mode-delivery
+                  data-mode-closed={!dOpen || undefined}
+                  title={dOpen ? undefined : o.deliveryClosedNote}
+                  onClick={() => setMode("delivery")}
+                >
                   {o.delivery}
                 </button>
               </div>
-              {mode === "delivery" ? (
+              {/* Kapalı türün SEBEBİ düğmenin altında yazıyla da görünsün (title yetmez) */}
+              {!pOpen && !hepsiKapali ? <span className="svc-note" data-pickup-closed>{o.pickupClosedNote}</span> : null}
+              {!dOpen && !hepsiKapali ? <span className="svc-note" data-delivery-closed>{o.deliveryClosedNote}</span> : null}
+              {etkinMode === "delivery" ? (
                 <>
                   <div className="flex items-center gap-2">
                     <select className={"ctl" + (err("zone") ? " ctl-err" : "")} value={zone} onChange={(e) => setZone(e.target.value)} aria-label={o.zoneLabel}>
@@ -301,9 +336,16 @@ export default function CheckoutPage() {
             ) : null}
             {err("hours") ? <span className="err">{o.err.hours}</span> : null}
             {err("payment") || err("generic") ? <span className="err">{o.err.generic}</span> : null}
-            {!settings.ordering_open ? (
+            {/* Mesaj sırası: SAAT kapalıysa onun mesajı yukarıda zaten var; servis
+                mesajı yalnızca saat AÇIKKEN gösterilir ki iki uyarı çakışmasın. */}
+            {open !== false && !settings.ordering_open ? (
               <div className="warn" data-closed>
                 <b>{o.closedTitle}</b> — {o.closedLead}
+              </div>
+            ) : null}
+            {open !== false && settings.ordering_open && hepsiKapali ? (
+              <div className="warn" data-allclosed>
+                <b>{o.allClosedTitle}</b>
               </div>
             ) : null}
             {soldOutInCart.length > 0 ? (

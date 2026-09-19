@@ -17,8 +17,12 @@
 import { normalizeZones, ZONES, type Zone } from "@/lib/zones";
 
 export interface Settings {
-  /** false ise sitede sipariş verilemez (sepet ve ödeme "Şu an kapalıyız" der) */
+  /** ANA ŞALTER: false ise hiç sipariş alınmaz (kurye de gel-al da kapanır) */
   ordering_open: boolean;
+  /** Kurye teslimatı açık mı (ana şalter açıkken anlamlı) */
+  delivery_open: boolean;
+  /** Gel-al açık mı (ana şalter açıkken anlamlı) */
+  pickup_open: boolean;
   /** tükendi işaretli ürün/ek ürün id'leri (lib/menu.ts id'leri) */
   sold_out: string[];
   /** Teslimat bölgeleri — panelden yönetilir. null/bozuksa lib/zones.ts ZONES kullanılır. */
@@ -35,6 +39,8 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
   ordering_open: true,
+  delivery_open: true,
+  pickup_open: true,
   sold_out: [],
   /* Varsayılan bölgeler koddan gelir: veritabanı boşken de sipariş alınabilir. */
   zones: ZONES,
@@ -70,10 +76,37 @@ export function normalizeSettings(raw: unknown): Settings {
   const r = (raw ?? {}) as Partial<Settings>;
   return {
     ordering_open: typeof r.ordering_open === "boolean" ? r.ordering_open : DEFAULT_SETTINGS.ordering_open,
+    /* Eski kayıtlarda bu alanlar YOK: varsayılan AÇIK. Böylece migration'dan önceki
+       satır da (ve veritabanı boşken de) site normal çalışır. */
+    delivery_open: typeof r.delivery_open === "boolean" ? r.delivery_open : DEFAULT_SETTINGS.delivery_open,
+    pickup_open: typeof r.pickup_open === "boolean" ? r.pickup_open : DEFAULT_SETTINGS.pickup_open,
     sold_out: Array.isArray(r.sold_out) ? r.sold_out.filter((x): x is string => typeof x === "string") : [],
     /* Kayıt yok / bozuk → koddaki varsayılan liste. Site boş veritabanıyla da çalışır. */
     zones: normalizeZones(r.zones) ?? ZONES,
     prices: normalizePrices(r.prices),
     updated_at: typeof r.updated_at === "string" ? r.updated_at : DEFAULT_SETTINGS.updated_at,
   };
+}
+
+/* ---- Üç şalterin mantığı — TEK KAYNAK ----
+ * ordering_open ANA ŞALTER'dir: kapalıysa tür şalterlerine BAKILMAZ, ikisi de kapalıdır.
+ * Açıkken her tür kendi şalterine bakar. Yani:
+ *   ordering_open=false → kurye KAPALI, gel-al KAPALI   (tür şalterleri ne olursa olsun)
+ *   ordering_open=true  → kurye = delivery_open, gel-al = pickup_open
+ * Bu fonksiyonlar hem sunucuda (doğrulama) hem istemcide (arayüz) kullanılır;
+ * kural iki yerde ayrı ayrı yazılmaz.
+ */
+export function deliveryOpen(s: Pick<Settings, "ordering_open" | "delivery_open">): boolean {
+  return s.ordering_open && s.delivery_open;
+}
+export function pickupOpen(s: Pick<Settings, "ordering_open" | "pickup_open">): boolean {
+  return s.ordering_open && s.pickup_open;
+}
+/** Hiç sipariş alınamıyor mu? (ana şalter kapalı ya da iki tür de kapalı) */
+export function allClosed(s: Pick<Settings, "ordering_open" | "delivery_open" | "pickup_open">): boolean {
+  return !deliveryOpen(s) && !pickupOpen(s);
+}
+/** Verilen sipariş türü şu an kabul ediliyor mu? */
+export function typeOpen(s: Pick<Settings, "ordering_open" | "delivery_open" | "pickup_open">, type: "pickup" | "delivery"): boolean {
+  return type === "delivery" ? deliveryOpen(s) : pickupOpen(s);
 }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import type { Messages } from "@/lib/i18n";
 import { MENU, type Category, type MenuItem } from "@/lib/menu";
-import type { Settings } from "@/lib/settings";
+import { allClosed, deliveryOpen, pickupOpen, type Settings } from "@/lib/settings";
 
 interface Props {
   t: Messages["panel"];
@@ -36,7 +36,7 @@ export default function PanelSettings({ t, apiFetch, onUnauthorized }: Props) {
     };
   }, []);
 
-  const patch = async (body: Partial<Pick<Settings, "ordering_open" | "sold_out">>) => {
+  const patch = async (body: Partial<Pick<Settings, "ordering_open" | "delivery_open" | "pickup_open" | "sold_out">>) => {
     setBusy(true);
     try {
       const res = await apiFetch("/api/panel/settings", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
@@ -55,7 +55,7 @@ export default function PanelSettings({ t, apiFetch, onUnauthorized }: Props) {
     <section className="pnl-box" data-settings>
       <h2 className="pnl-h">{t.settings}</h2>
 
-      {/* sipariş açık / kapalı — kapalıyken sitede sipariş verilemez */}
+      {/* ANA ŞALTER — kapalıyken hiç sipariş alınmaz (iki türü birden kapatır) */}
       <button
         type="button"
         className={"act " + (s.ordering_open ? "primary" : "danger")}
@@ -66,6 +66,40 @@ export default function PanelSettings({ t, apiFetch, onUnauthorized }: Props) {
       >
         {s.ordering_open ? `● ${t.orderingOpen}` : `○ ${t.orderingClosed}`}
       </button>
+
+      {/* Tür şalterleri — ana şalter kapalıyken etkisiz, o yüzden pasif çizilir */}
+      <div className="svc-row">
+        <button
+          type="button"
+          className={"act " + (deliveryOpen(s) ? "primary" : "danger")}
+          disabled={busy || !s.ordering_open}
+          data-delivery-toggle
+          aria-pressed={deliveryOpen(s)}
+          onClick={() => patch({ delivery_open: !s.delivery_open })}
+        >
+          {s.delivery_open ? `● ${t.deliveryOpen}` : `○ ${t.deliveryClosed}`}
+        </button>
+        <button
+          type="button"
+          className={"act " + (pickupOpen(s) ? "primary" : "danger")}
+          disabled={busy || !s.ordering_open}
+          data-pickup-toggle
+          aria-pressed={pickupOpen(s)}
+          onClick={() => patch({ pickup_open: !s.pickup_open })}
+        >
+          {s.pickup_open ? `● ${t.pickupOpenLbl}` : `○ ${t.pickupClosedLbl}`}
+        </button>
+      </div>
+
+      {/* Özet: tek bakışta hangi servis açık */}
+      <p className="svc-sum" data-svc-summary>
+        {t.svcSummary.replace("{d}", deliveryOpen(s) ? t.svcOn : t.svcOff).replace("{p}", pickupOpen(s) ? t.svcOn : t.svcOff)}
+      </p>
+      {allClosed(s) ? (
+        <p className="svc-warn" role="alert" data-svc-allclosed>
+          ⚠ {t.svcAllClosed}
+        </p>
+      ) : null}
 
       {/* tükendi işaretleri */}
       <p className="pnl-hint">{t.soldOutHint}</p>

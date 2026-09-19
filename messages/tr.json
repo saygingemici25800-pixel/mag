@@ -287,7 +287,10 @@
     "tomorrow": "yarın",
     "zoneClosedLabel": "şu an kapalı",
     "minCartWarn": "Bu mahalle için minimum sepet tutarı {min} ₺, sepetinizde {have} ₺ var.",
-    "zoneEtaLabel": "tahmini {min} dk"
+    "zoneEtaLabel": "tahmini {min} dk",
+    "deliveryClosedNote": "Kurye şu an kapalı",
+    "pickupClosedNote": "Gel-al şu an kapalı",
+    "allClosedTitle": "Şu an sipariş alamıyoruz."
   },
   "track": {
     "title": [
@@ -432,7 +435,15 @@
     "priceLeaveWarn": "Kaydedilmemiş fiyat değişikliği var. Sayfadan çıkılsın mı?",
     "priceInvalid": "Fiyat pozitif tam sayı olmalı (0 ve boş olamaz).",
     "priceChanged": "değişti",
-    "priceDefault": "kodda: ₺{n}"
+    "priceDefault": "kodda: ₺{n}",
+    "deliveryOpen": "Kurye teslimatı açık",
+    "deliveryClosed": "Kurye teslimatı kapalı",
+    "pickupOpenLbl": "Gel-al açık",
+    "pickupClosedLbl": "Gel-al kapalı",
+    "svcSummary": "Kurye {d} · Gel-al {p}",
+    "svcOn": "açık",
+    "svcOff": "kapalı",
+    "svcAllClosed": "Sipariş alınmıyor."
   },
   "cta": {
     "order": "Sipariş ver"

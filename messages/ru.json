@@ -296,7 +296,10 @@
     "tomorrow": "завтра",
     "zoneClosedLabel": "сейчас закрыт",
     "minCartWarn": "Минимальная корзина для этого района — {min} ₺, у вас {have} ₺.",
-    "zoneEtaLabel": "около {min} мин"
+    "zoneEtaLabel": "около {min} мин",
+    "deliveryClosedNote": "Доставка сейчас недоступна",
+    "pickupClosedNote": "Самовывоз сейчас недоступен",
+    "allClosedTitle": "Сейчас мы не принимаем заказы."
   },
   "track": {
     "metaTitle": "Отслеживание заказа",
@@ -442,7 +445,15 @@
     "priceLeaveWarn": "Kaydedilmemiş fiyat değişikliği var. Sayfadan çıkılsın mı?",
     "priceInvalid": "Fiyat pozitif tam sayı olmalı (0 ve boş olamaz).",
     "priceChanged": "değişti",
-    "priceDefault": "kodda: ₺{n}"
+    "priceDefault": "kodda: ₺{n}",
+    "deliveryOpen": "Kurye teslimatı açık",
+    "deliveryClosed": "Kurye teslimatı kapalı",
+    "pickupOpenLbl": "Gel-al açık",
+    "pickupClosedLbl": "Gel-al kapalı",
+    "svcSummary": "Kurye {d} · Gel-al {p}",
+    "svcOn": "açık",
+    "svcOff": "kapalı",
+    "svcAllClosed": "Sipariş alınmıyor."
   },
   "cta": {
     "order": "Заказать",

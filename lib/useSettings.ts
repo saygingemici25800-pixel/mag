@@ -27,6 +27,8 @@ async function refresh() {
     const pricesKey = (x: Settings) => Object.entries(x.prices).sort(([a], [b]) => (a < b ? -1 : 1)).map(([k, v]) => `${k}:${v}`).join("|");
     if (
       next.ordering_open !== snapshot.ordering_open ||
+      next.delivery_open !== snapshot.delivery_open ||
+      next.pickup_open !== snapshot.pickup_open ||
       next.sold_out.join() !== snapshot.sold_out.join() ||
       zonesKey(next) !== zonesKey(snapshot) ||
       pricesKey(next) !== pricesKey(snapshot)
