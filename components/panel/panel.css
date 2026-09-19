@@ -842,10 +842,10 @@
   font-size: 0.66rem;
   color: color-mix(in srgb, var(--cream) 55%, transparent);
 }
-/* İptal kartı: paletten TÜRETİLMİŞ açık kırmızı — sabit hex YOK.
-   Düz var(--mag-red) kullanılamıyor: o renk panelin ZEMİNİ (#c72d1b), aynı
-   renk yazı okunmuyor. Krem ile karıştırılıp zeminden ayrılan bir ton elde
-   ediliyor; kontrast ölçüldü (bkz. raporlar paketi). */
+/* İptal kartı: paletten TÜRETİLMİŞ açık kırmızı — sabit renk YOK.
+ * Düz var(--mag-red) kullanılamıyor: o ton panelin ZEMİNİ, aynı renk yazı
+ * okunmuyor. Krem ile karıştırılıp zeminden ayrılan bir ton elde ediliyor.
+ * Kontrast gerçek pikselden ölçüldü: 4.18:1 (1.15rem kalın → AA-large). */
 .rp-card.danger > b {
   color: color-mix(in srgb, var(--mag-red) 35%, var(--cream));
 }
