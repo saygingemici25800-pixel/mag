@@ -108,8 +108,12 @@ export default function LightRays({ bind, onReady }: Props) {
     });
     gl.uniform3f(U.raysColor, RAY_RGB[0], RAY_RGB[1], RAY_RGB[2]);
     gl.uniform1f(U.raysSpeed, 0.55);
-    gl.uniform1f(U.lightSpread, 0.34); // dar koni: yalnızca odaktaki burgerin üstü
-    gl.uniform1f(U.rayLength, 0.85);
+    /* 21 Eyl 2026 — IŞIK BÜYÜTÜLDÜ. Koni dar ve kısa kalıyordu; burger ışığın
+       alt kenarında duruyordu. lightSpread küçüldükçe koni DARALIR (üs 1/spread),
+       bu yüzden yayılım için değer BÜYÜTÜLDÜ. rayLength de uzatıldı ki havuz
+       burgerin altına kadar inip onu içine alsın. */
+    gl.uniform1f(U.lightSpread, 0.52); // 0.34 → 0.52: belirgin daha geniş koni
+    gl.uniform1f(U.rayLength, 1.15); // 0.85 → 1.15: ışık daha aşağı iniyor, burger içinde kalıyor
     gl.uniform1f(U.fadeDistance, 1.0);
     gl.uniform1f(U.mouseInfluence, 0.07);
     gl.uniform1f(U.noiseAmount, 0.06);

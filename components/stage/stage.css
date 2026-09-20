@@ -58,9 +58,23 @@
   --src: var(--srcD);
   position: absolute;
   left: 50%;
-  bottom: 26vh;
-  width: 66vh;
-  height: 52vh;
+  /* 21 Eyl 2026 — BAŞA DÖNÜNCE BURGERLER AŞAĞI KAYIYORDU.
+     .stage `fixed; inset:0` olduğu için yüksekliği VIEWPORT'a eşit. Mobilde
+     adres çubuğu gizlenince viewport büyüyor, `bottom: 26vh` de büyüyor ve
+     alta yaslı kart aşağı iniyordu (ölçüldü 390×844→900: bottom 388→414px,
+     kart +30px). --heroVH JS'te BİR KEZ ölçülüp donduruluyor (Stage.tsx);
+     çubuk oynasa da kartın alt kenardan uzaklığı sabit kalıyor.
+     Yedek (JS çalışmadan önce / devre dışıysa): eski davranış, 1vh. */
+  /* ÜSTTEN konumlandırma: .stage yüksekliği viewport'la değişiyor; alttan
+     yaslamak (bottom) kartı o değişimle birlikte aşağı indiriyordu. Üst kenar
+     sabit olduğu için top ile konumlandırınca adres çubuğu oynaması kartı
+     etkilemiyor. Değer dondurulmuş yükseklikten türetilir:
+     top = --heroVH×100 − (26 + 52)×--heroVH  →  22×--heroVH */
+  top: calc(var(--heroVH, 1vh) * 22);
+  /* Genişlik/yükseklik de dondurulmuş ölçüden: `vh` kalsaydı viewport
+     büyüyünce kart büyüyüp konumu kayardı (masaüstünde ölçüldü). */
+  width: calc(var(--heroVH, 1vh) * 66);
+  height: calc(var(--heroVH, 1vh) * 52);
   transform-origin: 50% 100%;
   transform: translate(-50%, 0);
   pointer-events: none;
@@ -84,7 +98,13 @@
   .item {
     width: min(14.5vh, 26vw);
     height: min(11.5vh, 21vw);
-    bottom: 46vh;
+    /* Mobilde kart yüksekliği vh DEĞİL, 21vw tavanıyla belirleniyor (390px'te
+       81.9px). Bu yüzden top'u sabit katsayıyla yazmak yerine aynı min()
+       ifadesinden ÇIKARIYORUZ: top = 100×heroVH − 46×heroVH − kartYüksekliği.
+       Böylece 46vh'lik alt boşluk birebir korunur (ölçüldü: y 390, fix
+       öncesiyle aynı). */
+    bottom: auto;
+    top: calc(var(--heroVH, 1vh) * 54 - min(11.5vh, 21vw));
   }
 }
 @media (max-width: 899px) {

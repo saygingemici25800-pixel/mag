@@ -53,6 +53,9 @@ export default function Stage({ extra }: { extra?: ExtraCutouts }) {
   const activeRef = useRef(0);
   const ciRef = useRef(-1);
   const size = useRef({ vw: 1440, vh: 860 });
+  /* Hero yüksekliği bir kez ölçülür ve adres çubuğu oynamalarında KORUNUR
+     (bkz. aşağıdaki resize effect'i). false iken ilk gerçek ölçüm bekleniyor. */
+  const olculdu = useRef(false);
   const swipe = useRef({ down: false, sx: 0 });
 
   /** İsimle DOM referansı bağla — her isim için sabit callback (ref churn olmasın). Düz nesne: render'da okunabilir.
@@ -110,13 +113,47 @@ export default function Stage({ extra }: { extra?: ExtraCutouts }) {
     });
   }, [dom]);
   useEffect(() => {
+    /* 21 Eyl 2026 — BURGERLER BAŞA DÖNÜNCE AŞAĞI KAYIYORDU.
+       Sebep: hero'nun dikey konumu vh'ye ORANTILI (stageMath heroBaseY = vh*0.4,
+       kart yüksekliği/bottom/lift de vh'den türüyor). Mobil tarayıcıda scroll
+       ederken adres çubuğu gizlenip görününce innerHeight değişiyor ve `resize`
+       tetikleniyordu; kullanıcı başa döndüğünde çubuk GİZLİ kaldığı için vh
+       büyük kalıyor ve tüm burgerler aşağı iniyordu (ölçüldü: 844→900'de +30px).
+
+       Çözüm: hero ölçüsü için yükseklik SABİTLENİR. Yalnızca GENİŞLİK değişirse
+       (yön değişimi, pencere yeniden boyutlandırma) yeniden ölçülür — adres
+       çubuğunun açılıp kapanması genişliği değiştirmez, dolayısıyla sahne
+       kımıldamaz. Yön değişiminde genişlik de değiştiği için ölçü tazelenir. */
     const on = () => {
-      size.current = { vw: window.innerWidth, vh: window.innerHeight };
+      const vw = window.innerWidth;
+      const genislikDegisti = vw !== size.current.vw;
+      /* İlk ölçüm (vh=0) ya da gerçek bir düzen değişikliği: yüksekliği tazele.
+         Yalnızca yükseklik oynadıysa (adres çubuğu) ESKİ değer korunur. */
+      if (!olculdu.current || genislikDegisti) {
+        size.current = { vw, vh: window.innerHeight };
+        olculdu.current = true;
+        /* CSS de aynı DONDURULMUŞ yüksekliği kullansın: .item ölçüleri
+           stage.css'te var(--heroVH) üzerinden yazılı (1vh yerine). */
+        document.documentElement.style.setProperty("--heroVH", `${window.innerHeight / 100}px`);
+      } else {
+        size.current = { vw, vh: size.current.vh };
+      }
       measureCutout();
     };
     on();
     window.addEventListener("resize", on);
-    return () => window.removeEventListener("resize", on);
+    /* Yön değişimi bazı tarayıcılarda resize'dan ÖNCE gelir; ölçü orada da tazelenmeli. */
+    const yon = () => {
+      size.current = { vw: window.innerWidth, vh: window.innerHeight };
+      olculdu.current = true;
+      document.documentElement.style.setProperty("--heroVH", `${window.innerHeight / 100}px`);
+      measureCutout();
+    };
+    window.addEventListener("orientationchange", yon);
+    return () => {
+      window.removeEventListener("resize", on);
+      window.removeEventListener("orientationchange", yon);
+    };
   }, [measureCutout]);
   useEffect(() => {
     // slotlar kaydı: yeni ürünlerin en/boy oranını al

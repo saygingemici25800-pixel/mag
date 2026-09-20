@@ -654,7 +654,12 @@ export function computeFrame(p: number, env: Env, offset = 0): Frame {
      %25'i kadar yukarı çıkılır (eski davranışla aynı oran). */
   const focusHc = contentHeight(card, slotAr(CENTER));
   const rayTop = vh - card.bottom - focusHc;
-  const raysOriginY = Math.round(((rayTop - 0.25 * focusHc) / vh) * 1000) / 1000;
+  /* 21 Eyl 2026 — IŞIK YUKARI ALINDI. Kaynak burgerin üst kenarının 0.25×gövde
+     kadar üstündeydi; havuzun merkezi burgerin ALT kısmına denk geliyordu.
+     0.34'e çıkarıldı: kaynak biraz yukarı, ama ekranın tepesine yapışmıyor —
+     0.55 denendi, koni ince bir "V" gibi göründü ve havuz burgerden koptu.
+     Yansıma (reflection) ayrı hesaplanıyor, bundan etkilenmiyor. */
+  const raysOriginY = Math.round(((rayTop - 0.34 * focusHc) / vh) * 1000) / 1000;
 
   const flow: ClaimFlow = {
     on: claimsOn,
