@@ -49,8 +49,16 @@ next-env.d.ts
 # yerel sipariş stub verisi
 /.data
 
-# testlerin kök dizine bıraktığı ekran görüntüleri
+# testlerin kök dizine bıraktığı ekran görüntüleri.
+# Başındaki "/" YALNIZCA kökü kapsar: public/, assets/, docs/ ve diğer alt
+# klasörlerdeki görseller ETKİLENMEZ (ürün fotoğrafları oradan geliyor).
+# 20 Eyl 2026: png dışı uzantılar da eklendi — kökte 70 PNG birikmişti.
 /*.png
+/*.jpg
+/*.jpeg
+/*.webp
+/*.gif
+/*.avif
 
 # İşletmenin ham çekim arşivi (135 JPG, ~2,4 GB) — repoya GİRMEZ.
 # Galeriye giren kareler public/galeri/ altına işlenmiş (WebP) olarak konur.

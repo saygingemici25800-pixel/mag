@@ -1,7 +1,10 @@
 // prefers-reduced-motion: ana sayfa statik fallback gerçekten mi geliyor? Ekran görüntüsü + DOM kontrolü
 import { chromium } from "playwright";
+import { mkdirSync } from "node:fs";
 const base = process.argv[2] ?? "http://localhost:3112";
-const out = process.argv[3] ?? ".";
+/* Ekran görüntüleri docs/screens/ altına (gitignore'lu); kök dizine YAZILMAZ. */
+const out = process.argv[3] ?? "docs/screens/reduced-motion";
+mkdirSync(out, { recursive: true });
 const browser = await chromium.launch();
 for (const [w, h, tag] of [[1440, 860, "d"], [390, 844, "m"]]) {
   const ctx = await browser.newContext({ viewport: { width: w, height: h }, reducedMotion: "reduce" });

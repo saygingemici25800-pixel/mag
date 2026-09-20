@@ -1,8 +1,11 @@
 // Faz 5 — 390×844, mock ödeme ile tam akış + başarısız dal + panel (SSE) + ekran görüntüleri
 import { chromium } from "playwright";
+import { mkdirSync } from "node:fs";
 import { FAKE_NOW, PANEL_KEY as KEY, assertServerReady, clearCart, fillDelivery, waitForCartCount } from "./_cart-fixture.mjs";
 const base = process.argv[2] ?? "http://localhost:3112";
-const out = process.argv[3] ?? ".";
+/* Ekran görüntüleri docs/screens/ altına (gitignore'lu); kök dizine YAZILMAZ. */
+const out = process.argv[3] ?? "docs/screens/faz5";
+mkdirSync(out, { recursive: true });
 const FAKE = FAKE_NOW;
 await assertServerReady(base);
 const browser = await chromium.launch();

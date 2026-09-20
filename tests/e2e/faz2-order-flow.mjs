@@ -2,9 +2,12 @@
 // Not: Faz 2'de tek sayfaydı (article.card + form aynı sayfada); Faz 5'te ikiye ayrıldı ve
 // teslimatta nakit/kart kalktı. Bu test o değişikliğe göre güncellendi.
 import { chromium } from "playwright";
+import { mkdirSync } from "node:fs";
 import { FAKE_NOW, PANEL_KEY, assertServerReady, clearCart, fillDelivery, waitForCartCount } from "./_cart-fixture.mjs";
 const base = process.argv[2] ?? "http://localhost:3112";
-const out = process.argv[3] ?? ".";
+/* Ekran görüntüleri docs/screens/ altına (gitignore'lu); kök dizine YAZILMAZ. */
+const out = process.argv[3] ?? "docs/screens/siparis-akisi";
+mkdirSync(out, { recursive: true });
 await assertServerReady(base);
 const browser = await chromium.launch();
 const errs = [];
