@@ -115,7 +115,7 @@ check("her gün açılış < kapanış", HOURS.every((h) => h.openMin < h.closeM
     items: [{ id: "smooky", qty: 1 }],
     name: "Test Kullanıcı",
     phone: "0555 555 55 55",
-    requested_at: "simdi",
+    requested_at: "simdi", terms_accepted: true,
   };
   const closedErrs = validateOrder(base, D("2026-09-15T00:10:00+03:00"));
   check("KAPALI saatte sipariş reddedilir (hours/closed)", closedErrs.some((e) => e.field === "hours" && e.code === "closed"), JSON.stringify(closedErrs));
@@ -162,7 +162,7 @@ if (base) {
     items: [{ id: "smooky", qty: 1 }],
     name: "Test Kullanıcı",
     phone: "0555 555 55 55",
-    requested_at: "simdi",
+    requested_at: "simdi", terms_accepted: true,
   };
   const post = (p, b, headers = {}) =>
     fetch(base + p, { method: "POST", headers: { "content-type": "application/json", ...headers }, body: JSON.stringify(b) });

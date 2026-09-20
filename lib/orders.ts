@@ -6,6 +6,10 @@ import { DEFAULT_LOCALE, isLocale, type Locale } from "@/lib/i18n";
 import { MENU, priceOf, type MenuItem } from "@/lib/menu";
 import { findZone, zoneActive, type Zone } from "@/lib/zones";
 import { defaultNow, isOpen, timeSlots, type Schedule } from "@/lib/hours";
+import { LEGAL_FIELDS } from "@/lib/legal";
+
+/** Onaylanan yasal metin sürümü — metin güncellenince bu da değişir. */
+const LEGAL_VERSION = LEGAL_FIELDS.TARIH ?? "bilinmiyor";
 
 export type OrderType = "pickup" | "delivery";
 export type Payment = "online"; // karar 3 Eyl 2026: yalnızca online
@@ -101,6 +105,11 @@ export interface Order {
   closed_at?: string | null;
   /** iptal zamanı */
   cancelled_at?: string | null;
+  /* --- mesafeli satış onayı (0012_terms_consent.sql) --- */
+  /** onayın alındığı an — SUNUCU saati (istemciden gelen zamana güvenilmez) */
+  terms_accepted_at?: string | null;
+  /** onaylanan metin sürümü */
+  terms_version?: string | null;
 }
 
 export interface NewOrderInput {
@@ -113,6 +122,8 @@ export interface NewOrderInput {
   requested_at: string;
   note?: string | null;
   locale?: OrderLocale;
+  /** Ön bilgilendirme + mesafeli satış sözleşmesi onayı. Sunucu ZORUNLU tutar. */
+  terms_accepted?: boolean;
 }
 
 export interface OrderStore {
@@ -195,6 +206,11 @@ export function validateOrder(input: NewOrderInput, now: Date = defaultNow(), zo
          kendiliğinden geçer — kod değişikliği gerekmez. */
       if (m && priceOf(m, prices) <= 0) errs.push({ field: "items", code: "no-price:" + it.id });
     }
+  /* MESAFELİ SATIŞ ONAYI ZORUNLU. Arayüzde kutu işaretlenmeden buton pasif ama
+     buna güvenilmez: istek doğrudan API'ye de gelebilir. Onay bayrağı yoksa
+     sipariş oluşturulmaz (Mesafeli Sözleşmeler Yönetmeliği: onay sipariş
+     ONAYINDAN ÖNCE alınmış olmalı). */
+  if (input.terms_accepted !== true) errs.push({ field: "terms", code: "required" });
   if (!input.name || input.name.trim().length < 2) errs.push({ field: "name", code: "required" });
   if (!normalizePhone(input.phone ?? "")) errs.push({ field: "phone", code: "invalid" });
   if (input.type === "delivery") {
@@ -259,5 +275,10 @@ export function buildOrder(input: NewOrderInput, now: Date = defaultNow(), zones
     locale: isLocale(input.locale) ? input.locale : DEFAULT_LOCALE,
     status: "received",
     cancel_reason: null,
+    /* ONAY KAYDI — uyuşmazlıkta kanıt. Zaman SUNUCUDAN (`now`), istemciden gelen
+       bir damgaya güvenilmez. Buraya gelindiyse validateOrder onayı zaten
+       doğrulamış demektir (terms_accepted !== true → 422). */
+    terms_accepted_at: now.toISOString(),
+    terms_version: LEGAL_VERSION,
   };
 }

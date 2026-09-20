@@ -77,9 +77,36 @@ for (const vp of [{ w: 1440, h: 860, tag: "d" }, { w: 390, h: 844, tag: "m" }]) 
 const bad = await fetch(base + "/api/orders", {
   method: "POST",
   headers: { "content-type": "application/json" },
-  body: JSON.stringify({ type: "delivery", zone: "oludeniz", items: [{ id: "ayran", qty: 1 }], name: "A", phone: "123", address: "x", requested_at: "simdi" }),
+  body: JSON.stringify({ type: "delivery", zone: "oludeniz", items: [{ id: "ayran", qty: 1 }], name: "A", phone: "123", address: "x", requested_at: "simdi", terms_accepted: true }),
 });
 check("geçersiz sipariş 422", bad.status === 422, `status=${bad.status}`);
+/* ---------- MESAFELİ SATIŞ ONAYI (zorunlu) ----------
+   Yönetmelik: onay sipariş ONAYINDAN ÖNCE alınmalı. Arayüzde kutu işaretlenmeden
+   buton pasif ama buna güvenilmez — istek doğrudan API'ye de gelebilir. */
+for (const [govde, ad] of [
+  [{ type: "pickup", items: [{ id: "smooky", qty: 1 }], name: "Onay Test", phone: "05321234567", requested_at: "simdi" }, "bayrak YOK"],
+  [{ type: "pickup", items: [{ id: "smooky", qty: 1 }], name: "Onay Test", phone: "05321234567", requested_at: "simdi", terms_accepted: false }, "false"],
+  [{ type: "pickup", items: [{ id: "smooky", qty: 1 }], name: "Onay Test", phone: "05321234567", requested_at: "simdi", terms_accepted: "evet" }, "metin 'evet'"],
+]) {
+  const r = await fetch(base + "/api/orders", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(govde) });
+  const b2 = await r.json().catch(() => ({}));
+  const terms = (b2.errors ?? []).some((e) => e.field === "terms" && e.code === "required");
+  check(`onaysız sipariş reddedildi (${ad})`, r.status === 422 && terms, `HTTP ${r.status} ${JSON.stringify(b2.errors ?? b2).slice(0, 60)}`);
+}
+{
+  /* Onaylı sipariş: kayda onay damgası YAZILMALI (uyuşmazlıkta kanıt) */
+  const r = await fetch(base + "/api/orders", { method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ type: "pickup", items: [{ id: "smooky", qty: 1 }], name: "Onay Test", phone: "05321234567", requested_at: "simdi", terms_accepted: true }) });
+  const j = await r.json();
+  check("onaylı sipariş oluştu", r.status === 201 && !!j.id, `HTTP ${r.status}`);
+  if (j.id) {
+    const o = await (await fetch(`${base}/api/orders/${j.id}`)).json();
+    check("kayıtta terms_accepted_at var", typeof o.terms_accepted_at === "string" && o.terms_accepted_at.length > 10, String(o.terms_accepted_at));
+    check("kayıtta terms_version var", typeof o.terms_version === "string" && o.terms_version.length > 0, String(o.terms_version));
+    check("onay zamanı SUNUCU saati (created_at ile aynı an)", o.terms_accepted_at === o.created_at, `${o.terms_accepted_at} vs ${o.created_at}`);
+  }
+}
+
 console.log("errors:", errs.length ? errs : "none");
 await browser.close();
 process.exit(fail ? 1 : 0);

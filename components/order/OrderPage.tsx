@@ -15,6 +15,7 @@ import { useSettings } from "@/lib/useSettings";
 import Ingredients from "./Ingredients";
 import ProductImage from "./ProductImage";
 import ProductSheet from "./ProductSheet";
+import LegalLinks from "./LegalLinks";
 import "./order.css";
 import { priceOf } from "@/lib/menu";
 
@@ -165,6 +166,8 @@ export default function OrderPage() {
             </section>
           ))}
         </div>
+        {/* Yasal metinlere sipariş akışından da erişilebilsin (yönetmelik gereği) */}
+        <LegalLinks locale={locale} />
       </div>
       {/* "YANINDA İYİ GİDER" — listenin sonunda, sepet çubuğunun üstünde; boş sepette görünmez */}
       <Upsell />

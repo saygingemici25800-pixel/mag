@@ -184,13 +184,15 @@
       "Legal",
       "Distance sales",
       "Privacy (KVKK)",
-      "Cookies"
+      "Cookies",
+      "Privacy"
     ],
     "linkSlugs": [
       "iade-iptal",
       "mesafeli-satis",
       "kvkk",
-      "cerez"
+      "cerez",
+      "gizlilik"
     ],
     "leadEmphasis": [
       "MAG SAFE",
@@ -404,7 +406,12 @@
     "deliveryClosedNote": "Courier is currently closed",
     "pickupClosedNote": "Pickup is currently closed",
     "allClosedTitle": "We can't take orders right now.",
-    "noPrice": "Coming soon"
+    "noPrice": "Coming soon",
+    "termsPre": "Pre-Information Form",
+    "termsMid": " and the ",
+    "termsContract": "Distance Sales Agreement",
+    "termsPost": " — I have read and accept.",
+    "termsRequired": "Please accept the agreement to continue."
   },
   "track": {
     "metaTitle": "Order tracking",
@@ -442,7 +449,8 @@
     "index": "Legal",
     "updated": "Last updated",
     "placeholderNote": "Fields in brackets will be completed once the business details arrive.",
-    "trOnly": "Legal texts are provided in Turkish, the language of the agreement. Contact us if you need help."
+    "trOnly": "Legal texts are provided in Turkish, the language of the agreement. Contact us if you need help.",
+    "gizlilik": "Privacy Policy"
   },
   "notFound": {
     "title": [

@@ -4,7 +4,7 @@ export interface LegalDoc {
   sections: { h?: string; p: string[] }[];
 }
 
-export const LEGAL_DOCS: Record<"kvkk" | "mesafeli-satis" | "iade-iptal" | "cerez", LegalDoc> = {
+export const LEGAL_DOCS: Record<"kvkk" | "mesafeli-satis" | "iade-iptal" | "cerez" | "gizlilik", LegalDoc> = {
   kvkk: {
     updated: "{{TARIH}}",
     sections: [
@@ -47,6 +47,20 @@ export const LEGAL_DOCS: Record<"kvkk" | "mesafeli-satis" | "iade-iptal" | "cere
       { h: "Kullanılan çerezler ve depolama", p: ["mag_panel (çerez, 30 gün): yalnızca işletme paneline giriş yapan kullanıcıda oturumu tutar. Müşterilerde oluşmaz.", "mag:sound, mag:panel-sound, mag:panel-seen (tarayıcı localStorage): ses tercihi ve panelde görülen siparişler. Sunucuya gönderilmez.", "Supabase oturum bilgisi (localStorage): yalnızca işletme paneli girişinde, giriş yapan kullanıcıda."] },
       { h: "Üçüncü taraflar", p: ["Yazı tipleri sitenin kendi sunucusundan yüklenir; Google Fonts'a bağlantı kurulmaz. Harita bağlantısına tıkladığınızda Google Haritalar'a yönlendirilirsiniz; oradaki işlemler Google'ın politikalarına tabidir."] },
       { h: "Tercihleriniz", p: ["Tarayıcı ayarlarından çerezleri ve site verilerini istediğiniz zaman silebilirsiniz; site bu durumda da çalışmaya devam eder."] },
+    ],
+  },
+  gizlilik: {
+    updated: "{{TARIH}}",
+    sections: [
+      { p: ["Bu Gizlilik Politikası, {{WEB}} üzerinden verdiğiniz siparişlerde {{UNVAN}} ({{MARKA}}) olarak hangi kişisel verileri topladığımızı, neden topladığımızı, ne kadar süre sakladığımızı ve kimlerle paylaştığımızı açıklar. Kişisel verilerin işlenmesine ilişkin ayrıntılı aydınlatma için KVKK Aydınlatma Metni'ne bakın."] },
+      { h: "1. Topladığımız veriler", p: ["Sipariş verirken: ad soyad, telefon numarası, kurye teslimatında teslimat adresi ve mahalle bilgisi.", "Sipariş içeriği: seçtiğiniz ürünler, çıkardığınız malzemeler, sipariş notunuz, istediğiniz teslim saati ve teslimat türü (kurye / gel-al).", "Otomatik oluşan kayıtlar: sipariş numarası, sipariş zamanı, tutar ve sipariş durumu.", "Toplamadığımız veriler: kart bilgisi sitede saklanmaz; kimlik numarası, doğum tarihi veya konum verisi istenmez. Üyelik sistemi yoktur, parola tutulmaz."] },
+      { h: "2. Neden topluyoruz", p: ["Verileriniz yalnızca siparişinizi almak, hazırlamak, teslim etmek ve gerektiğinde sizinle sipariş hakkında iletişim kurmak için kullanılır. Ayrıca vergi ve muhasebe yükümlülüklerimizi yerine getirmek için sipariş kayıtlarını tutarız.", "Verileriniz pazarlama amacıyla üçüncü kişilere SATILMAZ ve devredilmez. İzniniz olmadan ticari elektronik ileti gönderilmez."] },
+      { h: "3. Ne kadar saklıyoruz", p: ["Sipariş kayıtları, ticari defter ve belgelere ilişkin zorunlu süre boyunca (10 yıl) saklanır; tüketici uyuşmazlıkları için öngörülen süre 3 yıldır. Sürenin sonunda kayıtlar silinir veya kişisel veri içermeyecek şekilde anonim hale getirilir."] },
+      { h: "4. Kimlerle paylaşıyoruz", p: ["Supabase (veritabanı ve barındırma, AB veri merkezi): sipariş kayıtları burada tutulur.", "Vercel (site altyapısı): sitenin çalışması için gereken teknik işlem.", "Ödeme sağlayıcısı: online ödeme devreye alındığında, ödeme işlemini gerçekleştirmek için gereken asgari bilgi. Kart bilgileri bize ulaşmaz, doğrudan sağlayıcıda işlenir.", "Kurye: yalnızca teslimat için gereken ad, telefon ve adres bilgisi.", "Yasal zorunluluk halinde yetkili kamu kurumları. Bunun dışında hiçbir üçüncü kişiyle paylaşılmaz."] },
+      { h: "5. Çerezler", p: ["Site yalnızca çalışması için zorunlu çerezleri ve tarayıcı depolamasını kullanır; analitik, reklam veya takip çerezi yoktur. Ayrıntı için Çerez Politikası'na bakın."] },
+      { h: "6. Haklarınız", p: ["KVKK m. 11 kapsamında verilerinize erişme, düzeltme, silinmesini isteme ve işlemeye itiraz etme haklarına sahipsiniz. Hakların tam listesi ve başvuru yöntemi için KVKK Aydınlatma Metni'ne bakın."] },
+      { h: "7. Güvenlik", p: ["Sipariş verileri şifreli bağlantı (HTTPS) üzerinden iletilir ve erişimi yetkilendirilmiş işletme paneliyle sınırlıdır. Panel girişi anahtar ile korunur."] },
+      { h: "8. İletişim", p: ["Gizlilikle ilgili soru ve talepleriniz için: {{EPOSTA}} · {{TEL}} · {{ADRES}}"] },
     ],
   },
 };

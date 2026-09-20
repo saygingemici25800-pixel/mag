@@ -189,13 +189,15 @@
       "Правовая информация",
       "Дистанционная продажа",
       "Конфиденциальность (KVKK)",
-      "Файлы cookie"
+      "Файлы cookie",
+      "Конфиденциальность"
     ],
     "linkSlugs": [
       "iade-iptal",
       "mesafeli-satis",
       "kvkk",
-      "cerez"
+      "cerez",
+      "gizlilik"
     ],
     "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek",
     "leadEmphasis": [
@@ -300,7 +302,12 @@
     "deliveryClosedNote": "Доставка сейчас недоступна",
     "pickupClosedNote": "Самовывоз сейчас недоступен",
     "allClosedTitle": "Сейчас мы не принимаем заказы.",
-    "noPrice": "Скоро"
+    "noPrice": "Скоро",
+    "termsPre": "Форму предварительной информации",
+    "termsMid": " и ",
+    "termsContract": "Договор дистанционной продажи",
+    "termsPost": " — прочитал(а) и принимаю.",
+    "termsRequired": "Примите условия, чтобы продолжить."
   },
   "track": {
     "metaTitle": "Отслеживание заказа",
@@ -570,7 +577,8 @@
     "updated": "Последнее обновление",
     "placeholderNote": "Поля в скобках будут заполнены после получения данных заведения.",
     "trOnly": "Юридические тексты предоставлены на турецком языке — языке договора. Напишите нам, если нужна помощь.",
-    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek"
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek",
+    "gizlilik": "Политика конфиденциальности"
   },
   "notFound": {
     "title": [

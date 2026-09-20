@@ -14,7 +14,7 @@ const CK = (login.headers.getSetCookie?.() ?? []).map((c) => c.split(";")[0]).jo
 const setSvc = (body) => fetch(base + "/api/panel/settings", { method: "PATCH", headers: { "content-type": "application/json", cookie: CK }, body: JSON.stringify(body) });
 const siparis = (type, ad) => fetch(base + "/api/orders", { method: "POST", headers: { "content-type": "application/json" },
   body: JSON.stringify({ type, ...(type === "delivery" ? { zone: "merkez", address: "Servis Test Sk. No:1" } : {}),
-    items: [{ id: "smooky", qty: 2 }], name: ad, phone: "05321234567", requested_at: "simdi", locale: "tr" }) });
+    items: [{ id: "smooky", qty: 2 }], name: ad, phone: "05321234567", requested_at: "simdi", terms_accepted: true, locale: "tr" }) });
 
 /** Müşteri formunu aç, iki düğmenin durumunu oku */
 async function form(lang = "") {
@@ -24,6 +24,12 @@ async function form(lang = "") {
   await p.clock.install({ time: FAKE_NOW });
   await p.goto(base + lang + "/siparis/odeme", { waitUntil: "load" });
   await p.waitForTimeout(2300);
+  /* Bu paket SERVİS şalterlerini ölçüyor; mesafeli satış onayı ayrı bir koşul.
+     Kutu işaretlenmezse submit her durumda pasif kalır ve "ikisi açık →
+     gönderim serbest" kontrolü yanlış sebeple düşer. Onay burada verilir. */
+  const onay = p.locator("[data-terms-check]");
+  if (await onay.count()) await onay.check().catch(() => {});
+  await p.waitForTimeout(200);
   const st = await p.evaluate(() => ({
     pickupDisabled: document.querySelector("[data-mode-pickup]")?.disabled ?? null,
     deliveryDisabled: document.querySelector("[data-mode-delivery]")?.disabled ?? null,

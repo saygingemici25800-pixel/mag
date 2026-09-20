@@ -16,7 +16,7 @@ const CK = (login.headers.getSetCookie?.() ?? []).map((c) => c.split(";")[0]).jo
 
 /* ---------- 0) ESKİ sipariş: fiyat değişmeden ÖNCE ver ---------- */
 const eski = await fetch(base + "/api/orders", { method: "POST", headers: { "content-type": "application/json" },
-  body: JSON.stringify({ type: "pickup", items: [{ id: "smooky", qty: 1 }], name: "Eski Siparis", phone: "05321234567", requested_at: "simdi", locale: "tr" }) }).then((r) => r.json());
+  body: JSON.stringify({ type: "pickup", items: [{ id: "smooky", qty: 1 }], name: "Eski Siparis", phone: "05321234567", requested_at: "simdi", terms_accepted: true, locale: "tr" }) }).then((r) => r.json());
 check("eski sipariş oluştu", Boolean(eski.id), String(eski.id).slice(0, 8));
 
 /* ---------- 1) PANEL: fiyat değiştir (620 → 777) ---------- */
@@ -75,14 +75,14 @@ await pctx.close();
 
 /* ---------- 3) Sunucu: yeni sipariş 777 ile kaydedilir ---------- */
 const yeni = await fetch(base + "/api/orders", { method: "POST", headers: { "content-type": "application/json" },
-  body: JSON.stringify({ type: "pickup", items: [{ id: "smooky", qty: 1 }], name: "Yeni Siparis", phone: "05321234567", requested_at: "simdi", locale: "tr" }) }).then((r) => r.json());
+  body: JSON.stringify({ type: "pickup", items: [{ id: "smooky", qty: 1 }], name: "Yeni Siparis", phone: "05321234567", requested_at: "simdi", terms_accepted: true, locale: "tr" }) }).then((r) => r.json());
 const yeniKayit = await fetch(base + "/api/orders/" + yeni.id, { headers: { cookie: CK } }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
 if (yeniKayit) check("yeni sipariş 777 ₺ ile kaydedildi", yeniKayit.total === 777, "total=" + yeniKayit.total);
 
 /* ---------- 4) MANİPÜLASYON ---------- */
 for (const [body, ad] of [
-  [{ type: "pickup", items: [{ id: "smooky", qty: 1, price: 1 }], name: "Manipulasyon Test", phone: "05321234567", requested_at: "simdi", locale: "tr" }, "satır fiyatı 1 ₺"],
-  [{ type: "pickup", items: [{ id: "smooky", qty: 1 }], total: 1, name: "Manipulasyon Test", phone: "05321234567", requested_at: "simdi", locale: "tr" }, "total 1 ₺"],
+  [{ type: "pickup", items: [{ id: "smooky", qty: 1, price: 1 }], name: "Manipulasyon Test", phone: "05321234567", requested_at: "simdi", terms_accepted: true, locale: "tr" }, "satır fiyatı 1 ₺"],
+  [{ type: "pickup", items: [{ id: "smooky", qty: 1 }], total: 1, name: "Manipulasyon Test", phone: "05321234567", requested_at: "simdi", terms_accepted: true, locale: "tr" }, "total 1 ₺"],
 ]) {
   const r = await fetch(base + "/api/orders", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
   const j = await r.json().catch(() => ({}));

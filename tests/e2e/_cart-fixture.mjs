@@ -99,6 +99,11 @@ export async function fillDelivery(page, { zone = "merkez", address, name, phone
   if (address) await page.fill("textarea", address);
   if (name) await page.fill("input[placeholder='Ad soyad']", name);
   if (phone) await page.fill("input[placeholder='05XX XXX XX XX']", phone);
+  /* 20 Eyl 2026: mesafeli satış onayı ZORUNLU — kutu işaretlenmeden "Ödemeye geç"
+     pasif kalıyor. Gerçek müşteri de bunu işaretliyor; yardımcı da işaretler ki
+     akış testleri (faz2, faz5, servisler) onay kutusunda takılmasın. */
+  const onay = page.locator("[data-terms-check]");
+  if (await onay.count()) await onay.check().catch(() => {});
 }
 
 /** Panel anahtarı: sunucu PANEL_KEY ile başlatılmalı (yoksa üretim modunda her istek 401). */
@@ -126,7 +131,7 @@ export async function assertServerReady(base) {
   const r = await fetch(base + "/api/orders", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ type: "pickup", items: [{ id: "smooky", qty: 1 }], name: "Hazirlik Kontrol", phone: "05321234567", requested_at: "simdi", locale: "tr" }),
+    body: JSON.stringify({ type: "pickup", items: [{ id: "smooky", qty: 1 }], name: "Hazirlik Kontrol", phone: "05321234567", requested_at: "simdi", terms_accepted: true, locale: "tr" }),
   });
   const hint =
     `Şununla başlat: PANEL_KEY=test1234 PAYMENT_PROVIDER=mock ` +

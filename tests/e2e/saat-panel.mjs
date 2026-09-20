@@ -75,7 +75,7 @@ const VARSAYILAN = { week: [
   const bugun = await sunucununBugunu();
   await setSch({ ...VARSAYILAN, special: [{ date: bugun, closed: true, note: "Test tatili" }] });
   const r = await fetch(base + "/api/orders", { method: "POST", headers: { "content-type": "application/json" },
-    body: JSON.stringify({ type: "pickup", items: [{ id: "smooky", qty: 1 }], name: "Tatil Test", phone: "05321234567", requested_at: "simdi", locale: "tr" }) });
+    body: JSON.stringify({ type: "pickup", items: [{ id: "smooky", qty: 1 }], name: "Tatil Test", phone: "05321234567", requested_at: "simdi", terms_accepted: true, locale: "tr" }) });
   const j = await r.json().catch(() => ({}));
   check("bugün tatil → sipariş reddedildi", r.status === 422 && j.errors?.some((e) => e.field === "hours"), `HTTP ${r.status} ${JSON.stringify(j.errors?.[0] ?? {})}`);
 }

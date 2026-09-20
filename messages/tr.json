@@ -182,13 +182,15 @@
       "Yasal Bilgiler",
       "Mesafeli Satış",
       "KVKK",
-      "Çerezler"
+      "Çerezler",
+      "Gizlilik"
     ],
     "linkSlugs": [
       "iade-iptal",
       "mesafeli-satis",
       "kvkk",
-      "cerez"
+      "cerez",
+      "gizlilik"
     ],
     "leadEmphasis": [
       "MAG SAFE",
@@ -291,7 +293,12 @@
     "deliveryClosedNote": "Kurye şu an kapalı",
     "pickupClosedNote": "Gel-al şu an kapalı",
     "allClosedTitle": "Şu an sipariş alamıyoruz.",
-    "noPrice": "Yakında"
+    "noPrice": "Yakında",
+    "termsPre": "Ön Bilgilendirme Formu",
+    "termsMid": "'nu ve ",
+    "termsContract": "Mesafeli Satış Sözleşmesi",
+    "termsPost": "'ni okudum, kabul ediyorum.",
+    "termsRequired": "Devam etmek için sözleşmeyi onaylayın."
   },
   "track": {
     "title": [
@@ -556,7 +563,8 @@
     "index": "Yasal",
     "updated": "Son güncelleme",
     "placeholderNote": "Köşeli parantez içindeki alanlar işletme bilgileri gelince doldurulacaktır.",
-    "trOnly": ""
+    "trOnly": "",
+    "gizlilik": "Gizlilik Politikası"
   },
   "notFound": {
     "title": [

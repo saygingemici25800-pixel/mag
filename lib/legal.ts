@@ -5,7 +5,7 @@
 import { SITE, siteUrl } from "@/lib/site";
 import { LEGAL_DOCS, type LegalDoc } from "@/lib/legal-texts";
 
-export const LEGAL_SLUGS = ["kvkk", "mesafeli-satis", "iade-iptal", "cerez"] as const;
+export const LEGAL_SLUGS = ["kvkk", "gizlilik", "mesafeli-satis", "iade-iptal", "cerez"] as const;
 export type LegalSlug = (typeof LEGAL_SLUGS)[number];
 export function isLegalSlug(s: string): s is LegalSlug {
   return (LEGAL_SLUGS as readonly string[]).includes(s);
@@ -35,5 +35,8 @@ export function fillLegal(text: string): string {
 
 export function legalDoc(slug: LegalSlug): LegalDoc {
   const d = LEGAL_DOCS[slug];
-  return { ...d, sections: d.sections.map((s) => ({ h: s.h ? fillLegal(s.h) : undefined, p: s.p.map(fillLegal) })) };
+  /* `updated` de doldurulmalı: eskiden yalnızca sections geçiriliyordu ve
+     sayfada "Son güncelleme: {{TARIH}}" diye HAM yer tutucu görünüyordu
+     (beş sayfada birden, 20 Eyl 2026'da fark edildi). */
+  return { updated: fillLegal(d.updated), sections: d.sections.map((s) => ({ h: s.h ? fillLegal(s.h) : undefined, p: s.p.map(fillLegal) })) };
 }

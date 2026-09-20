@@ -14,6 +14,7 @@ import { useClockMinute } from "@/lib/useClock";
 import { findZone, zoneActive } from "@/lib/zones";
 import ProductImage from "./ProductImage";
 import MinCartInfo from "./MinCartInfo";
+import LegalLinks from "./LegalLinks";
 import Upsell from "./Upsell";
 import IngredientList from "./IngredientList";
 import { useSettings } from "@/lib/useSettings";
@@ -35,6 +36,9 @@ export default function CheckoutPage() {
   const [form, setForm] = useState({ name: "", phone: "", address: "", requested_at: "simdi", note: "" });
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  /* Mesafeli satış onayı — VARSAYILAN İŞARETSİZ. Yönetmelik onayın sipariş
+     ONAYINDAN ÖNCE alınmasını istiyor; önceden işaretli kutu onay sayılmaz. */
+  const [termsOk, setTermsOk] = useState(false);
   /* panel ayarları: sipariş kapalıysa ya da sepette tükenen ürün varsa ödeme yapılamaz */
   const settings = useSettings();
   const minute = useClockMinute();
@@ -81,7 +85,7 @@ export default function CheckoutPage() {
   const count = items.reduce((s, i) => s + i.qty, 0);
   const err = (f: string) => errors.find((e) => e.field === f);
   const soldOutInCart = items.filter((it) => settings.sold_out.includes(it.id)).map((it) => findMenuItem(it.id)?.name ?? it.id);
-  const canSubmit = open === true && settings.ordering_open && typeOpen(settings, etkinMode) && soldOutInCart.length === 0 && count > 0 && totals.missing === 0 && !submitting;
+  const canSubmit = open === true && settings.ordering_open && typeOpen(settings, etkinMode) && soldOutInCart.length === 0 && count > 0 && totals.missing === 0 && termsOk && !submitting;
 
   const submit = async () => {
     const errs: ValidationError[] = [];
@@ -102,6 +106,7 @@ export default function CheckoutPage() {
       requested_at: slots.includes(form.requested_at) ? form.requested_at : "simdi",
       note: form.note,
       locale,
+      terms_accepted: termsOk,
     };
     setSubmitting(true);
     try {
@@ -353,6 +358,30 @@ export default function CheckoutPage() {
                 {fmt(o.soldOutWarn, { items: soldOutInCart.join(", ") })}
               </div>
             ) : null}
+            {/* ONAY KUTUSU — butonun hemen üstünde, varsayılan işaretsiz.
+                Linkler yeni sekmede açılır ki form doldurulmuşken kaybolmasın. */}
+            <label className="terms" data-terms>
+              <input
+                type="checkbox"
+                checked={termsOk}
+                onChange={(e) => setTermsOk(e.target.checked)}
+                data-terms-check
+                aria-describedby="terms-text"
+              />
+              <span id="terms-text">
+                {/* Ayrı bir "Ön Bilgilendirme Formu" sayfası YOK; ön bilgilendirme kapsamındaki
+                   cayma/iptal koşulları İade ve İptal sayfasında. Kullanıcı gerçekten ilgili
+                   metne gitsin diye oraya bağlanıyor. */}
+                <a href={localePath(locale, "/yasal/iade-iptal")} target="_blank" rel="noopener noreferrer" data-terms-link="on-bilgilendirme">
+                  {o.termsPre}
+                </a>
+                {o.termsMid}
+                <a href={localePath(locale, "/yasal/mesafeli-satis")} target="_blank" rel="noopener noreferrer" data-terms-link="mesafeli-satis">
+                  {o.termsContract}
+                </a>
+                {o.termsPost}
+              </span>
+            </label>
             <button type="submit" className="submit" disabled={!canSubmit}>
               {submitting ? o.payingNow : `${o.payNow} · ${formatPriceFor(locale, totals.total)}`}
             </button>
@@ -364,6 +393,8 @@ export default function CheckoutPage() {
             </div>
           </aside>
         </div>
+        {/* Sözleşme ve ön bilgilendirme metinleri ödeme adımında da erişilebilir */}
+        <LegalLinks locale={locale} />
       </div>
       {info ? <MinCartInfo t={o} onClose={() => setInfo(false)} /> : null}
     </main>

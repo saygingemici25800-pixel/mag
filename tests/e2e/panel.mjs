@@ -182,7 +182,7 @@ check("sipariş kapalı anahtarı sunucuya yazıldı", closed === false, String(
   await s3.waitForSelector("[data-closed]", { timeout: 8000 });
   check("kapalıyken ödeme sayfası 'Şu an kapalıyız' diyor", true);
   check("kapalıyken ödeme butonu pasif", await s3.locator('button[type="submit"]').isDisabled());
-  const api = await c3.request.post(base + "/api/orders", { data: { type: "pickup", items: [{ id: "smooky", qty: 1 }], name: "X", phone: "05321234567", requested_at: "simdi" } });
+  const api = await c3.request.post(base + "/api/orders", { data: { type: "pickup", items: [{ id: "smooky", qty: 1 }], name: "X", phone: "05321234567", requested_at: "simdi", terms_accepted: true } });
   check("kapalıyken API sipariş reddediyor (409)", api.status() === 409, String(api.status()));
   await s3.screenshot({ path: `${out}/390-kapali.png` });
   await c3.close();

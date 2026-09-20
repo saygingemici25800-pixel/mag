@@ -326,3 +326,37 @@ Menüde `price: 0` = "fiyat bekleniyor" (ör. 20 Eyl 2026'da eklenen
   ürünün alanını boşaltmak ise hâlâ hatadır (mevcut fiyat kazara silinmesin).
 
 Panelden fiyat girilince üçü de kendiliğinden düzelir — kod değişikliği yok.
+
+### Mesafeli satış onayı (ödeme sayfası)
+Mesafeli Sözleşmeler Yönetmeliği: tüketici, sipariş onayından ÖNCE ön
+bilgilendirmeyi ve sözleşmeyi okuyup kabul etmiş olmalı. Üç katman:
+
+1. **Arayüz** — `/siparis/odeme`'de gönder butonunun HEMEN ÜSTÜNDE onay kutusu
+   (`[data-terms-check]`), varsayılan **işaretsiz**. İşaretlenmeden buton pasif.
+   Metindeki iki bağlantı yeni sekmede açılır (form doldurulmuşken kaybolmasın).
+2. **Sunucu** — `validateOrder`: `terms_accepted !== true` ise
+   `422 {field:"terms", code:"required"}`. Kasıtlı olarak KATI eşitlik: `"evet"`
+   gibi truthy değerler de reddedilir. Arayüz engeline güvenilmez.
+3. **Kayıt** — `buildOrder` onayı sipariş satırına yazar:
+   `terms_accepted_at` (SUNUCU saati, istemciden gelen damgaya güvenilmez) ve
+   `terms_version` (onaylanan metin sürümü = `LEGAL_FIELDS.TARIH`).
+   Migration: `0012_terms_consent.sql`. Uyuşmazlıkta kanıt olarak gerekiyor.
+
+Test: `faz2-order-flow` — bayraksız / `false` / `"evet"` üçü de reddedilmeli,
+onaylıda damga yazılmalı. Sipariş gönderen testler `terms_accepted: true`
+geçirir; tarayıcı akışlarında `fillDelivery` kutuyu işaretler.
+
+### Yasal sayfalar
+5 sayfa, TR/EN/RU: `kvkk` · `gizlilik` · `mesafeli-satis` · `iade-iptal` ·
+`cerez`. Tek kaynak `lib/legal-texts.ts` (metin) + `lib/legal.ts` (alan doldurma).
+
+Yeni sayfa eklemek: `LEGAL_DOCS`'a metin, `LEGAL_SLUGS`'a slug, üç dile
+`legal.<slug>` başlığı. Rota (`/yasal/[slug]`), sayfa içi gezinme ve
+`LegalLinks` şeridi kendiliğinden günceller.
+
+`{{ALAN}}` yer tutucuları `LEGAL_FIELDS`'ten dolar; `null` olanlar sayfada
+`[ALAN — AÇIK]` görünür. Hâlen boş: **UNVAN · VERGI_DAIRESI · VERGI_NO ·
+MERSIS · EPOSTA** (işletmeden gelecek, tek yerden dolar).
+
+Linkler: ana sayfa footer'ı + `/siparis` ve `/siparis/odeme` altındaki
+`LegalLinks` şeridi (`components/order/LegalLinks.tsx`).
