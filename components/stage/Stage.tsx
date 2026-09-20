@@ -165,6 +165,10 @@ export default function Stage({ extra }: { extra?: ExtraCutouts }) {
     () => () => {
       document.documentElement.classList.remove("lm");
       document.documentElement.classList.remove("heroOn");
+      /* --heroVH yalnızca hero'ya ait: sahne kalkınca SİLİNMELİ. Bırakılırsa
+         istemci tarafı gezinmede /siparis, /panel gibi sayfalarda <html>
+         üzerinde kalıyordu (ölçüldü). */
+      document.documentElement.style.removeProperty("--heroVH");
     },
     [],
   );
