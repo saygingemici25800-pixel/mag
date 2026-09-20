@@ -78,7 +78,22 @@ const phoneReached = await tabTo((f) => f.includes("{05XX XXX XX XX}"), 6);
 check("Telefon alanına ulaşıldı", phoneReached !== null);
 await page.keyboard.type("05321112233");
 
-// ---- 7) "Ödemeye geç": Tab + Enter → mock ödeme → onayla
+// ---- 7) Mesafeli satış onayı: Tab ile kutuya gel, SPACE ile işaretle.
+//         Kutu işaretlenmeden gönder butonu DISABLED olur ve Tab ile
+//         odaklanılamaz — klavye kullanıcısı için de onay şart.
+/* focused() aria-label/placeholder döndürüyor; onay kutusunun ikisi de yok.
+   Bu yüzden odağın GERÇEKTEN o kutuda olup olmadığı DOM'dan sorulur. */
+let onayOdak = false;
+for (let i = 0; i < 8 && !onayOdak; i++) {
+  await page.keyboard.press("Tab");
+  onayOdak = await page.evaluate(() => document.activeElement?.matches("[data-terms-check]") === true);
+}
+check("onay kutusuna Tab ile ulaşıldı", onayOdak);
+await page.keyboard.press("Space");
+await page.waitForTimeout(250);
+check("SPACE ile onay verildi", await page.isChecked("[data-terms-check]"));
+
+// ---- 8) "Ödemeye geç": Tab + Enter → mock ödeme → onayla
 const sub = await tabTo((f) => f.includes("ÖDEMEYE GEÇ") || f.includes("Ödemeye geç"), 12);
 check("Ödemeye geç butonuna ulaşıldı", sub !== null);
 await page.keyboard.press("Enter");

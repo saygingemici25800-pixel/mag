@@ -142,6 +142,8 @@ check("HAZIR → KAPANDI (delivered)", st === "delivered", st);
   await s2.waitForTimeout(700);
   await s2.fill("input[placeholder='Ad soyad']", "Gel Al");
   await s2.fill("input[placeholder='05XX XXX XX XX']", "05321112233");
+  /* Mesafeli satış onayı zorunlu: kutu işaretlenmeden gönder butonu pasif. */
+  await s2.locator("[data-terms-check]").check().catch(() => {});
   await s2.click('button[type="submit"]');
   await s2.waitForURL(/\/odeme\/test/, { timeout: 15000 });
   await s2.getByRole("button", { name: "Ödemeyi tamamla" }).click();
