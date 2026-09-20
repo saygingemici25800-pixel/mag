@@ -290,7 +290,6 @@
     "sweet-chili": "Sweet & chili",
     "mag-sos": "MAG sauce",
     "ayran": "Arslan ayran",
-    "icecekler": "Soft drinks",
     "su": "Water",
     "soda": "Sparkling water",
     "zencefilli-gazoz": "Ginger soda",
@@ -299,7 +298,14 @@
     "tiftik-taco": "Brisket taco",
     "karides-taco": "Shrimp taco",
     "tavuklu-noodle": "Chicken",
-    "karidesli-noodle": "Shrimp"
+    "karidesli-noodle": "Shrimp",
+    "kola-zero": "Coke Zero",
+    "kola-light": "Diet Coke",
+    "sprite": "Sprite",
+    "fanta": "Fanta",
+    "uludag-portakalli": "Uludağ orange",
+    "uludag-gazoz": "Uludağ soda",
+    "citir-tavuk": "Crispy chicken"
   },
   "menuIng": {},
   "order": {
@@ -397,7 +403,8 @@
     "zoneEtaLabel": "approx. {min} min",
     "deliveryClosedNote": "Courier is currently closed",
     "pickupClosedNote": "Pickup is currently closed",
-    "allClosedTitle": "We can't take orders right now."
+    "allClosedTitle": "We can't take orders right now.",
+    "noPrice": "Coming soon"
   },
   "track": {
     "metaTitle": "Order tracking",

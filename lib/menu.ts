@@ -48,11 +48,13 @@ export interface HeroItem extends MenuItem {
 }
 
 /**
- * NOODLE + TACO kalemlerinin PAYLAŞTIĞI tek görsel (kullanıcı onaylı bilinçli karar,
- * 12 Eyl 2026). Dosya bir kez üretildi; beş kalem de bu sabiti gösterir, kopyalanmadı.
- * Kaynak: arşivdeki IMG_9115 — karede noodle, taco ve burger birlikte.
+ * 20 Eyl 2026: noodle ve taco için AYRI kareler geldi; artık tek paylaşılan
+ * görsel yok. Çeşitlerin kendi karesi YOK (işletme tek kare gönderdi), bu yüzden
+ * tüm noodle çeşitleri NOODLE_PHOTO'yu, tüm taco çeşitleri TACO_PHOTO'yu
+ * gösterir — dosya kopyalanmaz, sabit paylaşılır.
  */
-export const SHARED_PHOTO = "/urun/ortak/noodle-taco-citir.webp";
+export const NOODLE_PHOTO = "/urun/yan/noodle.webp";
+export const TACO_PHOTO = "/urun/yan/taco.webp";
 
 export const MENU: Record<Category, MenuItem[]> = {
   burger: [
@@ -147,7 +149,7 @@ export const MENU: Record<Category, MenuItem[]> = {
     // 2 adet
     {
       id: "tavuk-taco",
-      photo: SHARED_PHOTO,
+      photo: TACO_PHOTO,
       pairs: ["ayran", "zencefilli-gazoz"],
       name: "Tavuk Taco",
       price: 450,
@@ -156,7 +158,7 @@ export const MENU: Record<Category, MenuItem[]> = {
     },
     {
       id: "tiftik-taco",
-      photo: SHARED_PHOTO,
+      photo: TACO_PHOTO,
       pairs: ["ayran", "alkolsuz-bira"],
       name: "Tiftik Taco",
       price: 530,
@@ -165,7 +167,7 @@ export const MENU: Record<Category, MenuItem[]> = {
     },
     {
       id: "karides-taco",
-      photo: SHARED_PHOTO,
+      photo: TACO_PHOTO,
       pairs: ["zencefilli-gazoz", "soda"],
       name: "Karidesli Taco",
       price: 520,
@@ -176,7 +178,7 @@ export const MENU: Record<Category, MenuItem[]> = {
   noodle: [
     {
       id: "tavuklu-noodle",
-      photo: SHARED_PHOTO,
+      photo: NOODLE_PHOTO,
       pairs: ["zencefilli-gazoz", "ayran"],
       name: "Tavuklu",
       price: 450,
@@ -185,7 +187,7 @@ export const MENU: Record<Category, MenuItem[]> = {
     },
     {
       id: "karidesli-noodle",
-      photo: SHARED_PHOTO,
+      photo: NOODLE_PHOTO,
       pairs: ["soda", "alkolsuz-bira"],
       name: "Karidesli",
       price: 550,
@@ -194,8 +196,12 @@ export const MENU: Record<Category, MenuItem[]> = {
     },
   ],
   yan: [
-    { id: "patates", pairs: ["truflu-mayonez", "sweet-chili"], name: "Patates kızartması (el yapımı)", price: 300 },
-    { id: "patates-parmesan", pairs: ["mag-sos", "jalapeno-sos"], name: "Patates kızartması (parmesanlı)", price: 350 },
+    { id: "patates", photo: "/urun/yan/patates.webp", pairs: ["truflu-mayonez", "sweet-chili"], name: "Patates kızartması (el yapımı)", price: 300 },
+    /* 20 Eyl 2026: görseli gelen yeni yan ürün. FİYAT HENÜZ VERİLMEDİ —
+       işletme bildirince güncellenecek. MAG ÇITIR burgeriyle KARIŞTIRMA:
+       o ayrı bir ürün (burger kategorisi, kendi kesimi var). */
+    { id: "citir-tavuk", photo: "/urun/yan/citir-tavuk.webp", name: "Çıtır tavuk", price: 0 },
+    { id: "patates-parmesan", photo: "/urun/yan/patates-peynirli.webp", pairs: ["mag-sos", "jalapeno-sos"], name: "Patates kızartması (parmesanlı)", price: 350 },
   ],
   sos: [
     // 50 ₺
@@ -206,13 +212,21 @@ export const MENU: Record<Category, MenuItem[]> = {
     { id: "tutsu-biberli-aioli", name: "Tütsü biberli aioli", price: 50, upsell: true }, // AÇIK: fiyat işletmeden teyit edilecek
   ],
   icecek: [
-    { id: "ayran", name: "Arslan ayran", price: 90 },
-    { id: "icecekler", name: "İçecekler", price: 110 }, // AÇIK: içerik (kola/fanta vb.)
-    { id: "su", name: "Su", price: 50 },
-    { id: "soda", name: "Soda", price: 70 },
-    { id: "zencefilli-gazoz", name: "Zencefilli gazoz", price: 190 },
-    { id: "alkolsuz-bira", name: "Alkolsüz bira", price: 190 },
-    { id: "kola", name: "Kola", price: 110, upsell: true }, // AÇIK: fiyat ve marka işletmeden teyit edilecek
+    { id: "ayran", photo: "/urun/icecek/ayran.webp", name: "Arslan ayran", price: 90 },
+    /* 20 Eyl 2026: genel "İçecekler" kalemi KALDIRILDI; yerine görselleri gelen
+       altı içecek ayrı kalem oldu (kullanıcı kararı, hepsi ₺110). Eski kalem
+       hiçbir siparişte kullanılmamıştı (canlıda 0 kayıt), pairs'te geçmiyordu. */
+    { id: "kola-zero", photo: "/urun/icecek/kola-zero.webp", name: "Kola Zero", price: 110 },
+    { id: "kola-light", photo: "/urun/icecek/kola-light.webp", name: "Kola Light", price: 110 },
+    { id: "sprite", photo: "/urun/icecek/sprite.webp", name: "Sprite", price: 110 },
+    { id: "fanta", photo: "/urun/icecek/fanta-sari-kola.webp", name: "Fanta", price: 110 },
+    { id: "uludag-portakalli", photo: "/urun/icecek/uludag-portakalli.webp", name: "Uludağ portakallı", price: 110 },
+    { id: "uludag-gazoz", photo: "/urun/icecek/uludag-gazoz.webp", name: "Uludağ gazoz", price: 110 },
+    { id: "su", photo: "/urun/icecek/su.webp", name: "Su", price: 50 },
+    { id: "soda", photo: "/urun/icecek/maden-suyu.webp", name: "Soda", price: 70 },
+    { id: "zencefilli-gazoz", photo: "/urun/icecek/ginger.webp", name: "Zencefilli gazoz", price: 190 },
+    { id: "alkolsuz-bira", photo: "/urun/icecek/bitburger-00.webp", name: "Alkolsüz bira", price: 190 },
+    { id: "kola", photo: "/urun/icecek/kola.webp", name: "Kola", price: 110, upsell: true }, // AÇIK: fiyat ve marka işletmeden teyit edilecek
     { id: "limonata", name: "Limonata", price: 130, upsell: true }, // AÇIK: fiyat ve ev yapımı olup olmadığı işletmeden teyit edilecek
   ],
 };

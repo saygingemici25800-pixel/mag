@@ -3,6 +3,10 @@
 import Image from "next/image";
 import { CUTOUTS_M } from "@/components/stage/cutouts";
 import type { HeroId, MenuItem } from "@/lib/menu";
+import PHOTO_DIMS_JSON from "@/lib/photoDims.json";
+
+/** Ürün fotoğraflarının GERÇEK ölçüleri (scripts/photo-dims.mjs üretir). */
+const PHOTO_DIMS = PHOTO_DIMS_JSON as Record<string, { w: number; h: number }>;
 
 
 /**
@@ -39,13 +43,20 @@ export default function ProductImage({ m, name, size = 96, big = false, eager = 
      ve citir kesimi olmadığı için doğrudan baş harfe düşüyordu; fotoğrafı olduğu
      hâlde görünmüyordu. */
   if (!src && m.photo) {
+    /* 20 Eyl 2026: içecek/yan görselleri GELDİ ve en-boy oranları birbirinden
+       çok farklı (bitburger 134×480 ≈ 0.28, patates-peynirli 824×480 ≈ 1.72).
+       Sabit 800×1200 vermek next/image'a yanlış intrinsic oran bildiriyordu:
+       CSS `object-fit: contain` bozulmayı gizliyor ama ayrılan kutu ve srcset
+       yanlış hesaplanıyor. Oran artık dosya adından türetilen tablodan
+       (PHOTO_DIMS) geliyor; bilinmeyen dosya eski varsayılana düşer. */
+    const d = PHOTO_DIMS[m.photo] ?? { w: 800, h: 1200 };
     return (
       <div className={"pimg" + (big ? " big" : "")}>
         <Image
           src={m.photo}
           alt=""
-          width={800}
-          height={1200}
+          width={d.w}
+          height={d.h}
           sizes={big ? "(max-width: 640px) 90vw, 480px" : `${size}px`}
           loading={eager || big ? "eager" : "lazy"}
           fetchPriority={eager ? "high" : undefined}

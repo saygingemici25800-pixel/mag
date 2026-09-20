@@ -1,0 +1,74 @@
+{
+  "/urun/icecek/ayran.webp": {
+    "w": 204,
+    "h": 480
+  },
+  "/urun/icecek/bitburger-00.webp": {
+    "w": 134,
+    "h": 480
+  },
+  "/urun/icecek/fanta-sari-kola.webp": {
+    "w": 188,
+    "h": 480
+  },
+  "/urun/icecek/ginger.webp": {
+    "w": 197,
+    "h": 480
+  },
+  "/urun/icecek/kola-light.webp": {
+    "w": 216,
+    "h": 480
+  },
+  "/urun/icecek/kola-zero.webp": {
+    "w": 181,
+    "h": 480
+  },
+  "/urun/icecek/kola.webp": {
+    "w": 191,
+    "h": 480
+  },
+  "/urun/icecek/maden-suyu.webp": {
+    "w": 154,
+    "h": 480
+  },
+  "/urun/icecek/sprite.webp": {
+    "w": 221,
+    "h": 480
+  },
+  "/urun/icecek/su.webp": {
+    "w": 182,
+    "h": 480
+  },
+  "/urun/icecek/uludag-gazoz.webp": {
+    "w": 295,
+    "h": 480
+  },
+  "/urun/icecek/uludag-portakalli.webp": {
+    "w": 190,
+    "h": 480
+  },
+  "/urun/yan/citir-tavuk.webp": {
+    "w": 738,
+    "h": 480
+  },
+  "/urun/yan/noodle.webp": {
+    "w": 752,
+    "h": 480
+  },
+  "/urun/yan/patates-peynirli.webp": {
+    "w": 824,
+    "h": 480
+  },
+  "/urun/yan/patates.webp": {
+    "w": 532,
+    "h": 480
+  },
+  "/urun/yan/taco.webp": {
+    "w": 455,
+    "h": 480
+  },
+  "/urun/ortak/noodle-taco-citir.webp": {
+    "w": 800,
+    "h": 1200
+  }
+}

@@ -110,7 +110,15 @@ export default function OrderPage() {
                   const name = itemName(t, m);
                   const eager = cat === "burger" && idx < 3; // ilk ekran: LCP görseli lazy olmasın
                   const qty = qtyOf(cart, m.id);
-                  const out = settings.sold_out.includes(m.id);
+                  /* İki AYRI sebeple pasif olabilir, etiketleri de ayrı:
+                       · tükendi  → panelden işaretlenmiş (settings.sold_out)
+                       · yakında  → fiyatı henüz girilmemiş (price 0, ör. citir-tavuk)
+                     İkincisine "Tükendi" demek YANLIŞ olurdu: ürün tükenmedi,
+                     daha fiyatlanmadı. Sunucu da reddediyor (validateOrder
+                     no-price); burası kullanıcıyı boşuna uğraştırmamak için.
+                     Panelden fiyat girilince kendiliğinden açılır. */
+                  const fiyatsiz = priceOf(m, settings.prices) <= 0;
+                  const out = settings.sold_out.includes(m.id) || fiyatsiz;
                   return (
                     <article key={m.id} data-pcard data-sold-out={out || undefined} className={"pcard" + (qty ? " on" : "") + (out ? " soldout" : "")} onClick={() => { if (!out) setSheet(m); }} role="button" tabIndex={0} onKeyDown={(e) => {
                         /* Kart bir "button" gibi davranıyor ama içinde de düğmeler var.
@@ -130,7 +138,8 @@ export default function OrderPage() {
                           </p>
                         ) : null}
                         <div className="prow">
-                          <span className="price">{formatPriceFor(locale, priceOf(m, settings.prices))}</span>
+                          {/* Fiyatı girilmemiş üründe "₺0" YANILTICI olurdu; fiyat yerine boş bırakılır. */}
+                          <span className="price">{fiyatsiz ? "" : formatPriceFor(locale, priceOf(m, settings.prices))}</span>
                           <button
                             type="button"
                             className="addbtn"
@@ -145,7 +154,7 @@ export default function OrderPage() {
                             }}
                             aria-label={`${o.addShort} · ${name}`}
                           >
-                            {out ? o.soldOut : qty ? `${o.addShort} · ${qty}` : o.addShort}
+                            {fiyatsiz ? o.noPrice : out ? o.soldOut : qty ? `${o.addShort} · ${qty}` : o.addShort}
                           </button>
                         </div>
                       </div>

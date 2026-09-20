@@ -52,7 +52,11 @@ export default function PanelPrices({ t, cats, apiFetch, onUnauthorized }: Props
         if (!alive) return;
         setSaved(d.prices ?? {});
         const init: Record<string, string> = {};
-        for (const c of CATS) for (const m of MENU[c]) init[m.id] = String(priceOf(m, d.prices));
+        /* 20 Eyl 2026: fiyatı HENÜZ GİRİLMEMİŞ ürün (kodda price 0, ör. citir-tavuk)
+           alana "0" olarak yazılıyordu; 0 geçersiz fiyat olduğu için KAYDET düğmesi
+           kilitleniyor ve panelden HİÇBİR fiyat kaydedilemiyordu. Artık boş gelir:
+           işletme fiyatı yazana kadar o alan "eksik", ama diğerleri kaydedilebilir. */
+        for (const c of CATS) for (const m of MENU[c]) { const v = priceOf(m, d.prices); init[m.id] = v > 0 ? String(v) : ""; }
         setDraft(init);
       })
       .catch(() => {});
@@ -67,7 +71,9 @@ export default function PanelPrices({ t, cats, apiFetch, onUnauthorized }: Props
     saved !== null &&
     Object.entries(draft).some(([id, v]) => {
       const m = CATS.flatMap((c) => MENU[c]).find((x) => x.id === id);
-      return m ? v.trim() !== String(priceOf(m, saved)) : false;
+      if (!m) return false;
+      const kayitli = priceOf(m, saved);
+      return v.trim() !== (kayitli > 0 ? String(kayitli) : "");
     });
   useEffect(() => {
     if (!kirli) return;
@@ -79,7 +85,14 @@ export default function PanelPrices({ t, cats, apiFetch, onUnauthorized }: Props
   if (!saved) return <section className="pnl-box" aria-busy="true" />;
 
   const all = CATS.flatMap((c) => MENU[c]);
-  const bozuk = Object.entries(draft).filter(([, v]) => !gecerli(v)).map(([id]) => id);
+  /* Boş alan YALNIZCA fiyatı hiç girilmemiş üründe (kodda price 0, ör. citir-tavuk)
+     kabul edilir: o ürün "yakında" durumunda kalır, diğer fiyatlar kaydedilebilir.
+     FİYATI OLAN bir ürünün alanını boşaltmak HATADIR — yoksa mevcut fiyat kazara
+     silinebilirdi (testin koruduğu davranış: smooky boşaltılınca kaydet kilitlenir). */
+  const fiyatsizId = new Set(all.filter((m) => m.price <= 0).map((m) => m.id));
+  const bozuk = Object.entries(draft)
+    .filter(([id, v]) => (v.trim() === "" ? !fiyatsizId.has(id) : !gecerli(v)))
+    .map(([id]) => id);
 
   const kaydet = async () => {
     setErr("");
@@ -88,7 +101,9 @@ export default function PanelPrices({ t, cats, apiFetch, onUnauthorized }: Props
     /* SEYREK harita: koddaki fiyata eşit olan alan haritaya YAZILMAZ (geri alınır). */
     const next: Record<string, number> = {};
     for (const m of all) {
-      const n = Number(draft[m.id]);
+      const ham = (draft[m.id] ?? "").trim();
+      if (ham === "") continue; // fiyat girilmemiş: haritaya yazılmaz
+      const n = Number(ham);
       if (n !== m.price) next[m.id] = n;
     }
     setBusy(true);
@@ -107,7 +122,7 @@ export default function PanelPrices({ t, cats, apiFetch, onUnauthorized }: Props
       const s = (await res.json()) as Settings;
       setSaved(s.prices ?? {});
       const sync: Record<string, string> = {};
-      for (const m of all) sync[m.id] = String(priceOf(m, s.prices));
+      for (const m of all) { const v = priceOf(m, s.prices); sync[m.id] = v > 0 ? String(v) : ""; }
       setDraft(sync);
       setMsg(t.priceSaved);
       window.setTimeout(() => setMsg(""), 2500);
@@ -118,7 +133,7 @@ export default function PanelPrices({ t, cats, apiFetch, onUnauthorized }: Props
 
   const geriAl = () => {
     const sync: Record<string, string> = {};
-    for (const m of all) sync[m.id] = String(priceOf(m, saved));
+    for (const m of all) { const v = priceOf(m, saved); sync[m.id] = v > 0 ? String(v) : ""; }
     setDraft(sync);
     setErr("");
   };
@@ -145,7 +160,8 @@ export default function PanelPrices({ t, cats, apiFetch, onUnauthorized }: Props
             {MENU[c].map((m) => {
               const v = draft[m.id] ?? "";
               const bad = !gecerli(v);
-              const degisti = v.trim() !== String(priceOf(m, saved));
+              const kayitli = priceOf(m, saved);
+              const degisti = v.trim() !== (kayitli > 0 ? String(kayitli) : "");
               return (
                 <li key={m.id} className={"pr-row" + (bad ? " bad" : "") + (degisti ? " dirty" : "")} data-price-row={m.id}>
                   <label className="pr-name" htmlFor={`pr-${m.id}`}>

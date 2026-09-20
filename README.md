@@ -292,3 +292,37 @@ GIN indeksi 0003'te zaten vardı, ikincisi EKLENMEDİ (yazma maliyeti boşuna ar
 tek sütuna düşmesin. Telefon `="05..."` formülü olarak yazılır, yoksa Excel
 baştaki sıfırı siler. Kolonlar: tarih/saat, sipariş no, müşteri, telefon,
 teslimat türü, mahalle, ürünler, tutar, durum.
+
+### Ürün görselleri (içecek / yan ürün)
+`public/urun/icecek/*.webp` ve `public/urun/yan/*.webp` — menü kaydındaki
+`photo` alanı bu yolu gösterir. Sıra `ProductImage`'te: **kesim (hero) → photo →
+kısa ad rozeti**; fotoğrafı olmayan kalem (soslar, limonata) rozette kalır.
+
+**Paylaşılan kareler:** noodle çeşitlerinin hepsi `NOODLE_PHOTO`, taco
+çeşitlerinin hepsi `TACO_PHOTO` sabitini gösterir — işletme tek kare gönderdi,
+dosya KOPYALANMAZ. (Önceki tek `SHARED_PHOTO` kaldırıldı.)
+
+**Mobil kopyalar:** `pnpm assets:cut-m` → `public/urun/mobil/` altında AYNA
+klasör yapısı (`mobil/icecek/`, `mobil/yan/`). Alt klasör korunuyor ki ad
+çakışması olmasın.
+
+**Ölçüler:** `node scripts/photo-dims.mjs` → `lib/photoDims.json`. Bu dosya
+next/image'a DOĞRU intrinsic oranı verir; içecekler dar ve uzun (134×480),
+yan ürünler geniş (824×480) — sabit 800×1200 vermek yanlış kutu ve srcset
+üretiyordu. Görsel değişirse script tekrar koşulmalı.
+
+**cutCenters.json'a kayıt GEREKMEZ:** o dosya yalnızca ana sayfa sahnesindeki
+8 hero burger için (Stage.tsx); içecek/yan oraya hiç girmiyor ve okuma
+`?? 0.5` ile zaten ortalanmış varsayıyor.
+
+### Fiyatı henüz girilmemiş ürün (price 0)
+Menüde `price: 0` = "fiyat bekleniyor" (ör. 20 Eyl 2026'da eklenen
+`citir-tavuk`). Üç yerde ele alınır:
+- **Müşteri:** kart görünür ama pasif, etiket **"Yakında"** (tükendi DEĞİL) ve
+  fiyat satırı boş — "₺0" yanıltıcı olurdu.
+- **Sunucu:** `validateOrder` → `422 {field:"items", code:"no-price:<id>"}`.
+  Arayüz engeline güvenilmez; ürün BEDAVA sipariş edilemez.
+- **Panel:** fiyat alanı BOŞ gelir ve kaydetmeyi engellemez. Fiyatı OLAN bir
+  ürünün alanını boşaltmak ise hâlâ hatadır (mevcut fiyat kazara silinmesin).
+
+Panelden fiyat girilince üçü de kendiliğinden düzelir — kod değişikliği yok.

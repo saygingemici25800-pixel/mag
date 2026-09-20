@@ -186,8 +186,14 @@ export function validateOrder(input: NewOrderInput, now: Date = defaultNow(), zo
   if (!Array.isArray(input.items) || input.items.length === 0) errs.push({ field: "items", code: "empty" });
   else
     for (const it of input.items) {
-      if (!findMenuItem(it.id)) errs.push({ field: "items", code: "unknown:" + it.id });
+      const m = findMenuItem(it.id);
+      if (!m) errs.push({ field: "items", code: "unknown:" + it.id });
       if (!Number.isInteger(it.qty) || it.qty < 1 || it.qty > 50) errs.push({ field: "items", code: "qty:" + it.id });
+      /* FİYATI BELİRLENMEMİŞ ürün sipariş edilemez (price 0 = "fiyat bekleniyor",
+         ör. 20 Eyl 2026'da eklenen citir-tavuk). Aksi hâlde ürün BEDAVA sepete
+         girerdi. Panelden gerçek fiyat girilince (settings.prices) bu kontrol
+         kendiliğinden geçer — kod değişikliği gerekmez. */
+      if (m && priceOf(m, prices) <= 0) errs.push({ field: "items", code: "no-price:" + it.id });
     }
   if (!input.name || input.name.trim().length < 2) errs.push({ field: "name", code: "required" });
   if (!normalizePhone(input.phone ?? "")) errs.push({ field: "phone", code: "invalid" });

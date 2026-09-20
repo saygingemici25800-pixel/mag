@@ -299,7 +299,8 @@
     "zoneEtaLabel": "около {min} мин",
     "deliveryClosedNote": "Доставка сейчас недоступна",
     "pickupClosedNote": "Самовывоз сейчас недоступен",
-    "allClosedTitle": "Сейчас мы не принимаем заказы."
+    "allClosedTitle": "Сейчас мы не принимаем заказы.",
+    "noPrice": "Скоро"
   },
   "track": {
     "metaTitle": "Отслеживание заказа",
@@ -593,7 +594,6 @@
     "mag-sos": "Соус MAG",
     "tutsu-biberli-aioli": "Айоли с копчёным перцем",
     "ayran": "Айран Arslan",
-    "icecekler": "Напитки",
     "su": "Вода",
     "soda": "Газированная вода",
     "zencefilli-gazoz": "Имбирный лимонад",
@@ -602,7 +602,14 @@
     "limonata": "Лимонад",
     "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek · SMOOKY, BRISKET, MAG BERRY, JALAPENO, MAG CAESAR, MAG ORJINAL, TRUFFLE & MUSH, MAG ÇITIR ve SWEET & CHILI marka adı olarak ÇEVRİLMEDİ",
     "jalapeno-sos": "Халапеньо",
-    "sweet-chili": "Sweet & chili"
+    "sweet-chili": "Sweet & chili",
+    "kola-zero": "Кола Zero",
+    "kola-light": "Кола Light",
+    "sprite": "Спрайт",
+    "fanta": "Фанта",
+    "uludag-portakalli": "Uludağ апельсин",
+    "uludag-gazoz": "Uludağ газировка",
+    "citir-tavuk": "Хрустящая курица"
   },
   "menuIng": {
     "130 gr burger köftesi": "котлета 130 г",

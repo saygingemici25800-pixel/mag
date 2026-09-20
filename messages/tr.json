@@ -290,7 +290,8 @@
     "zoneEtaLabel": "tahmini {min} dk",
     "deliveryClosedNote": "Kurye şu an kapalı",
     "pickupClosedNote": "Gel-al şu an kapalı",
-    "allClosedTitle": "Şu an sipariş alamıyoruz."
+    "allClosedTitle": "Şu an sipariş alamıyoruz.",
+    "noPrice": "Yakında"
   },
   "track": {
     "title": [
