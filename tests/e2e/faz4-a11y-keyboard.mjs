@@ -93,19 +93,20 @@ await page.keyboard.press("Space");
 await page.waitForTimeout(250);
 check("SPACE ile onay verildi", await page.isChecked("[data-terms-check]"));
 
-// ---- 8) "Ödemeye geç": Tab + Enter → mock ödeme → onayla
-const sub = await tabTo((f) => f.includes("ÖDEMEYE GEÇ") || f.includes("Ödemeye geç"), 12);
-check("Ödemeye geç butonuna ulaşıldı", sub !== null);
+// ---- 8) Gönder butonu: Tab ile ulaşılabiliyor mu, Enter çalışıyor mu
+/* 21 Eyl 2026: buton artık WhatsApp'a gidiyor (geçici kanal). Klavye iddiası
+   DEĞİŞMEDİ — butona Tab'la ulaşılıp Enter ile tetiklenebilmeli. wa.me yeni
+   sekmede açıldığı için popup yakalanır; sayfa gezinmez. */
+const sub = await tabTo((f) => /WHATSAPP|WhatsApp/i.test(f), 12);
+check("gönder butonuna Tab ile ulaşıldı", sub !== null, String(sub));
+const popupSozu = page.context().waitForEvent("page", { timeout: 15000 }).catch(() => null);
 await page.keyboard.press("Enter");
-await page.waitForURL(/\/odeme\/test\?ref=/, { timeout: 15000 });
-check("mock ödeme sayfasına klavyeyle geçildi", true);
-/* Mock sağlayıcı sayfası ürünün parçası değil (yalnızca geliştirme/test sahnesi);
-   klavye iddiası sipariş akışıyla ilgili, bu yüzden ödemeyi formdan onaylıyoruz. */
-await page.locator("form:has(input[value=ok]) button").focus();
-await page.keyboard.press("Enter");
-await page.waitForURL(/\/siparis\/[0-9a-f-]{36}$/, { timeout: 15000 }).catch(() => {});
-check("sipariş klavyeyle tamamlandı", /\/siparis\/[0-9a-f-]{36}$/.test(page.url()), page.url());
-check("ödeme tamamlandı", (await page.getAttribute("[data-payment]", "data-payment")) === "paid");
+const popup = await popupSozu;
+check("Enter ile WhatsApp açıldı", !!popup && /wa\.me|api\.whatsapp\.com/.test(popup.url()), popup ? popup.url().slice(0, 50) : "popup yok");
+await popup?.close().catch(() => {});
+await page.waitForSelector("[data-wa-code]", { timeout: 10000 }).catch(() => {});
+const kod = (await page.textContent("[data-wa-code]").catch(() => ""))?.match(/#([A-Z2-9]{6})/)?.[1] ?? "";
+check("sipariş no klavye akışında da gösterildi", /^[A-Z2-9]{6}$/.test(kod), kod);
 
 // ---- 8) Takip sayfasında odak sırası
 await page.keyboard.press("Tab");

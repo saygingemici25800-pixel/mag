@@ -163,7 +163,15 @@ const b = await chromium.launch();
   await shop.goto(base + "/siparis/odeme", { waitUntil: "load" });
   await shop.waitForTimeout(800);
   await fillDelivery(shop, { zone: "merkez", address: "Push Derin Baglanti Sk. No:1", name: "Push Derin Baglanti", phone: "05321234567" });
-  await shop.click('button[type="submit"]');
+  /* 21 Eyl 2026: arayüz butonu WhatsApp'a gidiyor; bu paket PUSH derin
+     bağlantısını sınıyor, sipariş ödeme kanalından API ile kurulur. */
+  {
+    const kur = await (await fetch(base + "/api/orders", { method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ type: "delivery", zone: "merkez", items: [{ id: "smooky", qty: 2 }],
+        name: "Push Derin Baglanti", phone: "05321234567", address: "Push Derin Baglanti Sk. No:1",
+        requested_at: "simdi", locale: "tr", terms_accepted: true }) })).json();
+    await shop.goto(kur.redirectUrl, { waitUntil: "load" });
+  }
   await shop.waitForURL(/\/odeme\/test/, { timeout: 15000 });
   await shop.getByRole("button", { name: "Ödemeyi tamamla" }).click();
   await shop.waitForURL(/\/siparis\/[0-9a-f-]{36}/, { timeout: 20000 });

@@ -135,7 +135,19 @@ check("her sepet satırında liste AÇIK (tıklama gerekmiyor)", (await p.locato
 /* ---------- 4) sipariş ver → panelde "Çıkarılan" görünüyor mu ---------- */
 await p.clock.install({ time: FAKE_NOW }).catch(() => {});
 await fillDelivery(p, { zone: "merkez", address: "Malzeme Test Sk. No:3", name: "Malzeme Test", phone: "05327778899" });
-await p.click('button[type="submit"]');
+/* 21 Eyl 2026: arayüz butonu WhatsApp'a gidiyor (geçici kanal). Bu paket
+   ÇIKARILAN MALZEMENİN panele taşınmasını sınıyor; sipariş ödeme kanalından
+   (channel yok) sepetteki çıkarılanlarla API ile kurulur. */
+{
+  const satirlar = await p.$$eval("[data-cart-line]", (els) =>
+    els.map((e) => e.getAttribute("data-line-key") ?? "").filter(Boolean));
+  const kur = await (await fetch(base + "/api/orders", { method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ type: "delivery", zone: "merkez",
+      items: satirlar.map((k) => { const [id, rem] = k.split("::"); return { id, qty: 1, ...(rem ? { removed: rem.split("|") } : {}) }; }),
+      name: "Malzeme Test", phone: "05327778899", address: "Malzeme Test Sk. No:3",
+      requested_at: "simdi", locale: "tr", terms_accepted: true }) })).json();
+  await p.goto(kur.redirectUrl, { waitUntil: "load" });
+}
 await p.waitForURL(/\/odeme\/test/, { timeout: 30000 });
 await p.getByRole("button", { name: "Ödemeyi tamamla" }).click();
 await p.waitForURL(/\/siparis\/[0-9a-f-]{36}/, { timeout: 40000 });
