@@ -545,7 +545,14 @@
     "specialClosed": "özel gün",
     "today": "bugün",
     "tomorrow": "yarın",
-    "hoursClosedShort": "kapalı"
+    "hoursClosedShort": "kapalı",
+    "walkPlaces": {
+      "paspatur": "Paspatur Çarşısı",
+      "balikPazari": "Fethiye Balık Pazarı",
+      "ugurMumcu": "Uğur Mumcu Parkı / Sahil",
+      "eceMarina": "Ece Marina",
+      "muze": "Fethiye Müzesi"
+    }
   },
   "categories": {
     "burger": "Burger",

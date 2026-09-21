@@ -489,11 +489,15 @@ html.lm .lang a[aria-current="page"] {
   overflow-y: auto;
   overscroll-behavior: contain;
   box-sizing: border-box;
-  padding: clamp(84px, 14vh, 140px) clamp(24px, 8vw, 120px) clamp(40px, 8vh, 80px);
+  /* 21 Eyl 2026: yürüme listesi 4 → 5 satır oldu ve başlık artık büzülmüyor;
+     içerik 16-23px taşıp "YOL TARİFİ AL"ı katlamanın altına itiyordu. Üst
+     boşluk ve satır aralığı bir tık kısaldı — panel yine kaydırılabilir
+     (overflow-y:auto), ama normal ekranlarda kaydırmaya gerek kalmıyor. */
+  padding: clamp(72px, 11vh, 120px) clamp(24px, 8vw, 120px) clamp(32px, 6vh, 64px);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: clamp(22px, 3.6vh, 36px);
+  gap: clamp(18px, 2.9vh, 30px);
   max-width: 760px;
 }
 /* maskeli satır: dış kutu gizler, iç öğe y:100% + skewY 7° başlar (JS 0'a getirir) */
@@ -505,6 +509,16 @@ html.lm .lang a[aria-current="page"] {
   display: block;
   transform: translateY(100%) skewY(7deg);
   will-change: transform;
+}
+/* 21 Eyl 2026 — BAŞLIK MOBİLDE KIRPILIYORDU.
+   .cIn bir flex sütunu; içerik ekranı doldurunca flex öğeleri BÜZÜLÜYOR ve
+   .cTitle maskesi 390×844'te 2px'e iniyordu (masaüstünde 53px, orada sorun yok).
+   overflow:hidden olduğu için harflerin yalnızca tepesi görünüyordu.
+   flex-shrink:0 + min-height:auto → başlık kutusu içeriği kadar yer tutar,
+   diğer satırlar sığmazsa .cIn zaten kaydırılabilir (overflow-y:auto). */
+.cTitle {
+  flex: 0 0 auto;
+  min-height: auto;
 }
 .cTitle > span {
   font-size: clamp(2.8rem, 9vw, 6.4rem);

@@ -250,11 +250,12 @@ export default function ContactOverlay({ t, label, labelShort }: { t: Messages["
                 <span>{t.walk}</span>
               </h3>
               <ul>
-                {/* süreler AÇIK / yer tutucu — lib/contact.ts */}
+                {/* Yer adları: TR lib/contact.ts'te, EN/RU contact.walkPlaces'te.
+                    Çeviri yoksa TR adına düşer (yeni yer eklenince boş görünmez). */}
                 {CONTACT.walking.map((w) => (
-                  <li key={w.place} className="cLine">
+                  <li key={w.key} className="cLine">
                     <span>
-                      <b>{w.place}</b>
+                      <b>{t.walkPlaces?.[w.key] ?? w.place}</b>
                       <em>
                         {w.minutes} {minutes}
                       </em>

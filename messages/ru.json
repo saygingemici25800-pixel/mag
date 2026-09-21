@@ -557,7 +557,14 @@
     "specialClosed": "особый день",
     "today": "сегодня",
     "tomorrow": "завтра",
-    "hoursClosedShort": "закрыто"
+    "hoursClosedShort": "закрыто",
+    "walkPlaces": {
+      "paspatur": "Базар Паспатур",
+      "balikPazari": "Рыбный рынок Фетхие",
+      "ugurMumcu": "Парк Угур Мумджу и набережная",
+      "eceMarina": "Марина Эдже",
+      "muze": "Музей Фетхие"
+    }
   },
   "categories": {
     "burger": "Бургеры",

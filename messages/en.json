@@ -247,7 +247,14 @@
     "specialClosed": "special day",
     "today": "today",
     "tomorrow": "tomorrow",
-    "hoursClosedShort": "closed"
+    "hoursClosedShort": "closed",
+    "walkPlaces": {
+      "paspatur": "Paspatur Bazaar",
+      "balikPazari": "Fethiye Fish Market",
+      "ugurMumcu": "Uğur Mumcu Park & Seafront",
+      "eceMarina": "Ece Marina",
+      "muze": "Fethiye Museum"
+    }
   },
   "categories": {
     "burger": "Burgers",

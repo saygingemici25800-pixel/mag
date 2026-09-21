@@ -61,7 +61,11 @@ for (const vp of [{ w: 1440, h: 860 }, { w: 390, h: 844 }]) {
   check(`${tag} odak katmanın içinde`, await p.evaluate(() => !!document.activeElement?.closest(".contact")));
   /* içerik */
   const walk = await p.$$eval(".cWalk li", (els) => els.map((e) => e.textContent.replace(/\s+/g, " ").trim()));
-  check(`${tag} dört yürüme satırı`, walk.length === 4 && /Balık Pazarı.*4/.test(walk[0]) && /Ece Marina.*9/.test(walk[3]), walk.join(" | "));
+  /* 21 Eyl 2026: liste 4 → 5 satır oldu, süreler işletmeden geldi (lib/contact.ts).
+     SIRA da denetleniyor: yakından uzağa 1-3-4-4-5 dk. */
+  const BEKLENEN = [["Paspatur", 1], ["Balık Pazarı", 3], ["Uğur Mumcu", 4], ["Ece Marina", 4], ["Müzesi", 5]];
+  const sirali = walk.length === BEKLENEN.length && BEKLENEN.every(([ad, dk], i) => walk[i].includes(ad) && new RegExp(`${dk}\\s*dk`).test(walk[i]));
+  check(`${tag} beş yürüme satırı, doğru sırada`, sirali, walk.join(" | "));
   const hrefs = await p.$$eval("a[data-maps]", (els) => els.map((a) => [a.getAttribute("href"), a.target, a.rel]));
   check(`${tag} harita linki birebir (adres + buton)`, hrefs.length >= 2 && hrefs.every(([h, t, r]) => h === MAPS && t === "_blank" && /noopener/.test(r) && /noreferrer/.test(r)), JSON.stringify(hrefs[0]));
   check(`${tag} "YOL TARİFİ AL" butonu pin ikonlu`, await p.evaluate(() => { const a = document.querySelector("a.cMaps"); return !!a && /YOL TARİFİ AL|GET DIRECTIONS/.test(a.textContent) && !!a.querySelector("svg"); }));

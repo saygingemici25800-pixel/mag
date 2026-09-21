@@ -22,13 +22,16 @@ export const CONTACT = {
   /** AÇIK — TikTok hesabı; şimdilik yer tutucu */
   tiktok: null as string | null,
   /**
-   * YÜRÜME MESAFESİ — süreler AÇIK / YER TUTUCU: işletme onaylayınca güncellenecek.
-   * Sıra arayüzdeki sıradır.
+   * YÜRÜME MESAFESİ — 21 Eyl 2026: süreler ve liste İŞLETMEDEN GELDİ, artık
+   * yer tutucu değil. Dizideki SIRA arayüzdeki sıradır (yakından uzağa).
+   * `key` çeviri anahtarı: TR adı burada, EN/RU karşılıkları
+   * messages/<dil>.json → contact.walkPlaces[key]. Anahtar yoksa TR adı görünür.
    */
   walking: [
-    { place: "Fethiye Balık Pazarı", minutes: 4 },
-    { place: "Uğur Mumcu Parkı / Sahil", minutes: 3 },
-    { place: "Fethiye Müzesi", minutes: 7 },
-    { place: "Ece Marina", minutes: 9 },
+    { key: "paspatur", place: "Paspatur Çarşısı", minutes: 1 },
+    { key: "balikPazari", place: "Fethiye Balık Pazarı", minutes: 3 },
+    { key: "ugurMumcu", place: "Uğur Mumcu Parkı / Sahil", minutes: 4 },
+    { key: "eceMarina", place: "Ece Marina", minutes: 4 },
+    { key: "muze", place: "Fethiye Müzesi", minutes: 5 },
   ],
 } as const;
