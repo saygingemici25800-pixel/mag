@@ -624,7 +624,7 @@
     "fanta": "Фанта",
     "uludag-portakalli": "Uludağ апельсин",
     "uludag-gazoz": "Uludağ газировка",
-    "citir-tavuk": "Хрустящая курица"
+    "citir-tavuk": "Хрустящая курица с картофелем"
   },
   "menuIng": {
     "130 gr burger köftesi": "котлета 130 г",
@@ -682,7 +682,7 @@
     "caesar": "Соус MAG, салат, грюйер, курица в панировке",
     "orjinal": "Соус MAG, хрустящий лук, чеддер, котлета 130 г",
     "brisket": "томлёная говядина, карамелизованный лук, чеддер, айоли из копчёного перца, маринованный лук",
-    "citir": "кусочки курицы в панировке, картофель фри, соус свит чили",
+    "citir": "Бургер в булочке: панированные кусочки курицы, картофель, соус свит чили",
     "tavuk-taco": "Пряная курица соте, салат айсберг, сыр грюйер, авокадо, майонез чипотле",
     "tiftik-taco": "Томлёная говядина, петрушка и лук, чеддер, айоли с копчёным перцем",
     "karides-taco": "Креветки соте на сливочном масле, капустный салат коул слоу, авокадо, майонез чипотле, зелёный лук",
@@ -703,7 +703,8 @@
     "limonata": "Лимонад",
     "jalapeno-sos": "Халапеньо",
     "sweet-chili": "Sweet & chili",
-    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek · açıklamalar menuIng haritasından türetildi (ikinci liste yok) · TRUFFLE açıklaması 11 Eyl 2026'da güncellendi — AÇIK: Rusça çeviri onay bekliyor"
+    "_acik": "AÇIK: Rusça çeviri onay bekliyor — anadili Rusça biri gözden geçirecek · açıklamalar menuIng haritasından türetildi (ikinci liste yok) · TRUFFLE açıklaması 11 Eyl 2026'da güncellendi — AÇIK: Rusça çeviri onay bekliyor",
+    "citir-tavuk": "Подаётся на тарелке: кусочки хрустящей курицы с картофелем фри и соусом"
   },
   "payment": {
     "status": {

@@ -272,7 +272,7 @@
     "caesar": "MAG sauce, lettuce, gruyère, breaded chicken",
     "orjinal": "MAG sauce, crispy onion, cheddar, 130 g beef patty",
     "brisket": "slow-cooked pulled beef, caramelized onion, cheddar, smoked pepper aioli, pickled onion",
-    "citir": "breaded chicken pieces, fries, sweet chili sauce",
+    "citir": "Burger in a bun: breaded chicken pieces, fries, sweet chili sauce",
     "tavuk-taco": "Sautéed spiced chicken, iceberg lettuce, gruyère, avocado, chipotle mayo",
     "tiftik-taco": "Slow-cooked pulled brisket, parsley & onion, cheddar, smoky pepper aioli",
     "karides-taco": "Butter-sautéed shrimp, slaw, avocado, chipotle mayo, spring onion",
@@ -289,7 +289,8 @@
     "su": "Water",
     "soda": "Sparkling water",
     "zencefilli-gazoz": "Ginger soda",
-    "alkolsuz-bira": "Non-alcoholic beer"
+    "alkolsuz-bira": "Non-alcoholic beer",
+    "citir-tavuk": "Served on a plate: crispy chicken pieces with fries and sauce"
   },
   "menuName": {
     "patates": "Fries (hand-cut)",
@@ -314,7 +315,7 @@
     "fanta": "Fanta",
     "uludag-portakalli": "Uludağ orange",
     "uludag-gazoz": "Uludağ soda",
-    "citir-tavuk": "Crispy chicken"
+    "citir-tavuk": "Crispy Chicken & Fries"
   },
   "menuIng": {},
   "order": {

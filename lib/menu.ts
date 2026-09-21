@@ -132,18 +132,7 @@ export const MENU: Record<Category, MenuItem[]> = {
       desc: "yavaş pişmiş lifli dana eti, karamelize soğan, cheddar, füme biber aiolisi, soğan turşusu",
       ingredients: [{ name: "brioche ekmek", removable: false }, { name: "yavaş pişmiş lifli dana eti", removable: false }, { name: "karamelize soğan", removable: true }, { name: "cheddar", removable: true }, { name: "füme biber aiolisi", removable: true }, { name: "soğan turşusu", removable: true }],
     },
-    {
-      id: "citir",
-      pairs: ["sweet-chili", "ayran"],
-      name: "MAG ÇITIR",
-      price: 490,
-      hero: true,
-      /* 16 Eyl 2026: KENDİ kesimini kullanıyor (public/urun/citir.webp, 679×480).
-         Önce geçici olarak orjinal.webp'yi paylaşıyordu; menüde ve hero'da
-         Mag Çıtır yerine dana köfteli burger görünüyordu. */
-      desc: "panelenmiş tavuk parçaları, patates, sweet chili sos",
-      ingredients: [{ name: "brioche ekmek", removable: false }, { name: "panelenmiş tavuk parçaları", removable: false }, { name: "patates", removable: true }, { name: "sweet chili sos", removable: true }],
-    },
+    
   ],
   taco: [
     // 2 adet
@@ -200,8 +189,32 @@ export const MENU: Record<Category, MenuItem[]> = {
     /* 20 Eyl 2026: görseli gelen yeni yan ürün. FİYAT HENÜZ VERİLMEDİ —
        işletme bildirince güncellenecek. MAG ÇITIR burgeriyle KARIŞTIRMA:
        o ayrı bir ürün (burger kategorisi, kendi kesimi var). */
-    { id: "citir-tavuk", photo: "/urun/yan/citir-tavuk.webp", name: "Çıtır tavuk", price: 0 },
+    /* 21 Eyl 2026: ad ve açıklama MAG ÇITIR'dan ayrıştırıldı — ikisi de yan
+       ürünlerde ve ikisi de "çıtır" içeriyordu, karışıyordu. Bu TABAK/porsiyon,
+       MAG ÇITIR ise EKMEK ARASI. İçerik listesi değişmedi. */
+    {
+      id: "citir-tavuk",
+      photo: "/urun/yan/citir-tavuk.webp",
+      name: "Çıtır Tavuk & Patates",
+      price: 0,
+      desc: "Tabakta servis: çıtır tavuk parçaları, yanında patates kızartması ve sos",
+    },
     { id: "patates-parmesan", photo: "/urun/yan/patates-peynirli.webp", pairs: ["mag-sos", "jalapeno-sos"], name: "Patates kızartması (parmesanlı)", price: 350 },
+{
+      id: "citir",
+      pairs: ["sweet-chili", "ayran"],
+      name: "MAG ÇITIR",
+      price: 490,
+      /* 21 Eyl 2026: BURGER kategorisinden YAN ÜRÜNLERE taşındı (kullanıcı kararı).
+         id DEĞİŞMEDİ ("citir") — geçmiş siparişler bozulmasın. hero bayrağı
+         kaldırıldı: artık ana sayfa karuselinde görünmüyor, karusel 7 burger.
+         Görseli kendi kesimi (public/urun/citir.webp).
+         KARIŞTIRMA: yan ürünlerdeki "citir-tavuk" AYRI bir üründür (tabakta
+         tavuk parçaları + patates), bu ise EKMEK ARASI bir burger. */
+      photo: "/urun/citir.webp",
+      desc: "Ekmek arası burger: panelenmiş tavuk parçaları, patates, sweet chili sos",
+      ingredients: [{ name: "brioche ekmek", removable: false }, { name: "panelenmiş tavuk parçaları", removable: false }, { name: "patates", removable: true }, { name: "sweet chili sos", removable: true }],
+    },
   ],
   sos: [
     // 50 ₺
