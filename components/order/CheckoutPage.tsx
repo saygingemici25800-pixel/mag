@@ -39,6 +39,8 @@ export default function CheckoutPage() {
   /* Mesafeli satış onayı — VARSAYILAN İŞARETSİZ. Yönetmelik onayın sipariş
      ONAYINDAN ÖNCE alınmasını istiyor; önceden işaretli kutu onay sayılmaz. */
   const [termsOk, setTermsOk] = useState(false);
+  /* WhatsApp'a yönlendirildikten sonra ekranda kalan onay (sipariş no + yedek bağlantı) */
+  const [done, setDone] = useState<{ code: string; url: string } | null>(null);
   /* panel ayarları: sipariş kapalıysa ya da sepette tükenen ürün varsa ödeme yapılamaz */
   const settings = useSettings();
   const minute = useClockMinute();
@@ -107,14 +109,23 @@ export default function CheckoutPage() {
       note: form.note,
       locale,
       terms_accepted: termsOk,
+      /* GEÇİCİ: sipariş WhatsApp'tan tamamlanıyor. Sunucu bu bayrakla ödeme
+         sağlayıcısını atlar, siparişi "whatsapp" durumuyla yazar ve mesajı
+         KENDİSİ üretir (tutarlar sunucudan, tarayıcıda hesaplanmaz). */
+      channel: "whatsapp" as const,
     };
     setSubmitting(true);
     try {
       const res = await fetch("/api/orders", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
       const data = await res.json();
-      if (res.status === 201 && data.redirectUrl) {
+      if (res.status === 201 && data.whatsappUrl) {
         cartClear();
-        window.location.assign(data.redirectUrl);
+        /* Yeni sekme: müşteri siteye geri dönebilsin. noopener → açılan sayfa
+           window.opener'a erişemez. */
+        window.open(data.whatsappUrl as string, "_blank", "noopener,noreferrer");
+        /* Sipariş no ekranda kalsın: WhatsApp açılmazsa (engelleyici vb.)
+           müşterinin elinde referans olsun, işletme panelde bununla bulsun. */
+        setDone({ code: String(data.order_code ?? ""), url: String(data.whatsappUrl) });
         return;
       }
       setErrors(Array.isArray(data.errors) && data.errors.length ? data.errors : [{ field: "generic", code: "failed" }]);
@@ -196,6 +207,8 @@ export default function CheckoutPage() {
           <span>{o.total}</span>
           <span>{formatPriceFor(locale, totals.total)}</span>
         </div>
+        {/* Müşteri siteden ödeme YAPMADIĞINI sepet özetinde de görsün. */}
+        <p className="wa-paynote" data-wa-paynote>{o.waPayNote}</p>
       </div>
       {etkinMode === "delivery" && totals.minCart > 0 && totals.missing > 0 ? <div className="warn">{fmt(o.minWarn, { min: totals.minCart, missing: totals.missing })}</div> : null}
     </section>
@@ -382,9 +395,19 @@ export default function CheckoutPage() {
                 {o.termsPost}
               </span>
             </label>
-            <button type="submit" className="submit" disabled={!canSubmit}>
-              {submitting ? o.payingNow : `${o.payNow} · ${formatPriceFor(locale, totals.total)}`}
+            <button type="submit" className="submit" data-wa-submit disabled={!canSubmit}>
+              {submitting ? o.payingNow : `${o.waOrder} · ${formatPriceFor(locale, totals.total)}`}
             </button>
+            {/* Butonun altında: siparişin WhatsApp'tan onaylanacağı + ödemenin
+                sitede ALINMADIĞI. Müşteri kart bilgisi beklemesin. */}
+            <p className="wa-hint" data-wa-hint>{o.waHint}</p>
+            {done ? (
+              <div className="wa-done" data-wa-done role="status">
+                <b>{o.waDone}</b>
+                <span data-wa-code>{o.waCode}: #{done.code}</span>
+                <a href={done.url} target="_blank" rel="noopener noreferrer" data-wa-link>{o.waOpen}</a>
+              </div>
+            ) : null}
           </form>
           <aside className="hidden lg:block">
             <div className="sticky top-24">

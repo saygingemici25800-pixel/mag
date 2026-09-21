@@ -275,7 +275,7 @@
     "deliveryInfo": "Доставка",
     "payNow": "Перейти к оплате",
     "payingNow": "Переходим…",
-    "onlineOnly": "Оплата картой онлайн. Оплата при получении недоступна.",
+    "onlineOnly": "Заказы подтверждаются через WhatsApp; оплата при доставке или получении.",
     "backToMenu": "Назад в меню",
     "emptyGo": "Перейти в меню",
     "ingredients": "Состав",
@@ -307,7 +307,13 @@
     "termsMid": " и ",
     "termsContract": "Договор дистанционной продажи",
     "termsPost": " — прочитал(а) и принимаю.",
-    "termsRequired": "Примите условия, чтобы продолжить."
+    "termsRequired": "Примите условия, чтобы продолжить.",
+    "waOrder": "Заказать через WhatsApp",
+    "waHint": "Ваш заказ будет подтверждён через WhatsApp.",
+    "waPayNote": "Оплата при доставке / при получении. На сайте оплата не производится.",
+    "waDone": "Заказ готов к отправке",
+    "waCode": "Номер заказа",
+    "waOpen": "Нажмите здесь, если WhatsApp не открылся"
   },
   "track": {
     "metaTitle": "Отслеживание заказа",
@@ -326,7 +332,8 @@
       "ready": "Готов",
       "on_the_way": "В пути",
       "delivered": "Доставлен",
-      "cancelled": "Отменён"
+      "cancelled": "Отменён",
+      "whatsapp": "WhatsApp"
     },
     "pickupHint": "Мы покажем здесь, когда заказ будет готов. Адрес: {address}",
     "deliveryHint": "Мы покажем здесь, когда курьер выедет.",
@@ -383,7 +390,8 @@
       "ready": "Hazır",
       "on_the_way": "Yolda",
       "delivered": "Teslim edildi",
-      "cancelled": "İptal"
+      "cancelled": "İptal",
+      "whatsapp": "WhatsApp"
     },
     "next": {
       "preparing": "Hazırlanıyor",

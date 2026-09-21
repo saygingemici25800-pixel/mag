@@ -50,16 +50,35 @@ for (const vp of [{ w: 1440, h: 860, tag: "d" }, { w: 390, h: 844, tag: "m" }]) 
   const warn = await page.locator(".warn:visible").count();
   check(`[${vp.tag}] min sepet uyarısı yok (1290 ≥ min)`, warn === 0, `warn=${warn}`);
 
-  // yalnızca online ödeme: "Ödemeye geç" → mock sağlayıcı
-  await page.getByRole("button", { name: /Ödemeye geç/ }).click();
-  await page.waitForURL(/\/odeme\/test\?ref=/, { timeout: 15000 });
-  check(`[${vp.tag}] mock ödeme sayfasına yönlendi`, true);
-  await page.locator("form:has(input[value=ok]) button").click();
-  await page.waitForURL(/\/siparis\/[0-9a-f-]{36}$/, { timeout: 15000 });
-  await page.waitForTimeout(600);
-  const id = page.url().split("/").pop();
-  check(`[${vp.tag}] sipariş oluştu ve ödendi`, (await page.getAttribute("[data-payment]", "data-payment")) === "paid", id);
-  await shot(page, `${vp.tag}-4-track`);
+  /* 21 Eyl 2026 — GEÇİCİ WHATSAPP KANALI: ödeme sayfasına yönlendirme YOK.
+     Buton yeni sekmede wa.me açıyor; sipariş öncesinde "whatsapp" durumuyla
+     yazılıyor. Ödeme rotası silinmedi, ileride geri açılacak. */
+  await page.locator("[data-terms-check]").check().catch(() => {});
+  /* wa.me yeni sekmede açılır — popup'ı yakala ki gerçek gezinme olmasın. */
+  const popupSozu = page.context().waitForEvent("page", { timeout: 15000 }).catch(() => null);
+  await page.getByRole("button", { name: /WhatsApp/i }).click();
+  const popup = await popupSozu;
+  const waUrl = popup ? popup.url() : "";
+  /* wa.me 302 ile api.whatsapp.com/send/'e yönlendiriyor (WhatsApp'ın kendi
+     davranışı, doğrulandı). Popup yönlendirme SONRASI url'i verebilir, ikisi de
+     kabul: numara ve encode edilmiş metin her iki biçimde de var. */
+  const waTamam = /^https:\/\/(wa\.me\/905367086584\?text=|api\.whatsapp\.com\/send\/\?phone=905367086584)/.test(waUrl);
+  check(`[${vp.tag}] WhatsApp yeni sekmede açıldı`, waTamam, waUrl.slice(0, 70));
+  /* Satır sonu: wa.me'de %0A, yönlendirme sonrası + (form-encoding) olabilir. */
+  check(`[${vp.tag}] mesaj encode edildi`, waUrl.includes("%0A") || waUrl.includes("text=MAG"), waUrl.slice(60, 100));
+  await popup?.close().catch(() => {});
+  /* Sipariş no ekranda kalıyor; panelde bu no ile bulunacak. */
+  await page.waitForSelector("[data-wa-code]", { timeout: 10000 });
+  const kod = (await page.textContent("[data-wa-code]"))?.match(/#([A-Z2-9]{6})/)?.[1] ?? "";
+  check(`[${vp.tag}] 6 karakterlik sipariş no gösterildi`, /^[A-Z2-9]{6}$/.test(kod), kod);
+  /* Kayıt: durum whatsapp, ödeme alınmamış, no mesajdakiyle aynı */
+  const ham = await (await fetch(`${base}/api/orders?limit=20`, { headers: { "x-panel-key": PANEL_KEY } })).json();
+  const liste = Array.isArray(ham) ? ham : (ham.orders ?? []);
+  const kayit = liste.find((o) => o.order_code === kod);
+  check(`[${vp.tag}] sipariş kaydı var, no eşleşiyor`, !!kayit, kod);
+  check(`[${vp.tag}] durum whatsapp, ödeme alınmamış`, kayit?.status === "whatsapp" && kayit?.payment_status === "awaiting_payment", `${kayit?.status}/${kayit?.payment_status}`);
+  const id = kayit?.id;
+  await shot(page, `${vp.tag}-4-whatsapp`);
 
   // durum güncelleme (panel anahtarı varsa)
   const patch = await fetch(`${base}/api/orders/${id}`, {

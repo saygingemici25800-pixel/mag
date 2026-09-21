@@ -65,7 +65,15 @@ await c.screenshot({ path: `${out}/f5-4-odeme.png`, fullPage: true });
 check("ödeme sayfasında 3 satır", (await c.locator(".line:visible").count()) === 3);
 await fillDelivery(c, { address: "Karagözler Mah. Ödeme Sk. No:5", name: "Mobil Ödeme", phone: "0533 444 55 66" });
 const t0 = Date.now();
-await c.getByRole("button", { name: /Ödemeye geç/ }).click();
+/* 21 Eyl 2026: arayüz butonu WhatsApp'a gidiyor; bu paket ÖDEME akışını
+   sınadığı için sipariş ödeme kanalından API ile kurulup mock sayfaya gidilir. */
+{
+  const kur = await (await fetch(base + "/api/orders", { method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ type: "delivery", zone: "karagozler", items: [{ id: "smooky", qty: 2 }], /* min sepet için 2 adet (merkez/karagözler eşiği) */
+      name: "Mobil Ödeme", phone: "05334445566", address: "Karagözler Mah. Ödeme Sk. No:5",
+      requested_at: "simdi", locale: "tr", terms_accepted: true }) })).json();
+  await c.goto(kur.redirectUrl, { waitUntil: "load" });
+}
 await c.waitForURL(/\/odeme\/test\?ref=/, { timeout: 15000 }); await c.waitForTimeout(500);
 await c.screenshot({ path: `${out}/f5-5-test-odeme.png` });
 check("mock ödeme sayfasına yönlendi", true);

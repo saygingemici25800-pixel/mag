@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { buildOrder, computeTotals, validateOrder, type NewOrderInput } from "@/lib/orders";
 import { priceById } from "@/lib/menu";
 import { isPanelAuthorized } from "@/lib/panel-auth";
+import { orderMessage, whatsappUrl } from "@/lib/whatsapp";
 import { getPaymentProvider } from "@/lib/payments";
 import { siteUrl } from "@/lib/site";
 import { getOrderStore, getSettingsStore } from "@/lib/store";
@@ -66,6 +67,31 @@ export async function POST(req: Request) {
   }
   const soldOut = input.items.filter((i) => settings.sold_out.includes(i.id)).map((i) => i.id);
   if (soldOut.length) return NextResponse.json({ errors: soldOut.map((id) => ({ field: "items", code: "sold-out", id })) }, { status: 409 });
+  const store = getOrderStore();
+
+  /* ---- GEÇİCİ: WHATSAPP KANALI ----
+     Ödeme sağlayıcısı DEVREYE GİRMEZ (503 koruması yerinde, yalnızca bu akışta
+     atlanır); sipariş "whatsapp" durumuyla yazılır ve mesaj SUNUCUDA üretilir.
+     Tutarlar kayıttaki değerlerdir — istemci mesajı kendisi kurmaz, dolayısıyla
+     yukarıdaki tutar doğrulaması anlamını korur. */
+  if (input.channel === "whatsapp") {
+    const order = buildOrder(input, undefined, settings.zones, settings.prices);
+    const message = orderMessage(order, settings.zones);
+    let kayitli = true;
+    try {
+      await store.create(order);
+    } catch (e) {
+      /* KAYIT BAŞARISIZ OLSA DA WhatsApp AÇILIR: müşteri sipariş verememezlik
+         etmesin. İşletme mesajı yine alır; kayıt sonradan elle girilebilir. */
+      kayitli = false;
+      console.error("[whatsapp] sipariş KAYDEDİLEMEDİ, mesaj yine de gönderiliyor:", (e as Error).message);
+    }
+    return NextResponse.json(
+      { id: order.id, order_code: order.order_code, message, whatsappUrl: whatsappUrl(message), saved: kayitli },
+      { status: 201 },
+    );
+  }
+
   let provider;
   try {
     provider = getPaymentProvider();
@@ -73,7 +99,6 @@ export async function POST(req: Request) {
     console.error("[payment]", (e as Error).message);
     return NextResponse.json({ errors: [{ field: "payment", code: "provider-unavailable" }] }, { status: 503 });
   }
-  const store = getOrderStore();
   const order = await store.create(buildOrder(input, undefined, settings.zones, settings.prices));
   try {
     const { redirectUrl, ref } = await provider.createCheckout(order, { baseUrl: siteUrl() });
@@ -93,6 +118,11 @@ export async function GET(req: Request) {
   const limit = Math.min(500, Number(url.searchParams.get("limit")) || 200);
   /* ?since=<ISO>: panel yoklaması artımlı çeker (yalnızca değişenler). Yoksa tam liste. */
   const since = url.searchParams.get("since") || undefined;
-  const orders = await getOrderStore().list(limit, true, since); // panel: yalnızca ödenmiş
+  /* 21 Eyl 2026: "yalnızca ödenmiş" filtresi WhatsApp siparişlerini de eliyordu
+     (onlar tanımı gereği ödenmemiş). Panel bu siparişleri GÖRMELİ. Ödeme bekleyen
+     kart siparişleri ise hâlâ gizli kalmalı — bu yüzden ölçüt "ödenmiş VEYA
+     whatsapp kanalı". */
+  const hepsi = await getOrderStore().list(limit, false, since);
+  const orders = hepsi.filter((o) => o.payment_status === "paid" || o.status === "whatsapp");
   return NextResponse.json(orders, { headers: { "cache-control": "no-store" } });
 }

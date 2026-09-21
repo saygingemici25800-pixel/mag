@@ -388,7 +388,7 @@
     "deliveryInfo": "Delivery",
     "payNow": "Continue to payment",
     "payingNow": "Redirecting…",
-    "onlineOnly": "Payment is online by card. No payment on delivery.",
+    "onlineOnly": "Orders are confirmed via WhatsApp; payment is taken on delivery or at pickup.",
     "backToMenu": "Back to menu",
     "emptyGo": "Go to menu",
     "ingredients": "Ingredients",
@@ -419,7 +419,13 @@
     "termsMid": " and the ",
     "termsContract": "Distance Sales Agreement",
     "termsPost": " — I have read and accept.",
-    "termsRequired": "Please accept the agreement to continue."
+    "termsRequired": "Please accept the agreement to continue.",
+    "waOrder": "Order via WhatsApp",
+    "waHint": "Your order will be confirmed via WhatsApp.",
+    "waPayNote": "Payment is taken on delivery / at pickup. No payment is made on the site.",
+    "waDone": "Your order is ready to send",
+    "waCode": "Order no",
+    "waOpen": "Tap here if WhatsApp did not open"
   },
   "track": {
     "metaTitle": "Order tracking",
@@ -438,7 +444,8 @@
       "ready": "Ready",
       "on_the_way": "On the way",
       "delivered": "Delivered",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "whatsapp": "WhatsApp"
     },
     "pickupHint": "You'll see it here when it's ready. Address: {address}",
     "deliveryHint": "You'll see it here when the courier leaves.",
@@ -514,7 +521,8 @@
       "ready": "Hazır",
       "on_the_way": "Yolda",
       "delivered": "Teslim edildi",
-      "cancelled": "İptal"
+      "cancelled": "İptal",
+      "whatsapp": "WhatsApp"
     },
     "next": {
       "preparing": "Hazırlanıyor",

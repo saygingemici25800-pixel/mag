@@ -267,7 +267,7 @@
     "deliveryInfo": "Teslimat",
     "payNow": "Ödemeye geç",
     "payingNow": "Yönlendiriliyor…",
-    "onlineOnly": "Ödeme online, kartla. Teslimatta ödeme alınmaz.",
+    "onlineOnly": "Sipariş WhatsApp üzerinden onaylanır; ödeme kapıda / teslimatta alınır.",
     "backToMenu": "Menüye dön",
     "emptyGo": "Menüye git",
     "ingredients": "İçindekiler",
@@ -298,7 +298,13 @@
     "termsMid": "'nu ve ",
     "termsContract": "Mesafeli Satış Sözleşmesi",
     "termsPost": "'ni okudum, kabul ediyorum.",
-    "termsRequired": "Devam etmek için sözleşmeyi onaylayın."
+    "termsRequired": "Devam etmek için sözleşmeyi onaylayın.",
+    "waOrder": "WhatsApp'tan Sipariş Ver",
+    "waHint": "Siparişiniz WhatsApp üzerinden onaylanacak.",
+    "waPayNote": "Ödeme kapıda / teslimatta alınır. Siteden ödeme yapılmaz.",
+    "waDone": "Siparişiniz hazırlandı",
+    "waCode": "Sipariş no",
+    "waOpen": "WhatsApp açılmadıysa buraya dokunun"
   },
   "track": {
     "title": [
@@ -316,7 +322,8 @@
       "ready": "Hazır",
       "on_the_way": "Yolda",
       "delivered": "Teslim edildi",
-      "cancelled": "İptal edildi"
+      "cancelled": "İptal edildi",
+      "whatsapp": "WhatsApp"
     },
     "pickupHint": "Hazır olunca buradan görürsün. Adres: {address}",
     "deliveryHint": "Kurye yola çıkınca burada görünür.",
@@ -373,7 +380,8 @@
       "ready": "Hazır",
       "on_the_way": "Yolda",
       "delivered": "Teslim edildi",
-      "cancelled": "İptal"
+      "cancelled": "İptal",
+      "whatsapp": "WhatsApp"
     },
     "next": {
       "preparing": "Hazırlanıyor",

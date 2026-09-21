@@ -88,8 +88,16 @@ await shop.waitForTimeout(800);
 await fillDelivery(shop, { zone: "merkez", address: "Panel testi Sk. No:1", name: "Panel Test", phone: "05321234567" });
 const soundsBefore = await panel.evaluate(() => window.__sounds ?? 0);
 const t0 = Date.now();
-await shop.click('button[type="submit"]');
-/* mock ödeme sayfası → ödemeyi onayla */
+/* 21 Eyl 2026: arayüz butonu WhatsApp'a gidiyor (geçici kanal). Bu paket
+   PANELİ sınıyor — sipariş ödeme kanalından API ile kurulup mock sayfaya
+   gidiliyor ki ödeme sonrası panel davranışı aynen test edilsin. */
+{
+  const kur = await (await fetch(base + "/api/orders", { method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ type: "delivery", zone: "merkez", items: [{ id: "smooky", qty: 2 }], /* min sepet için 2 adet (merkez/karagözler eşiği) */
+      name: "Panel Test", phone: "05321234567", address: "Panel testi Sk. No:1",
+      requested_at: "simdi", locale: "tr", terms_accepted: true }) })).json();
+  await shop.goto(kur.redirectUrl, { waitUntil: "load" });
+}
 await shop.waitForURL(/\/odeme\/test/, { timeout: 15000 });
 /* mock sağlayıcı sayfası: "Ödemeyi tamamla" → callback → /siparis/<id> */
 await shop.getByRole("button", { name: "Ödemeyi tamamla" }).click();
@@ -140,11 +148,14 @@ check("HAZIR → KAPANDI (delivered)", st === "delivered", st);
   await s2.clock.install({ time: FAKE_NOW });
   await s2.goto(base + "/siparis/odeme", { waitUntil: "load" });
   await s2.waitForTimeout(700);
-  await s2.fill("input[placeholder='Ad soyad']", "Gel Al");
-  await s2.fill("input[placeholder='05XX XXX XX XX']", "05321112233");
-  /* Mesafeli satış onayı zorunlu: kutu işaretlenmeden gönder butonu pasif. */
-  await s2.locator("[data-terms-check]").check().catch(() => {});
-  await s2.click('button[type="submit"]');
+  /* 21 Eyl 2026: arayüz butonu WhatsApp'a gidiyor; bu blok GEL-AL kartının
+     panel davranışını sınıyor, bu yüzden sipariş ödeme kanalından kurulur. */
+  {
+    const kur2 = await (await fetch(base + "/api/orders", { method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ type: "pickup", items: [{ id: "brisket", qty: 1 }], name: "Gel Al",
+        phone: "05321112233", requested_at: "simdi", locale: "tr", terms_accepted: true }) })).json();
+    await s2.goto(kur2.redirectUrl, { waitUntil: "load" });
+  }
   await s2.waitForURL(/\/odeme\/test/, { timeout: 15000 });
   await s2.getByRole("button", { name: "Ödemeyi tamamla" }).click();
   await s2.waitForURL(/\/siparis\/[0-9a-f-]{36}/, { timeout: 20000 });
@@ -184,7 +195,7 @@ check("sipariş kapalı anahtarı sunucuya yazıldı", closed === false, String(
   await s3.waitForSelector("[data-closed]", { timeout: 8000 });
   check("kapalıyken ödeme sayfası 'Şu an kapalıyız' diyor", true);
   check("kapalıyken ödeme butonu pasif", await s3.locator('button[type="submit"]').isDisabled());
-  const api = await c3.request.post(base + "/api/orders", { data: { type: "pickup", items: [{ id: "smooky", qty: 1 }], name: "X", phone: "05321234567", requested_at: "simdi", terms_accepted: true } });
+  const api = await c3.request.post(base + "/api/orders", { data: { type: "pickup", items: [{ id: "smooky", qty: 2 }], /* min sepet için 2 adet (merkez/karagözler eşiği) */ name: "X", phone: "05321234567", requested_at: "simdi", terms_accepted: true } });
   check("kapalıyken API sipariş reddediyor (409)", api.status() === 409, String(api.status()));
   await s3.screenshot({ path: `${out}/390-kapali.png` });
   await c3.close();

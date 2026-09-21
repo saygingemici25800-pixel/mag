@@ -70,8 +70,15 @@ await cust.waitForURL(/\/siparis\/odeme/, { timeout: 8000 });
 await cust.waitForTimeout(500);
 await fillDelivery(cust, { address: "Karagözler Mah. Deneme Sk. No:3", name: "Canlı Test", phone: "+90 532 000 00 00" });
 const t0 = Date.now();
-/* yalnızca online ödeme: mock sağlayıcıdan onayla */
-await cust.getByRole("button", { name: /Ödemeye geç/ }).click();
+/* 21 Eyl 2026: arayüzdeki buton artık WhatsApp'a gidiyor (geçici kanal).
+   Bu paket PANEL CANLILIĞINI ve ödeme akışını sınıyor — ikisi de duruyor —
+   bu yüzden sipariş ÖDEME kanalından (channel yok) API ile kuruluyor ve
+   müşteri mock ödeme sayfasına elle götürülüyor. */
+const kur = await (await fetch(base + "/api/orders", { method: "POST", headers: { "content-type": "application/json" },
+  body: JSON.stringify({ type: "delivery", zone: "karagozler", items: [{ id: "smooky", qty: 2 }], /* min sepet için 2 adet (merkez/karagözler eşiği) */
+    name: "Canlı Test", phone: "05320000000", address: "Karagözler Mah. Deneme Sk. No:3",
+    requested_at: "simdi", locale: "tr", terms_accepted: true }) })).json();
+await cust.goto(kur.redirectUrl, { waitUntil: "load" });
 await cust.waitForURL(/\/odeme\/test\?ref=/, { timeout: 15000 });
 await cust.locator("form:has(input[value=ok]) button").click();
 await cust.waitForURL(/\/siparis\/[0-9a-f-]{36}$/, { timeout: 15000 });

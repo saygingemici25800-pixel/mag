@@ -1303,3 +1303,49 @@ select.ctl {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
+/* ---- GEÇİCİ: WhatsApp sipariş kanalı ---- */
+/* Buton altındaki açıklama: siparişin WhatsApp'tan onaylanacağı. */
+.wa-hint {
+  margin: 8px 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--dim);
+  text-align: center;
+}
+/* Sepet özetinde ödeme bilgisi — müşteri siteden ödeme yapmadığını anlasın. */
+.wa-paynote {
+  margin: 10px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid color-mix(in srgb, var(--cream) 12%, transparent);
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--dim);
+}
+/* Yönlendirme sonrası: sipariş no + yedek bağlantı (WhatsApp açılmadıysa). */
+.wa-done {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+.wa-done b {
+  color: var(--cream);
+  font-size: 0.95rem;
+}
+.wa-done span {
+  font-family: var(--font-museo-stack);
+  font-size: 1.05rem;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+.wa-done a {
+  color: var(--cream);
+  font-size: 0.8rem;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

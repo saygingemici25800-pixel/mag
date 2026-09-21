@@ -7,6 +7,7 @@ import { MENU, priceOf, type MenuItem } from "@/lib/menu";
 import { findZone, zoneActive, type Zone } from "@/lib/zones";
 import { defaultNow, isOpen, timeSlots, type Schedule } from "@/lib/hours";
 import { LEGAL_FIELDS } from "@/lib/legal";
+import { newOrderCode } from "@/lib/whatsapp";
 
 /** Onaylanan yasal metin sürümü — metin güncellenince bu da değişir. */
 const LEGAL_VERSION = LEGAL_FIELDS.TARIH ?? "bilinmiyor";
@@ -17,9 +18,12 @@ export type PaymentStatus = "awaiting_payment" | "paid" | "payment_failed";
 /* Sipariş dili = sitenin dili (lib/i18n LOCALES). Ayrı bir birlik yazmıyoruz ki
    yeni dil eklenince burası sessizce geride kalmasın. */
 export type OrderLocale = Locale;
-export type OrderStatus = "received" | "preparing" | "ready" | "on_the_way" | "delivered" | "cancelled";
-export const STATUSES: OrderStatus[] = ["received", "preparing", "ready", "on_the_way", "delivered", "cancelled"];
-export const OPEN_STATUSES: OrderStatus[] = ["received", "preparing", "ready", "on_the_way"];
+/* "whatsapp": GEÇİCİ kanal (0013_whatsapp_channel.sql). Sipariş WhatsApp'a
+   yönlendirilmeden önce bu durumla yazılır; mevcut aşamalarla karışmaz. */
+export type OrderStatus = "received" | "preparing" | "ready" | "on_the_way" | "delivered" | "cancelled" | "whatsapp";
+export const STATUSES: OrderStatus[] = ["whatsapp", "received", "preparing", "ready", "on_the_way", "delivered", "cancelled"];
+/* whatsapp da AÇIK sayılır: panel bu siparişleri görmeye devam etsin. */
+export const OPEN_STATUSES: OrderStatus[] = ["whatsapp", "received", "preparing", "ready", "on_the_way"];
 
 export const STATUS_FLOW: Record<OrderType, OrderStatus[]> = {
   pickup: ["received", "preparing", "ready", "delivered"],
@@ -41,6 +45,9 @@ export type PanelStage = "new" | "ready" | "closed" | "cancelled";
 
 export function panelStage(o: { status: OrderStatus }): PanelStage {
   if (o.status === "cancelled") return "cancelled";
+  /* WhatsApp siparişi panelde YENİ kovasında görünür (işletme WhatsApp'ta
+     konuşup buradan ilerletir). */
+  if (o.status === "whatsapp") return "new";
   if (o.status === "delivered") return "closed";
   if (o.status === "received" || o.status === "preparing") return "new";
   return "ready"; // ready | on_the_way
@@ -110,6 +117,8 @@ export interface Order {
   terms_accepted_at?: string | null;
   /** onaylanan metin sürümü */
   terms_version?: string | null;
+  /** WhatsApp mesajındaki kısa sipariş no (6 karakter) — panelde arama için */
+  order_code?: string | null;
 }
 
 export interface NewOrderInput {
@@ -124,6 +133,8 @@ export interface NewOrderInput {
   locale?: OrderLocale;
   /** Ön bilgilendirme + mesafeli satış sözleşmesi onayı. Sunucu ZORUNLU tutar. */
   terms_accepted?: boolean;
+  /** "whatsapp" → ödeme sağlayıcısı devreye girmez, sipariş WhatsApp'a gider. */
+  channel?: "whatsapp";
 }
 
 export interface OrderStore {
@@ -273,7 +284,10 @@ export function buildOrder(input: NewOrderInput, now: Date = defaultNow(), zones
     /* İstemciden gelen dili LOCALES'e karşı doğrula. Eskiden "en değilse tr" yazıyordu;
        bu, ru siparişini sessizce tr'ye düşürüp ödeme dönüşünü yanlış dile yönlendiriyordu. */
     locale: isLocale(input.locale) ? input.locale : DEFAULT_LOCALE,
-    status: "received",
+    status: input.channel === "whatsapp" ? "whatsapp" : "received",
+    /* Kısa sipariş no YALNIZCA WhatsApp kanalında üretilir; diğer akış uuid ile
+       çalışmaya devam eder (geçici kanal mevcut akışı değiştirmesin). */
+    order_code: input.channel === "whatsapp" ? newOrderCode() : null,
     cancel_reason: null,
     /* ONAY KAYDI — uyuşmazlıkta kanıt. Zaman SUNUCUDAN (`now`), istemciden gelen
        bir damgaya güvenilmez. Buraya gelindiyse validateOrder onayı zaten
