@@ -2,10 +2,16 @@
  * Canlı orders tablosundaki TEST kayıtlarını yedekleyip siler.
  *
  * Güvenlik: bir kaydın test olduğunu KANITLAMADAN silmez. Ölçüt (hepsi birden):
- *   - payment_ref "mock:" ile başlar (gerçek iyzico işlemi değil), VE
+ *   - ÖDEME İZİ SAHTE: payment_ref "mock:" ile başlar (gerçek iyzico işlemi
+ *     değil) YA DA kayıt WhatsApp kanalından gelmiş (status="whatsapp" ve
+ *     payment_ref hiç yok — bu kanalda ödeme sunucudan geçmiyor), VE
  *   - ad bilinen test adlarından biri, VE
  *   - telefon bilinen test numaralarından biri
  * Bu üçünden biri bile tutmayan kayıt ŞÜPHELİ sayılır, SİLİNMEZ ve raporlanır.
+ *
+ * WhatsApp kanalı GERÇEK müşteri de yaratıyor; onu tek başına "test" saymak
+ * tehlikeli olurdu. Bu yüzden ad + telefon ölçütleri AYNEN duruyor: gerçek bir
+ * WhatsApp siparişi test adı/numarası taşımayacağı için şüpheli kalır, silinmez.
  *
  * Kullanım:
  *   node scripts/purge-test-orders.mjs            # yalnız RAPOR (silmez)
@@ -35,6 +41,8 @@ const TEST_NAMES = new Set([
   "Hazirlik Kontrol", "Test Müşteri", "Panel Test", "Malzeme Test", "Mobil Ödeme",
   "Klavye Test", "Test Kullanıcı", "Test Kullanici", "Supabase Kanit",
   "Push Derin Baglanti", "Gel Al", "Canlı Test", "Probe",
+  /* 21 Eyl 2026 — WhatsApp kanalının canlı doğrulaması */
+  "Canli Dogrulama",
 ]);
 const TEST_PHONES = new Set([
   "+905321234567", "+905327778899", "+905321112233", "+905334445566",
@@ -46,7 +54,10 @@ console.log(`canlı orders tablosu — SİLME ÖNCESİ kayıt sayısı: ${all.le
 
 const reasons = (o) => {
   const bad = [];
-  if (!String(o.payment_ref || "").startsWith("mock:")) bad.push(`payment_ref="${o.payment_ref}" (mock: değil)`);
+  /* Sahte ödeme izi: mock ödeme YA DA WhatsApp kanalı (o kanalda payment_ref hiç yazılmıyor). */
+  const sahteOdeme =
+    String(o.payment_ref || "").startsWith("mock:") || (o.status === "whatsapp" && !o.payment_ref);
+  if (!sahteOdeme) bad.push(`payment_ref="${o.payment_ref}" (mock: değil, WhatsApp kanalı da değil)`);
   if (!TEST_NAMES.has(o.name)) bad.push(`ad="${o.name}" (bilinen test adı değil)`);
   if (!TEST_PHONES.has(o.phone)) bad.push(`telefon="${o.phone}" (bilinen test numarası değil)`);
   return bad;
