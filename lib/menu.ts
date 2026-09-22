@@ -217,12 +217,15 @@ export const MENU: Record<Category, MenuItem[]> = {
     },
   ],
   sos: [
+    /* 22 Eyl 2026: sos görselleri geldi (public/urun/sos/). Dosya adları ürün
+       id'siyle birebir; tek istisna truf-mayo.webp → truflu-mayonez.
+       Kesimler YATAY (~660×480); --ic mutlak sınır sistemi kutuya sığdırır. */
     // 50 ₺
-    { id: "truflu-mayonez", name: "Trüflü mayonez", price: 50 },
-    { id: "jalapeno-sos", name: "Jalapeno", price: 50 },
-    { id: "sweet-chili", name: "Sweet & chili", price: 50 },
-    { id: "mag-sos", name: "Mag sos", price: 50 },
-    { id: "tutsu-biberli-aioli", name: "Tütsü biberli aioli", price: 50, upsell: true }, // AÇIK: fiyat işletmeden teyit edilecek
+    { id: "truflu-mayonez", photo: "/urun/sos/truf-mayo.webp", name: "Trüflü mayonez", price: 50 },
+    { id: "jalapeno-sos", photo: "/urun/sos/jalapeno-sos.webp", name: "Jalapeno", price: 50 },
+    { id: "sweet-chili", photo: "/urun/sos/sweet-chili.webp", name: "Sweet & chili", price: 50 },
+    { id: "mag-sos", photo: "/urun/sos/mag-sos.webp", name: "Mag sos", price: 50 },
+    { id: "tutsu-biberli-aioli", photo: "/urun/sos/tutsu-biberli-aioli.webp", name: "Tütsü biberli aioli", price: 50, upsell: true }, // AÇIK: fiyat işletmeden teyit edilecek
   ],
   icecek: [
     { id: "ayran", photo: "/urun/icecek/ayran.webp", name: "Arslan ayran", price: 90 },
@@ -240,7 +243,7 @@ export const MENU: Record<Category, MenuItem[]> = {
     { id: "zencefilli-gazoz", photo: "/urun/icecek/ginger.webp", name: "Zencefilli gazoz", price: 190 },
     { id: "alkolsuz-bira", photo: "/urun/icecek/bitburger-00.webp", name: "Alkolsüz bira", price: 190 },
     { id: "kola", photo: "/urun/icecek/kola.webp", name: "Kola", price: 110, upsell: true }, // AÇIK: fiyat ve marka işletmeden teyit edilecek
-    { id: "limonata", name: "Limonata", price: 130, upsell: true }, // AÇIK: fiyat ve ev yapımı olup olmadığı işletmeden teyit edilecek
+    { id: "limonata", photo: "/urun/icecek/limonata.webp", name: "Limonata", price: 130, upsell: true }, // AÇIK: fiyat ve ev yapımı olup olmadığı işletmeden teyit edilecek
   ],
 };
 

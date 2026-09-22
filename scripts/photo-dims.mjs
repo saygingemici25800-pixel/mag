@@ -1,4 +1,4 @@
-// public/urun/{icecek,yan}/*.webp + ortak/ → lib/photoDims.json
+// public/urun/{icecek,yan,sos}/*.webp + ortak/ → lib/photoDims.json
 // Amaç: next/image'a DOĞRU intrinsic oranı vermek. Elle yazılan tablo dosyalarla
 // zamanla uyumsuzlaşır; bu script ölçüp üretir. Görsel değişirse tekrar koş.
 import sharp from "sharp";
@@ -7,7 +7,7 @@ import path from "node:path";
 
 /* "" = public/urun kökü: hero kesimleri orada (ör. citir.webp — 21 Eyl 2026'da
    burgerden yan ürünlere taşındı ve artık `photo` ile gösteriliyor). */
-const DIRS = ["", "icecek", "yan", "ortak"];
+const DIRS = ["", "icecek", "yan", "sos", "ortak"];
 const out = {};
 for (const d of DIRS) {
   let files = [];

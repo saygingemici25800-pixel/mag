@@ -59,6 +59,10 @@
     "w": 191,
     "h": 480
   },
+  "/urun/icecek/limonata.webp": {
+    "w": 260,
+    "h": 480
+  },
   "/urun/icecek/maden-suyu.webp": {
     "w": 154,
     "h": 480
@@ -97,6 +101,26 @@
   },
   "/urun/yan/taco.webp": {
     "w": 455,
+    "h": 480
+  },
+  "/urun/sos/jalapeno-sos.webp": {
+    "w": 664,
+    "h": 480
+  },
+  "/urun/sos/mag-sos.webp": {
+    "w": 659,
+    "h": 480
+  },
+  "/urun/sos/sweet-chili.webp": {
+    "w": 635,
+    "h": 480
+  },
+  "/urun/sos/truf-mayo.webp": {
+    "w": 667,
+    "h": 480
+  },
+  "/urun/sos/tutsu-biberli-aioli.webp": {
+    "w": 679,
     "h": 480
   },
   "/urun/ortak/noodle-taco-citir.webp": {
