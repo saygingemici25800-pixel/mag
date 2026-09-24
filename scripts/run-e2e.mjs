@@ -40,7 +40,9 @@ if (existing > 0 && !process.env.MAG_KEEP_DATA) {
    koşarken yapılan iki turda 4 ve 6 paket "düştü", çoğu FAIL=0 ile.
    Bu kilit ikinci koşuyu net bir mesajla durdurur. */
 const LOCK = ".e2e-lock";
-if (existsSync(LOCK) && !process.env.MAG_FORCE) {
+/* Grup alt süreçleri kilide takılmaz: kilidi ÜST koşucu tutuyor ve gruplar
+   sırayla koşuyor, yani eşzamanlılık yok. */
+if (existsSync(LOCK) && !process.env.MAG_FORCE && !process.env.MAG_GROUP) {
   const sahip = readFileSync(LOCK, "utf8").trim();
   let canli = false;
   try { process.kill(Number(sahip), 0); canli = true; } catch { canli = false; }
@@ -52,8 +54,8 @@ if (existsSync(LOCK) && !process.env.MAG_FORCE) {
   }
   /* sahibi ölmüş: bayat kilit, devral */
 }
-writeFileSync(LOCK, String(process.pid));
-const kilidiBirak = () => { try { rmSync(LOCK, { force: true }); } catch {} };
+if (!process.env.MAG_GROUP) writeFileSync(LOCK, String(process.pid));
+const kilidiBirak = () => { if (process.env.MAG_GROUP) return; try { rmSync(LOCK, { force: true }); } catch {} };
 process.on("exit", kilidiBirak);
 for (const sig of ["SIGINT", "SIGTERM"]) process.on(sig, () => { kilidiBirak(); process.exit(130); });
 
@@ -81,8 +83,27 @@ const NEEDS_CLEAN = new Set(["panel", "faz3", "faz5-mobile-payment", "supabase-p
 /* Kendi verisini bırakan paketler: sonrasında depo sıfırlanır. */
 const DIRTIES = new Set(["raporlar", "settings-koruma", "panel-fiyat-akisi"]);
 
+/**
+ * Sunucuyu TEMİZ yeniden başlat.
+ *
+ * YETİM SÜREÇ DÜZELTMESİ (25 Eyl 2026): eskiden yalnız PORTU DİNLEYEN süreç
+ * öldürülüyordu. Ama `test-server.mjs` bir sarmalayıcı; asıl işi ÇOCUĞU olan
+ * `next-server` yapıyor. Dinleyici ölünce çocuk YETİM kalıp yaşamaya devam
+ * ediyordu. Tam koşuda NEEDS_CLEAN paketleri için bu 7+ kez tekrarlanınca
+ * arkada birikmiş next-server süreçleri belleği yiyor ve rastgele paketler
+ * çöküyordu ("DÜŞTÜ ama FAIL=0"). Ölçüldü: koşu sonrası 3 next-server ayakta,
+ * ikisi yetim (ppid başka koşulardan).
+ * Artık önce sarmalayıcı + tüm next-server süreçleri temizleniyor, sonra port.
+ */
 async function restartServerClean() {
-  spawnSync("bash", ["-c", "kill -9 $(lsof -tiTCP:3112 -sTCP:LISTEN) 2>/dev/null; true"]);
+  spawnSync("bash", ["-c", "pkill -9 -f 'scripts/test-server.mjs' 2>/dev/null; pkill -9 -f 'next-server' 2>/dev/null; kill -9 $(lsof -tiTCP:3112 -sTCP:LISTEN) 2>/dev/null; true"]);
+  /* Portun gerçekten boşalmasını bekle: hemen yeniden başlatılırsa yeni sunucu
+     "address in use" ile ölüyor ve paketler sunucusuz kalıyordu. */
+  for (let i = 0; i < 40; i++) {
+    const mesgul = spawnSync("bash", ["-c", "lsof -tiTCP:3112 -sTCP:LISTEN | head -1"], { encoding: "utf8" }).stdout.trim();
+    if (!mesgul) break;
+    await new Promise((r) => setTimeout(r, 250));
+  }
   rmSync(".data", { recursive: true, force: true });
   const child = spawn(process.execPath, ["scripts/test-server.mjs"], { detached: true, stdio: "ignore", env: { ...process.env, MAG_KEEP_DATA: "" } });
   child.unref();
@@ -103,6 +124,55 @@ async function restartServerClean() {
 async function warmRoutes() {
   const yollar = ["/", "/siparis", "/siparis/odeme", "/panel", "/galeri", "/iletisim", "/en/siparis", "/ru/siparis", "/api/panel/settings", "/api/orders?limit=1"];
   await Promise.all(yollar.map((u) => fetch(BASE + u).then((r) => r.arrayBuffer()).catch(() => {})));
+}
+
+/* ---------------------------------------------------------------------------
+   GRUP MODU (25 Eyl 2026) — paketleri 6'lık gruplara böl, HER GRUBU AYRI bir
+   koşucu sürecinde çalıştır. Grup bitince süreç kapanır, o gruba ait ne varsa
+   (node yığını, playwright sürücü bağlantıları, sunucu yeniden başlatmalarından
+   kalan artıklar) işletim sistemine iade edilir.
+
+   Neden: tam koşuda arka arkaya ~34 paket tek koşucu sürecinden yönetiliyordu;
+   bellek baskısı arttıkça rastgele paketler "DÜŞTÜ ama FAIL=0" ile yarıda
+   kesiliyordu — her koşuda BAŞKA paket. Test mantığına DOKUNULMADI; yalnız
+   koşum düzeni değişti.
+
+   MAG_GROUP verilirse bu süreç TEK bir grubu koşan alt süreçtir (aşağıdaki
+   normal akış işler). Verilmezse ve paket seçilmemişse: bölüştür ve yönet. */
+const GRUP_BOYU = Number(process.env.MAG_GROUP_SIZE || 6);
+if (!process.env.MAG_GROUP && only.length === 0 && files.length > GRUP_BOYU) {
+  const gruplar = [];
+  for (let i = 0; i < files.length; i += GRUP_BOYU) gruplar.push(files.slice(i, i + GRUP_BOYU));
+
+  const bosBellek = () => {
+    const o = spawnSync("bash", ["-c", "vm_stat | awk '/Pages free/{gsub(/\\./,\"\",$3); f=$3} /Pages inactive/{gsub(/\\./,\"\",$3); i=$3} END{printf \"%.0f/%.0f\", f*16384/1048576, i*16384/1048576}'"], { encoding: "utf8" });
+    return (o.stdout || "?").trim();
+  };
+
+  console.log(`${files.length} paket · ${gruplar.length} grup (grup başına ${GRUP_BOYU}) · her grup ayrı süreçte`);
+  console.log(`boş bellek (serbest/etkisiz MB) — başlangıç: ${bosBellek()}\n`);
+
+  let toplamGecen = 0, toplamDusen = 0, toplamAtlanan = 0, toplamTekrar = 0;
+  const dusenler = [];
+  for (const [i, g] of gruplar.entries()) {
+    const r = spawnSync(process.execPath, ["scripts/run-e2e.mjs", ...g], {
+      encoding: "utf8", maxBuffer: 1e8,
+      env: { ...process.env, MAG_GROUP: String(i + 1) },
+    });
+    const out = (r.stdout || "") + (r.stderr || "");
+    process.stdout.write(out.split("\n").filter((l) => /GEÇTİ|DÜŞTÜ|ATLANDI|tekrarlanıyor/.test(l)).join("\n") + "\n");
+    const m = out.match(/(\d+) paket · geçen (\d+) · düşen (\d+) · atlanan (\d+)/);
+    if (m) { toplamGecen += +m[2]; toplamDusen += +m[3]; toplamAtlanan += +m[4]; }
+    toplamTekrar += (out.match(/tekrarlanıyor/g) || []).length;
+    for (const l of out.split("\n")) { const d = l.match(/^(\S+)\s+DÜŞTÜ/); if (d) dusenler.push(d[1]); }
+    console.log(`  grup ${i + 1}/${gruplar.length} bitti — boş bellek: ${bosBellek()}`);
+  }
+
+  console.log(`\n${files.length} paket · geçen ${toplamGecen} · düşen ${toplamDusen} · atlanan ${toplamAtlanan}`);
+  console.log(`tekrarlanan paket sayısı: ${toplamTekrar}`);
+  console.log(`boş bellek — bitiş: ${bosBellek()}`);
+  if (dusenler.length) console.log(`düşen paketler: ${dusenler.join(", ")}`);
+  process.exit(toplamDusen ? 1 : 0);
 }
 
 /* İLK paketten önce de ısıt: restartServerClean yalnız NEEDS_CLEAN paketleri
