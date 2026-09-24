@@ -114,14 +114,33 @@ for (const n of files) {
   if (NEEDS_CLEAN.has(n) && !process.env.MAG_KEEP_DATA) {
     if (!(await restartServerClean())) { console.log(`${n}: sunucu yeniden başlatılamadı`); }
   }
-  const r = spawnSync(
-    process.execPath,
-    ["--import", "./tests/e2e/_alias-loader.mjs", `tests/e2e/${n}.mjs`, BASE],
-    { encoding: "utf8", env: process.env, maxBuffer: 1e8 },
-  );
-  const out = (r.stdout || "") + (r.stderr || "");
-  const pass = (out.match(/^PASS/gm) || []).length;
-  const fail = (out.match(/^FAIL/gm) || []).length;
+  const kos = () =>
+    spawnSync(
+      process.execPath,
+      ["--import", "./tests/e2e/_alias-loader.mjs", `tests/e2e/${n}.mjs`, BASE],
+      { encoding: "utf8", env: process.env, maxBuffer: 1e8 },
+    );
+  let r = kos();
+  let out = (r.stdout || "") + (r.stderr || "");
+  let pass = (out.match(/^PASS/gm) || []).length;
+  let fail = (out.match(/^FAIL/gm) || []).length;
+  /* YARIDA KESİLEN PAKETİ BİR KEZ TEKRARLA.
+     "Çıkış kodu != 0 ama hiç FAIL yok" = paket bir kontrolü düşürmedi, ortam
+     yüzünden ÇÖKTÜ (tipik olarak Chromium başlatılamadı). Bu makinede 8 GB
+     RAM'in ~60 MB'ı boşta; tam pakette arka arkaya ~34 tarayıcı açılınca bellek
+     baskısı rastgele paketleri düşürüyordu — her koşuda BAŞKA paket, hep FAIL=0.
+     Gerçek bir kontrol düştüyse (fail > 0) TEKRARLANMAZ: hatayı gizlemeyelim. */
+  if (r.status !== 0 && fail === 0 && !/normal pakette atlanır/.test(out)) {
+    console.log(`${n.padEnd(24)} yarıda kesildi (FAIL=0) — bir kez tekrarlanıyor`);
+    await new Promise((res) => setTimeout(res, 2000));
+    const r2 = kos();
+    const out2 = (r2.stdout || "") + (r2.stderr || "");
+    if (r2.status === 0 || (out2.match(/^FAIL/gm) || []).length > 0) {
+      r = r2; out = out2;
+      pass = (out.match(/^PASS/gm) || []).length;
+      fail = (out.match(/^FAIL/gm) || []).length;
+    }
+  }
   const skipped = /normal pakette atlanır/.test(out);
   rows.push({ n, code: r.status, pass, fail, skipped, out });
   const tag = skipped ? "ATLANDI" : r.status === 0 ? "GEÇTİ" : "DÜŞTÜ";
