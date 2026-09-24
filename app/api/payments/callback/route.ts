@@ -1,17 +1,18 @@
 import { NextResponse } from "next/server";
 import { localePath } from "@/lib/i18n";
 import { getPaymentProvider } from "@/lib/payments";
-import { sendNewOrderPush } from "@/lib/push";
 import { siteUrl } from "@/lib/site";
 import { getOrderStore } from "@/lib/store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-const PUSH_TIMEOUT_MS = 3000;
 
 /**
- * POST /api/payments/callback — sağlayıcı (mock/iyzico) buraya döner. İmza doğrulanır, sipariş paid/payment_failed olur,
- * paid'de push (3 sn zaman aşımı). Müşteri takip sayfasına 303 ile yönlendirilir.
+ * POST /api/payments/callback — sağlayıcı (mock/iyzico) buraya döner. İmza doğrulanır,
+ * sipariş paid/payment_failed olur. Müşteri takip sayfasına 303 ile yönlendirilir.
+ *
+ * 24 Eyl 2026: paid'de web push GÖNDERİLMİYOR — kanal kaldırıldı, siparişler
+ * WhatsApp'a düşüyor. Panel canlı akışı (realtime/SSE) yerinde duruyor.
  */
 export async function POST(req: Request) {
   const store = getOrderStore();
@@ -25,19 +26,14 @@ export async function POST(req: Request) {
   const existing = await store.get(result.orderId);
   if (!existing) return NextResponse.json({ error: "not-found" }, { status: 404 });
   const wasPaid = existing.payment_status === "paid";
-  const order = wasPaid
-    ? existing
-    : await store.update(result.orderId, {
-        payment_status: result.status === "paid" ? "paid" : "payment_failed",
-        payment_ref: result.ref ?? existing.payment_ref,
-        status: "received",
-      });
-  if (order && !wasPaid && result.status === "paid") {
-    try {
-      await Promise.race([sendNewOrderPush(order), new Promise((_, rej) => setTimeout(() => rej(new Error("push timeout 3s")), PUSH_TIMEOUT_MS))]);
-    } catch (e) {
-      console.warn("[push]", (e as Error).message);
-    }
+  /* Dönen kayıt artık KULLANILMIYOR (push kalkınca okuyan kalmadı) ama güncelleme
+     ŞART: siparişi paid/payment_failed yapan tek yer burası. Çağrı silinemez. */
+  if (!wasPaid) {
+    await store.update(result.orderId, {
+      payment_status: result.status === "paid" ? "paid" : "payment_failed",
+      payment_ref: result.ref ?? existing.payment_ref,
+      status: "received",
+    });
   }
   return NextResponse.redirect(siteUrl() + localePath(existing.locale, `/siparis/${existing.id}`), 303);
 }

@@ -13,7 +13,6 @@ import PanelPrices from "./PanelPrices";
 import PanelHours from "./PanelHours";
 import PanelSummary from "./PanelSummary";
 import PanelReports from "./PanelReports";
-import PushButton from "./PushButton";
 import "./panel.css";
 
 const MSG = getMessages("tr");
@@ -48,7 +47,7 @@ function istanbulDay(iso: string): string {
   return new Date(iso).toLocaleDateString("tr-TR", { timeZone: "Europe/Istanbul" });
 }
 
-/** /panel — giriş kapısı (Supabase Auth ya da PANEL_KEY), canlı akış (realtime ya da SSE), ses, push. */
+/** /panel — giriş kapısı (Supabase Auth ya da PANEL_KEY), canlı akış (realtime ya da SSE), ses. */
 export default function PanelApp() {
   const [gate, setGate] = useState<Gate>("loading");
   const [mode, setMode] = useState<Mode>("open");
@@ -266,38 +265,14 @@ export default function PanelApp() {
     return () => stop();
   }, [gate, store, upsert]);
 
-  /* --- bildirimden gelen derin bağlantı: /panel#<sipariş id> ---
-     15 Eyl 2026: push bildirimine tıklanınca panelde O SİPARİŞE gidilsin.
-     İki yol var:
-      a) panel KAPALIYDI → sw.js "/panel#<id>" açar, hash'ten okunur.
-      b) panel zaten AÇIKTI → sw.js sekmeyi focus eder ve postMessage yollar;
-         hash değişmediği için (b) yalnız hash okunarak yakalanamaz.
-     Her ikisi de aynı hedef id state'ini besler. */
-  /* Hedef sipariş REF'te tutuluyor, state'te değil: SSR'de window olmadığı için
-     lazy initializer "" üretiyor ve hydration onu koruyordu; effect içinde
-     setState çağırmak ise cascading render uyarısı veriyor. Ref ikisini de
-     atlatır — aşağıdaki effect zaten `orders` değişince yeniden koşuyor. */
-  /* Mesajla gelen hedef REF'te; hash ise her denemede DOĞRUDAN okunuyor.
-     Hash'i ayrı bir effect'te ref'e yazmak yarış yaratıyordu: o effect
-     aşağıdakinden SONRA koşuyor, kartlar o an zaten yüklüyse aşağıdaki bir daha
-     tetiklenmiyor ve hedef hiç kullanılmıyordu (panel kapalıyken bildirime
-     tıklamak — asıl senaryo — bu yüzden çalışmıyordu). */
-  const deepLinkRef = useRef<string>("");
-  /* Sayaç yalnızca effect'i yeniden koşturmak için; değeri kullanılmıyor. */
-  const [deepLinkTick, setDeepLinkTick] = useState(0);
-  useEffect(() => {
-    const onMsg = (e: MessageEvent) => {
-      if (e.data?.type !== "mag-open-order" || typeof e.data.id !== "string") return;
-      deepLinkRef.current = e.data.id;
-      setDeepLinkTick((n) => n + 1); // panel zaten açıkken de effect'i tetikle
-    };
-    /* serviceWorker VAR ama addEventListener'ı OLMAYABİLİR (kısmi mock, eski
-       gömülü görünümler). Kontrolsüz çağrı tüm paneli çökertiyordu. */
-    const sw = navigator.serviceWorker;
-    if (typeof sw?.addEventListener !== "function") return;
-    sw.addEventListener("message", onMsg);
-    return () => sw.removeEventListener("message", onMsg);
-  }, []);
+  /* --- derin bağlantı: /panel#<sipariş id> ---
+     Panel bu hash ile açılırsa o siparişe kaydırır ve kısa süre vurgular.
+     24 Eyl 2026: web push kaldırıldı; bildirimden gelen postMessage yolu
+     (sw.js → "mag-open-order") ve serviceWorker dinleyicisi SİLİNDİ. Hash yolu
+     KALDI: push'a bağlı değil, panele gönderilen herhangi bir bağlantı
+     (WhatsApp'tan yapıştırılan /panel#<id> dahil) bu sayede çalışıyor. */
+  /* Hedef HASH'ten her denemede DOĞRUDAN okunuyor; state'e yazmak SSR'de
+     hydration ve cascading render sorunları çıkarıyordu. */
   /* Kartlar sunucudan sonra geldiği için orders değişince tekrar denenir;
      bulunduğunda hedef temizlenir ki sonraki yenilemelerde tekrar kaydırmasın.
      `gate` de bağımlılık: giriş ekranı gösterilirken bileşen ERKEN RETURN ettiği
@@ -305,17 +280,16 @@ export default function PanelApp() {
      orders zaten dolu olabildiğinden bir daha tetiklenmiyor ve hash'ten gelen
      derin bağlantı sessizce çalışmıyordu. */
   useEffect(() => {
-    const id = deepLinkRef.current || decodeURIComponent(window.location.hash.replace(/^#/, ""));
+    const id = decodeURIComponent(window.location.hash.replace(/^#/, ""));
     if (!id) return;
     const el = document.querySelector<HTMLElement>(`.ocard[data-id="${CSS.escape(id)}"]`);
     if (!el) return; // kart henüz gelmedi; orders güncellenince bu effect yeniden koşar
-    deepLinkRef.current = "";
     el.scrollIntoView({ block: "center", behavior: "smooth" });
     el.classList.add("deeplink");
     const t = window.setTimeout(() => el.classList.remove("deeplink"), 2400);
     if (window.location.hash) history.replaceState(null, "", window.location.pathname + window.location.search);
     return () => window.clearTimeout(t);
-  }, [orders, deepLinkTick, gate]);
+  }, [orders, gate]);
 
   /* --- görüldü / ses tekrarı --- */
   const unseenIds = useMemo(() => [...orders.values()].filter((o) => o.status === "received" && !seen.has(o.id)).map((o) => o.id), [orders, seen]);
@@ -394,7 +368,6 @@ export default function PanelApp() {
           <button type="button" className={"pill" + (sound.unlocked && sound.on ? " on" : "")} onClick={toggleSound} data-sound={sound.unlocked ? (sound.on ? "on" : "off") : "locked"}>
             {sound.unlocked ? (sound.on ? `🔊 ${t.soundIsOn}` : `🔇 ${t.soundIsOff}`) : `🔈 ${t.soundOn}`}
           </button>
-          <PushButton t={t} />
           {mode !== "open" ? (
             <button type="button" className="pill" data-logout onClick={logout}>
               {t.logout}

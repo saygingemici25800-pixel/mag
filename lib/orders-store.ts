@@ -5,7 +5,7 @@
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { Order, OrderStore, PushStore, PushSubscriptionRow } from "@/lib/orders";
+import type { Order, OrderStore } from "@/lib/orders";
 import { hesapla, istanbulGun, type Report, type ReportStore } from "@/lib/reports";
 import { DEFAULT_SETTINGS, normalizeSettings, type Settings, type SettingsStore } from "@/lib/settings";
 
@@ -67,28 +67,6 @@ export class FileOrderStore implements OrderStore {
     all[i] = { ...all[i], ...patch, id };
     await this.db.save();
     return all[i];
-  }
-}
-
-export class FilePushStore implements PushStore {
-  private db = new JsonFile<PushSubscriptionRow>("push.json");
-  async add(sub: PushSubscriptionRow): Promise<void> {
-    const all = await this.db.load();
-    const i = all.findIndex((s) => s.endpoint === sub.endpoint);
-    if (i >= 0) all[i] = sub;
-    else all.push(sub);
-    await this.db.save();
-  }
-  async list(): Promise<PushSubscriptionRow[]> {
-    return [...(await this.db.load())];
-  }
-  async remove(endpoint: string): Promise<void> {
-    const all = await this.db.load();
-    const i = all.findIndex((s) => s.endpoint === endpoint);
-    if (i >= 0) {
-      all.splice(i, 1);
-      await this.db.save();
-    }
   }
 }
 

@@ -144,12 +144,15 @@ async function main() {
   const has = (arr, key, val) => arr.some((r) => r[key] === val);
   const rows = [
     ["Tablo: orders", has(tables, "table_name", "orders")],
-    ["Tablo: push_subscriptions", has(tables, "table_name", "push_subscriptions")],
+    /* push_subscriptions: kanal 24 Eyl 2026'da KALDIRILDI, kod artık bu tabloya
+       dokunmuyor. Tablo veritabanında BİLEREK duruyor (kullanıcı kararı); sağlık
+       kontrolü de duruyor ki var olan bir tablo gözden kaybolmasın. */
+    ["Tablo: push_subscriptions (devre dışı, veri duruyor)", has(tables, "table_name", "push_subscriptions")],
     ["Tablo: settings", has(tables, "table_name", "settings")],
     ["Kolonlar: ödeme (payment_status, payment_ref, locale)", ["payment_status", "payment_ref", "locale"].every((c) => has(cols, "column_name", c))],
     ["Kolonlar: panel (prep_minutes, accepted_at, closed_at, cancelled_at)", ["prep_minutes", "accepted_at", "closed_at", "cancelled_at"].every((c) => has(cols, "column_name", c))],
     ["RLS: orders", rls.find((r) => r.relname === "orders")?.relrowsecurity === true],
-    ["RLS: push_subscriptions", rls.find((r) => r.relname === "push_subscriptions")?.relrowsecurity === true],
+    ["RLS: push_subscriptions (devre dışı)", rls.find((r) => r.relname === "push_subscriptions")?.relrowsecurity === true],
     ["RLS: settings", rls.find((r) => r.relname === "settings")?.relrowsecurity === true],
     ["Realtime: orders yayında", has(pubs, "tablename", "orders")],
     ["Realtime: settings yayında", has(pubs, "tablename", "settings")],

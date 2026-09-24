@@ -148,16 +148,6 @@ export interface OrderStore {
   update(id: string, patch: Partial<Order>): Promise<Order | null>;
 }
 
-export interface PushSubscriptionRow {
-  endpoint: string;
-  keys: { p256dh: string; auth: string };
-}
-export interface PushStore {
-  add(sub: PushSubscriptionRow): Promise<void>;
-  list(): Promise<PushSubscriptionRow[]>;
-  remove(endpoint: string): Promise<void>;
-}
-
 const ALL_ITEMS: MenuItem[] = Object.values(MENU).flat();
 export function findMenuItem(id: string): MenuItem | undefined {
   return ALL_ITEMS.find((m) => m.id === id);

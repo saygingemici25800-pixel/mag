@@ -1,5 +1,7 @@
-/** Supabase depo — OrderStore / PushStore arayüzleri, `orders` ve `push_subscriptions` tabloları (0001_orders.sql). */
-import type { Order, OrderStore, PushStore, PushSubscriptionRow } from "@/lib/orders";
+/** Supabase depo — OrderStore arayüzü, `orders` tablosu (0001_orders.sql).
+    24 Eyl 2026: push kanalı kaldırıldı; `push_subscriptions` tablosu VERİTABANINDA
+    DURUYOR (kullanıcı kararı) ama kod tarafından hiç okunmuyor/yazılmıyor. */
+import type { Order, OrderStore } from "@/lib/orders";
 import { supabaseAdmin } from "@/lib/supabase";
 import { normalizeSettings, type Settings, type SettingsStore } from "@/lib/settings";
 import type { Report, ReportStore } from "@/lib/reports";
@@ -29,23 +31,6 @@ export class SupabaseOrderStore implements OrderStore {
     const { data, error } = await supabaseAdmin().from("orders").update(patch).eq("id", id).select().maybeSingle();
     if (error) throw new Error("supabase update: " + error.message);
     return (data as Order | null) ?? null;
-  }
-}
-
-export class SupabasePushStore implements PushStore {
-  async add(sub: PushSubscriptionRow): Promise<void> {
-    const { error } = await supabaseAdmin()
-      .from("push_subscriptions")
-      .upsert({ endpoint: sub.endpoint, p256dh: sub.keys.p256dh, auth: sub.keys.auth }, { onConflict: "endpoint" });
-    if (error) throw new Error("supabase push upsert: " + error.message);
-  }
-  async list(): Promise<PushSubscriptionRow[]> {
-    const { data, error } = await supabaseAdmin().from("push_subscriptions").select("endpoint,p256dh,auth");
-    if (error) throw new Error("supabase push list: " + error.message);
-    return (data ?? []).map((r) => ({ endpoint: r.endpoint as string, keys: { p256dh: r.p256dh as string, auth: r.auth as string } }));
-  }
-  async remove(endpoint: string): Promise<void> {
-    await supabaseAdmin().from("push_subscriptions").delete().eq("endpoint", endpoint);
   }
 }
 

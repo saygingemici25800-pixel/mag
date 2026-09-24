@@ -3,7 +3,7 @@
  *
  * Kullanım:
  *   node scripts/run-e2e.mjs                 # tüm paket
- *   node scripts/run-e2e.mjs panel push      # yalnız bu testler
+ *   node scripts/run-e2e.mjs panel faz3      # yalnız bu testler
  *
  * Canlı veritabanı kilidi: önce scripts/test-guard.mjs koşar. Sunucu canlı
  * Supabase'e bağlıysa tek bir test bile başlamaz.

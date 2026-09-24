@@ -1,4 +1,4 @@
-// Faz 3 uçtan uca: panel giriş (PANEL_KEY), ses/push mock, iki sekme (sipariş → panel ≤2 sn → durum → müşteri ≤2 sn)
+// Faz 3 uçtan uca: panel giriş (PANEL_KEY), ses, iki sekme (sipariş → panel ≤2 sn → durum → müşteri ≤2 sn)
 import { chromium } from "playwright";
 import { mkdirSync } from "node:fs";
 import { clearCart, fillDelivery, waitForCartCount } from "./_cart-fixture.mjs";
@@ -19,12 +19,8 @@ const check = (name, ok, extra = "") => { console.log((ok ? "PASS" : "FAIL") + "
 
 // --- panel sekmesi ---
 const panelCtx = await browser.newContext({ viewport: { width: 1024, height: 768 } });
-await panelCtx.addInitScript(() => {
-  // Push mock: sw kaydı + abonelik + izin
-  Object.defineProperty(navigator, "serviceWorker", { configurable: true, value: { register: async () => ({ pushManager: { getSubscription: async () => null, subscribe: async () => ({ toJSON: () => ({ endpoint: "https://example.invalid/push/test-" + Date.now(), keys: { p256dh: "BPxTest", auth: "authTest" } }) }) } }) } });
-  window.PushManager = function () {};
-  window.Notification = { permission: "granted", requestPermission: async () => "granted" };
-});
+/* 24 Eyl 2026: web push kanalı kaldırıldı — serviceWorker/PushManager/Notification
+   taklitleri SİLİNDİ; panel artık bunların hiçbirine dokunmuyor. */
 const panel = await panelCtx.newPage(); hook(panel, "panel"); await panel.clock.install({ time: FAKE_NOW });
 await panel.goto(base + "/panel", { waitUntil: "load" });
 await panel.waitForSelector("form input[type=password]", { timeout: 8000 });
@@ -48,11 +44,8 @@ await panel.click("[data-sound]");
 await panel.waitForTimeout(400);
 const snd = await panel.getAttribute("[data-sound]", "data-sound");
 check("ses kilidi açıldı", snd === "on", "data-sound=" + snd);
-// push
-await panel.click("[data-push]");
-await panel.waitForFunction(() => document.querySelector("[data-push]")?.getAttribute("data-push") !== "busy", null, { timeout: 8000 });
-const push = await panel.getAttribute("[data-push]", "data-push");
-check("push abonelik (mock) kaydedildi", push === "ok", "data-push=" + push);
+/* push aboneliği kontrolü SİLİNDİ — 24 Eyl 2026'da kanal kaldırıldı,
+   [data-push] düğmesi artık yok. Panelde bildirim kanalı: WhatsApp. */
 
 // --- müşteri sekmesi ---
 const custCtx = await browser.newContext({ viewport: { width: 390, height: 844 } });
