@@ -19,7 +19,13 @@ await panel.clock.install({ time: FAKE });
 await panel.goto(base + "/panel", { waitUntil: "load" });
 await panel.fill("form input[type=password]", KEY); await panel.click("form button[type=submit]");
 await panel.waitForSelector(".tabs", { timeout: 8000 });
-await panel.click("[data-sound]"); await panel.waitForTimeout(300);
+await panel.click("[data-sound]");
+/* Ses kilidinin açılmasını BEKLE (sabit 300 ms değil): `audio.play()` sözü
+   makine yüküne göre 91–5211 ms sürebiliyor. Aşağıdaki play() yaması kilit
+   açılmadan takılırsa ses sayacı güvenilmez oluyordu. 24 Eyl 2026. */
+await panel
+  .waitForFunction(() => document.querySelector("[data-sound]")?.getAttribute("data-sound") === "on", null, { timeout: 15000 })
+  .catch(() => {});
 // ses çalma sayacı (Audio.play patch)
 await panel.evaluate(() => { window.__plays = 0; const p = HTMLMediaElement.prototype.play; HTMLMediaElement.prototype.play = function () { window.__plays++; return p.call(this); }; });
 const before = await panel.$$eval(".ocard", (e) => e.length);

@@ -63,10 +63,25 @@ async function restartServerClean() {
   for (let i = 0; i < 60; i++) {
     await new Promise((r) => setTimeout(r, 500));
     const ok = await fetch(BASE + "/api/panel/me").then((r) => r.ok).catch(() => false);
-    if (ok) return true;
+    if (ok) { await warmRoutes(); return true; }
   }
   return false;
 }
+
+/**
+ * Rotaları ISIT. `/api/panel/me` cevap veriyor diye sunucu HAZIR sayılamaz:
+ * o yalnız BİR rotanın hazır olduğunu gösterir. Isıtılmazsa ilk isteği yapan
+ * paket, kendi zamanlama ölçümlerinin içinde rota maliyetini de ödüyor ve
+ * sahte düşme üretiyor. Ölçüm ve kanıt için: testten ÖNCE ısıt, sonra ölç.
+ */
+async function warmRoutes() {
+  const yollar = ["/", "/siparis", "/siparis/odeme", "/panel", "/galeri", "/iletisim", "/en/siparis", "/ru/siparis", "/api/panel/settings", "/api/orders?limit=1"];
+  await Promise.all(yollar.map((u) => fetch(BASE + u).then((r) => r.arrayBuffer()).catch(() => {})));
+}
+
+/* İLK paketten önce de ısıt: restartServerClean yalnız NEEDS_CLEAN paketleri
+   için koşuyor, dolayısıyla listenin başındaki paket soğuk sunucuya düşebilir. */
+await warmRoutes();
 
 const rows = [];
 for (const n of files) {

@@ -14,11 +14,28 @@ const VIEWS = [
 let fail = 0;
 const check = (n, ok, x = "") => { console.log((ok ? "PASS" : "FAIL") + " " + n + (x ? " — " + x : "")); if (!ok) fail++; };
 
+/**
+ * Animasyonun belirli anlarındaki durumu örnekler.
+ *
+ * KARARSIZLIK DÜZELTMESİ (24 Eyl 2026): eskiden kareler `waitForTimeout(t-prev)`
+ * ile sırayla bekleniyor ve HER karede ekran görüntüsü alınıyordu. Ekran
+ * görüntüsü 200–600 ms sürüyor ve bu süre bir SONRAKİ karenin beklemesine
+ * EKLENİYORDU: ölçüldü, "900 ms" karesi gerçekte 1535 ms'de, "1400 ms" karesi
+ * 2717 ms'de düşüyordu. Uçuş 1.6 sn olduğu için kopyalar çoktan temizlenmiş
+ * oluyor ve `kopya=0` ile testler düşüyordu — üründe hata yok, ölçüm kayıyordu.
+ * Makine yükü arttıkça kayma büyüdüğü için sonuç koşudan koşuya değişiyordu.
+ *
+ * Artık: bekleme TIKLAMA ANINDAN itibaren gerçek saatle hesaplanıyor (kayma
+ * birikmiyor) ve ekran görüntüleri ÖLÇÜMDEN SONRA alınıyor, yani ölçülen anı
+ * etkilemiyor.
+ */
 const snap = async (p, tag) => {
   const shots = [];
-  let prev = 0;
+  const t0 = Date.now();
+  const bekle = [];
   for (const t of FRAMES) {
-    await p.waitForTimeout(t - prev); prev = t;
+    const kalan = t - (Date.now() - t0);
+    if (kalan > 0) await p.waitForTimeout(kalan);
     const st = await p.evaluate(() => ({
       copies: document.querySelectorAll(".cartfx-copy").length,
       bar: !!document.querySelector("[data-cartbar]"),
@@ -28,9 +45,12 @@ const snap = async (p, tag) => {
         const o = parseFloat(getComputedStyle(c).opacity); return o < 0.9;
       }).length,
     }));
-    shots.push({ t, ...st });
-    await p.screenshot({ path: `${out}/${tag}-${t}ms.png` });
+    shots.push({ t, gercek: Date.now() - t0, ...st });
+    /* Kare görüntüsü ölçümden SONRA ve sıradan BAĞIMSIZ: buffer'a alınır,
+       diske yazma döngü bittikten sonra yapılır. */
+    bekle.push(p.screenshot({ path: `${out}/${tag}-${t}ms.png` }).catch(() => {}));
   }
+  await Promise.all(bekle);
   return shots;
 };
 
@@ -70,11 +90,18 @@ for (const v of VIEWS) {
   {
     const p = await fresh(b, v);
     await p.locator(".addbtn").first().click();
-    await p.waitForTimeout(250);
-    const size = await p.evaluate(() => {
-      const c = document.querySelector(".cartfx-copy");
-      return c ? Math.round(c.getBoundingClientRect().width) : null;
-    });
+    /* KARARSIZLIK DÜZELTMESİ (24 Eyl 2026): ölçüm `getBoundingClientRect()` ile
+       yapılıyordu, ama kopyalar uçarken gsap onları ÖLÇEKLİYOR (scale .55 → 0).
+       Rect ölçeklenmiş boyutu döndürdüğü için örnekleme anına göre 88 yerine 87,
+       70, 53… okunuyordu. Kontrolün amacı OLUŞTURULAN kopyanın boyutu; o değer
+       satır içi `width` stilinde sabit duruyor, ölçekten etkilenmiyor. */
+    const kopya = await p.waitForSelector(".cartfx-copy", { timeout: 5000 }).catch(() => null);
+    const size = kopya
+      ? await p.evaluate(() => {
+          const c = document.querySelector(".cartfx-copy");
+          return c ? Math.round(parseFloat(c.style.width)) : null;
+        })
+      : null;
     check(`${v.name} kopya ${v.copy}px`, size === v.copy, `ölçülen=${size}`);
     await p.close();
   }
@@ -119,7 +146,29 @@ for (const v of VIEWS) {
     await p.waitForTimeout(400);
     await btn.click({ force: true }); // sürerken ikinci tıklama
     await snap(p, `${v.name}-kuyruk`);
-    await p.waitForTimeout(4200);
+    /* KARARSIZLIK DÜZELTMESİ (24 Eyl 2026): burada sabit `waitForTimeout(4200)`
+       vardı. İki tıklama KUYRUĞA giriyor ve animasyonlar SIRAYLA koşuyor; tek
+       animasyon ~2.4 sn (1.5'te geri dönüş + stagger), ikisi arka arkaya ~6 sn
+       sürüyor. 4200 ms tam İKİNCİ animasyonun ortasına denk geliyordu: kartlar
+       o an yeniden soluk (opacity .35) olduğu için "eski haline döndü" kontrolü
+       düşüyordu — üründe hata yok, ölçüm erken. Ölçüldü: 500 ms aralıklarla
+       min opaklık .35 → .92 → .35 → 1 (6 sn). Artık süre tahmin edilmiyor,
+       kuyruğun BİTTİĞİ durum bekleniyor: kopya kalmamış + kartlar geri gelmiş. */
+    /* Beklenen SON DURUM: iki ekleme de işlenmiş (rozet 2) VE kuyruk boşalmış
+       (kopya yok, kartlar geri gelmiş). Yalnız "kopya yok + kartlar geri geldi"
+       beklemek YETMİYOR: bu koşul iki animasyonun ARASINDA da bir an sağlanıyor
+       ve ölçüm ikinci ekleme işlenmeden (rozet=1) çıkıyordu. Rozet koşulu
+       sırayı garantiliyor. */
+    await p
+      .waitForFunction(
+        () =>
+          document.querySelector("[data-cart-badge]")?.textContent === "2" &&
+          document.querySelectorAll(".cartfx-copy").length === 0 &&
+          [...document.querySelectorAll("[data-pcard]")].every((c) => parseFloat(getComputedStyle(c).opacity) > 0.95),
+        null,
+        { timeout: 15000, polling: 100 },
+      )
+      .catch(() => {});
     const end = await p.evaluate(() => ({
       badge: document.querySelector("[data-cart-badge]")?.textContent,
       copies: document.querySelectorAll(".cartfx-copy").length,
@@ -167,11 +216,24 @@ for (const v of VIEWS) {
     localStorage.setItem("mag:cart", JSON.stringify({ v: 1, lines: { smooky: { qty: 2, note: "" }, truffle: { qty: 1, note: "" } } }));
   });
   await p.goto(base + "/siparis/odeme", { waitUntil: "load" });
-  await p.waitForTimeout(120);
-  const early = await p.evaluate(() => {
-    const l = [...document.querySelectorAll("[data-cart-line]")].find((e) => e.getClientRects().length);
-    return l ? { op: parseFloat(getComputedStyle(l).opacity), tf: getComputedStyle(l).transform } : null;
-  });
+  /* KARARSIZLIK DÜZELTMESİ (24 Eyl 2026): burada sabit `waitForTimeout(120)`
+     vardı ve animasyonu "tam o anda" yakalamaya çalışıyordu. Giriş animasyonunu
+     (animateSummaryIn) gsap DİNAMİK import ile kuruyor; chunk geç gelirse
+     animasyon 120 ms'de henüz BAŞLAMAMIŞ, erken gelirse 0.7 sn'lik animasyon
+     bitmiş oluyordu. İki uçta da ölçüm {op:1, tf:"none"} okuyup testi
+     düşürüyordu — üründe hata yokken (4/1/1 oynaklığın kaynağı buydu).
+     Artık sabit süre beklenmiyor: animasyonun BAŞLADIĞI an yakalanıyor. */
+  const early = await p
+    .waitForFunction(() => {
+      const l = [...document.querySelectorAll("[data-cart-line]")].find((e) => e.getClientRects().length);
+      if (!l) return false;
+      const cs = getComputedStyle(l);
+      const op = parseFloat(cs.opacity);
+      /* gsap x:24 → transform matrix; opacity 0 → 1 */
+      return op < 1 || cs.transform !== "none" ? { op, tf: cs.transform } : false;
+    }, null, { timeout: 5000, polling: 16 })
+    .then((h) => h.jsonValue())
+    .catch(() => null);
   check(`${v.name} ödeme: satırlar sağdan girer`, !!early && (early.op < 1 || early.tf !== "none"), JSON.stringify(early));
   await p.screenshot({ path: `${out}/${v.name}-odeme-giris.png` });
   await p.waitForTimeout(1200);

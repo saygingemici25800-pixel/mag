@@ -41,7 +41,14 @@ await panel.waitForSelector(".tabs", { timeout: 8000 });
 check("çerez ile oturum kalıcı", true);
 // ses
 await panel.click("[data-sound]");
-await panel.waitForTimeout(400);
+/* KARARSIZLIK DÜZELTMESİ (24 Eyl 2026): sabit 400 ms bekleniyordu. Kilidi açan
+   `audio.play()` sözü makine yüküne göre 91 ms ile 5211 ms arasında değişiyor
+   (ölçüldü); yavaş koşularda ölçüm erken düşüp "locked" okuyordu. Bu, notlarda
+   "faz3 oynak, data-sound=locked" diye geçen düşmenin gerçek sebebiydi —
+   tarayıcı ses kilidi değil, testin sabit beklemesi. panel.mjs'te de aynısı. */
+await panel
+  .waitForFunction(() => document.querySelector("[data-sound]")?.getAttribute("data-sound") === "on", null, { timeout: 15000 })
+  .catch(() => {});
 const snd = await panel.getAttribute("[data-sound]", "data-sound");
 check("ses kilidi açıldı", snd === "on", "data-sound=" + snd);
 /* push aboneliği kontrolü SİLİNDİ — 24 Eyl 2026'da kanal kaldırıldı,

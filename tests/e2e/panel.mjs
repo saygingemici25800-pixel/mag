@@ -75,7 +75,16 @@ check("göstergede teknik terim yok", !/sse|poll|realtime|yoklama|canlı akış/
 check("ses aç/kapa anahtarı var", (await panel.$("[data-sound]")) !== null, await panel.getAttribute("[data-sound]", "data-sound"));
 check("autoplay engelliyken 'sesi etkinleştir' gösteriliyor", (await panel.getAttribute("[data-sound]", "data-sound")) === "locked");
 await panel.click("[data-sound]"); // kullanıcı dokunuşu → kilidi aç
-await panel.waitForTimeout(400);
+/* KARARSIZLIK DÜZELTMESİ (24 Eyl 2026): burada sabit `waitForTimeout(400)`
+   vardı. Kilidi açan `unlockSound()` bir `audio.play()` sözü bekliyor; bu söz
+   makinenin yüküne ve ses altyapısına göre ÇOK değişiyor — ölçüldü: 91 ms,
+   156 ms, 739 ms ve 5211 ms. 400 ms'lik sabit bekleme yavaş koşularda erken
+   ölçüp "locked" okuyor ve testi düşürüyordu; üründe hata yok, ses her zaman
+   açılıyor (dört ölçümün dördünde de son durum "on"). Artık süre tahmin
+   edilmiyor, durumun değişmesi bekleniyor. */
+await panel
+  .waitForFunction(() => document.querySelector("[data-sound]")?.getAttribute("data-sound") === "on", null, { timeout: 15000 })
+  .catch(() => {});
 check("dokunuşla ses açıldı", (await panel.getAttribute("[data-sound]", "data-sound")) === "on", await panel.getAttribute("[data-sound]", "data-sound"));
 
 /* ---------- 2) siteden gerçek sipariş → panelde 2 sn ---------- */
