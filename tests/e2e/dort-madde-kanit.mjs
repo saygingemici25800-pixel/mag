@@ -25,6 +25,17 @@ const check = (n, ok, x = "") => {
   if (!ok) fail++;
 };
 
+/* CANLI SİTEYE bakar (varsayılan taban magstreetfood.com) — yerel test
+   paketinde KOŞMAZ: yerel sunucuya yöneltilirse canlıdaki veriyi bekleyen
+   kontroller boşuna düşer. Bilerek koşmak için:
+       MAG_ALLOW_LIVE=1 node tests/e2e/dort-madde-kanit.mjs
+   Yalnız OKUMA yapar; canlıya sipariş/kayıt yazmaz. */
+if (process.env.MAG_ALLOW_LIVE !== "1") {
+  console.error("\ndort-madde-kanit CANLI siteyi okur; normal pakette atlanır.");
+  console.error("Bilerek koşacaksan: MAG_ALLOW_LIVE=1 node tests/e2e/dort-madde-kanit.mjs\n");
+  process.exit(0);
+}
+
 const browser = await chromium.launch();
 
 /* ═══ 1) YASAL ONAY + GİZLİLİK ═══ */

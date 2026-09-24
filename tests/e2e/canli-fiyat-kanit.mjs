@@ -25,6 +25,17 @@ const BEKLENEN = [
   { ad: "Mag sos", fiyat: "50", sos: true },
 ];
 
+/* CANLI SİTEYE bakar (varsayılan taban magstreetfood.com) — yerel test
+   paketinde KOŞMAZ: yerel sunucuya yöneltilirse canlıdaki veriyi bekleyen
+   kontroller boşuna düşer. Bilerek koşmak için:
+       MAG_ALLOW_LIVE=1 node tests/e2e/canli-fiyat-kanit.mjs
+   Yalnız OKUMA yapar; canlıya sipariş/kayıt yazmaz. */
+if (process.env.MAG_ALLOW_LIVE !== "1") {
+  console.error("\ncanli-fiyat-kanit CANLI siteyi okur; normal pakette atlanır.");
+  console.error("Bilerek koşacaksan: MAG_ALLOW_LIVE=1 node tests/e2e/canli-fiyat-kanit.mjs\n");
+  process.exit(0);
+}
+
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 1000 } });
 const p = await ctx.newPage();

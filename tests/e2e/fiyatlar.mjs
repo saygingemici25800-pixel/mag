@@ -14,6 +14,26 @@ const b = await chromium.launch();
 const login = await fetch(base + "/api/panel/login", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ key: KEY }) });
 const CK = (login.headers.getSetCookie?.() ?? []).map((c) => c.split(";")[0]).join("; ");
 
+/* ---------- 0a) BAŞLANGIÇ DURUMUNU TEMİZLE ----------
+   SIRA BAĞIMLILIĞI DÜZELTMESİ (24 Eyl 2026): bu paket smooky'yi 777'ye
+   kaydediyor ve ayar satırında BIRAKIYOR. Bir sonraki koşuda (ya da daha önce
+   777 yazan başka bir paketten sonra) alana 777 yazmak artık DEĞİŞİKLİK
+   olmadığı için "kaydedilmemiş değişiklik" uyarısı çıkmıyor ve test düşüyordu.
+   Kanıtlandı: smooky=777 kurulup koşulunca FAIL, kurulmayınca PASS.
+   Çözüm: paket kendi başlangıcını garanti etsin — smooky ezmesi kaldırılır. */
+{
+  const mevcut = await fetch(base + "/api/panel/settings", { cache: "no-store" }).then((r) => r.json());
+  const temiz = { ...(mevcut.prices ?? {}) };
+  delete temiz.smooky;
+  await fetch(base + "/api/panel/settings", {
+    method: "PATCH",
+    headers: { "content-type": "application/json", "x-panel-key": KEY },
+    /* replace: haritadan ÇIKARMAK için şart (varsayılan birleştirme, yokluğu
+       "dokunma" sayar). allow_empty: tek ezme smooky ise harita boşalabilir. */
+    body: JSON.stringify({ prices: temiz, replace: true, allow_empty: true }),
+  });
+}
+
 /* ---------- 0) ESKİ sipariş: fiyat değişmeden ÖNCE ver ---------- */
 const eski = await fetch(base + "/api/orders", { method: "POST", headers: { "content-type": "application/json" },
   body: JSON.stringify({ type: "pickup", items: [{ id: "smooky", qty: 1 }], name: "Eski Siparis", phone: "05321234567", requested_at: "simdi", terms_accepted: true, locale: "tr" }) }).then((r) => r.json());
@@ -97,7 +117,13 @@ if (eskiKayit) {
 }
 
 /* ---------- 6) Temizlik: fiyatı geri al ---------- */
-const geri = await fetch(base + "/api/panel/settings", { method: "PATCH", headers: { "content-type": "application/json", cookie: CK }, body: JSON.stringify({ prices: {} }) });
+/* 24 Eyl 2026: `prices: {}` ARTIK REDDEDİLİYOR (422 prices-empty) — kısmi
+   güncellemenin tüm haritayı uçurmasına karşı eklenen koruma. Temizlik sessizce
+   başarısız oluyor, smooky=777 ayar satırında KALIYOR ve bir sonraki koşuda
+   "kaydedilmemiş değişiklik" uyarısı çıkmadığı için paket düşüyordu — sıra
+   bağımlılığının gerçek kaynağı buydu. Haritayı boşaltmak artık AÇIK istek
+   gerektiriyor: replace + allow_empty. */
+const geri = await fetch(base + "/api/panel/settings", { method: "PATCH", headers: { "content-type": "application/json", cookie: CK }, body: JSON.stringify({ prices: {}, replace: true, allow_empty: true }) });
 check("fiyat varsayılana döndürüldü", geri.ok);
 const son = await (await fetch(base + "/api/panel/settings")).json();
 check("temizlik sonrası harita boş", Object.keys(son.prices).length === 0, JSON.stringify(son.prices));
