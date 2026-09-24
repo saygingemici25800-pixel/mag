@@ -47,9 +47,13 @@ const files = readdirSync("tests/e2e")
    önbelleğe aldığı için sunucunun o dosyayı HENÜZ okumamış olması gerekiyor —
    temiz yeniden başlatma bunu garantiliyor. Ayrıca kendi kayıtlarını bırakıp
    sonraki paketleri bozmasın diye sonrasında da depo sıfırlanmalı. */
-const NEEDS_CLEAN = new Set(["panel", "faz3", "faz5-mobile-payment", "supabase-proof", "raporlar"]);
+/* settings-koruma / panel-fiyat-akisi: AYAR satırını (prices, zones, schedule)
+   yazıp değiştiriyorlar. Kendi başlangıç haritalarını kurdukları için temiz
+   depoyla başlamaları, bıraktıkları ayarların sonraki paketleri (fiyat okuyan
+   her şey) bozmaması için de sonrasında sıfırlanmaları gerekiyor. */
+const NEEDS_CLEAN = new Set(["panel", "faz3", "faz5-mobile-payment", "supabase-proof", "raporlar", "settings-koruma", "panel-fiyat-akisi"]);
 /* Kendi verisini bırakan paketler: sonrasında depo sıfırlanır. */
-const DIRTIES = new Set(["raporlar"]);
+const DIRTIES = new Set(["raporlar", "settings-koruma", "panel-fiyat-akisi"]);
 
 async function restartServerClean() {
   spawnSync("bash", ["-c", "kill -9 $(lsof -tiTCP:3112 -sTCP:LISTEN) 2>/dev/null; true"]);

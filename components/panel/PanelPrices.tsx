@@ -111,7 +111,16 @@ export default function PanelPrices({ t, cats, apiFetch, onUnauthorized }: Props
       const res = await apiFetch("/api/panel/settings", {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ prices: next }),
+        /* replace:true ŞART. Bu ekran SEYREK harita gönderir: fiyatı temizlenen
+           ya da kod varsayılanına eşitlenen ürün haritaya HİÇ yazılmaz ve
+           ezmesinin kalkması bu yokluktan anlaşılır. API'nin varsayılanı
+           24 Eyl 2026'da birleştirmeye çevrildi (kısmi güncelleme tüm haritayı
+           uçuruyordu); birleştirmede "yok" = "dokunma" demek olacağı için bu
+           ekran fiyat SİLEMEZDİ. Tam liste gönderen tek yer burası. */
+        /* allow_empty: harita BOŞ da olabilir — tüm fiyatlar kod varsayılanına
+           eşitlenirse seyrek harita {} olur ve bu GEÇERLİ bir kayıttır
+           ("hiçbir ezme yok"). Koruma kazara boşalmaya karşı; burada niyet açık. */
+        body: JSON.stringify({ prices: next, replace: true, allow_empty: true }),
       });
       if (res.status === 401) return onUnauthorized();
       if (!res.ok) {
