@@ -8,7 +8,7 @@
  * Canlı veritabanı kilidi: önce scripts/test-guard.mjs koşar. Sunucu canlı
  * Supabase'e bağlıysa tek bir test bile başlamaz.
  */
-import { readdirSync, rmSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { spawn, spawnSync } from "node:child_process";
 import { assertNoLiveEnv, assertServerUsesStub } from "./test-guard.mjs";
 
@@ -31,6 +31,32 @@ if (existing > 0 && !process.env.MAG_KEEP_DATA) {
   console.log(`⚠️  depoda önceki koşulardan kayıt var — panel/faz3/faz5 düşebilir.`);
   console.log(`   Temiz koşu için:  rm -rf .data && pnpm test:server  (sonra tekrar 'pnpm test')\n`);
 }
+/* EŞZAMANLI KOŞU KİLİDİ (24 Eyl 2026).
+   Paketler TEK sunucuyu (3112) paylaşıyor ve NEEDS_CLEAN olanlar onu yeniden
+   BAŞLATIYOR. İki koşu üst üste binince biri diğerinin sunucusunu altından
+   çekiyor; sonuç "FAIL=0 ama DÜŞTÜ" şeklinde yarıda kalan paketler oluyor ve
+   her koşuda BAŞKA paketler düşüyor — gerçek bir hata sanılıyor.
+   Ölçüldü: rahatsız edilmeyen tam koşu 34/34 geçti; aynı anda başka paket
+   koşarken yapılan iki turda 4 ve 6 paket "düştü", çoğu FAIL=0 ile.
+   Bu kilit ikinci koşuyu net bir mesajla durdurur. */
+const LOCK = ".e2e-lock";
+if (existsSync(LOCK) && !process.env.MAG_FORCE) {
+  const sahip = readFileSync(LOCK, "utf8").trim();
+  let canli = false;
+  try { process.kill(Number(sahip), 0); canli = true; } catch { canli = false; }
+  if (canli) {
+    console.error(`\n⛔ Zaten bir e2e koşusu var (pid ${sahip}). Paketler aynı sunucuyu paylaşıyor;`);
+    console.error(`   ikinci koşu ilkinin sunucusunu yeniden başlatır ve İKİSİ de bozulur.`);
+    console.error(`   Bitmesini bekle. Kilit takıldıysa: rm ${LOCK}\n`);
+    process.exit(2);
+  }
+  /* sahibi ölmüş: bayat kilit, devral */
+}
+writeFileSync(LOCK, String(process.pid));
+const kilidiBirak = () => { try { rmSync(LOCK, { force: true }); } catch {} };
+process.on("exit", kilidiBirak);
+for (const sig of ["SIGINT", "SIGTERM"]) process.on(sig, () => { kilidiBirak(); process.exit(130); });
+
 console.log(`✓ depo: stub — canlı veritabanına yazılmayacak (${BASE})\n`);
 
 const files = readdirSync("tests/e2e")

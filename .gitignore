@@ -72,3 +72,4 @@ next-env.d.ts
 # izlemez. Geçmişteki eski kareler .git içinde duruyor (~496 MB) — onları
 # temizlemek geçmişi yeniden yazmak demek, bilerek YAPILMADI.
 /docs/screens
+.e2e-lock
