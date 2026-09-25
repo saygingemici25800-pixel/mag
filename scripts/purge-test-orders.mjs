@@ -43,6 +43,8 @@ const TEST_NAMES = new Set([
   "Push Derin Baglanti", "Gel Al", "Canlı Test", "Probe",
   /* 21 Eyl 2026 — WhatsApp kanalının canlı doğrulaması */
   "Canli Dogrulama",
+  /* 25 Eyl 2026 — canlı smoke testi (tests/e2e/smoke-canli.mjs) */
+  "Smoke Test",
 ]);
 const TEST_PHONES = new Set([
   "+905321234567", "+905327778899", "+905321112233", "+905334445566",

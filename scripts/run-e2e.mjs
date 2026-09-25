@@ -139,6 +139,36 @@ async function warmRoutes() {
 
    MAG_GROUP verilirse bu süreç TEK bir grubu koşan alt süreçtir (aşağıdaki
    normal akış işler). Verilmezse ve paket seçilmemişse: bölüştür ve yönet. */
+/**
+ * Sistem yükü inene kadar bekle (en fazla `enFazlaSn`).
+ *
+ * Neden: zamanlama ölçen paketler (preloader, outro-loop, cart-fx) animasyonu
+ * kare kare örnekliyor. Yüklü makinede tarayıcı kare atlıyor ve bu paketler
+ * ÜRÜNDE HATA OLMADAN düşüyor — ölçüldü: yük ~7'de 1 düşen, ~20'de 10,
+ * ~110'da 20. Ayrıca arka arkaya koşulan turlar makineyi kendileri ısıtıyor:
+ * bir tur yükü 6'dan 17'ye çıkarıp sonrakinin koşullarını bozabiliyor.
+ *
+ * Yük inmezse ENGELLEMEZ: uyarı basıp devam eder — koşuyu durdurmak, sahte
+ * düşmeden daha kötü olurdu. Sadece sonucu yorumlayan kişi uyarılmış olur.
+ */
+function yukOrtalamasi() {
+  const o = spawnSync("bash", ["-c", "uptime | sed 's/.*averages: //' | awk '{print $1}'"], { encoding: "utf8" });
+  return Number.parseFloat((o.stdout || "").trim()) || 0;
+}
+async function yukDusenekadarBekle(esik = 15, enFazlaSn = 300) {
+  const bas = Date.now();
+  let y = yukOrtalamasi();
+  if (y < esik) return;
+  console.log(`yük ${y.toFixed(2)} — ${esik} altına inmesi bekleniyor (en fazla ${enFazlaSn} sn)`);
+  while ((Date.now() - bas) / 1000 < enFazlaSn) {
+    await new Promise((r) => setTimeout(r, 15_000));
+    y = yukOrtalamasi();
+    if (y < esik) { console.log(`yük ${y.toFixed(2)} — devam`); return; }
+  }
+  console.log(`⚠️  yük hâlâ ${y.toFixed(2)} (${esik} altına inmedi) — yine de koşuluyor.`);
+  console.log(`   Zamanlama paketleri (preloader, outro-loop, cart-fx) bu yükte ÜRÜN HATASI OLMADAN düşebilir.`);
+}
+
 const GRUP_BOYU = Number(process.env.MAG_GROUP_SIZE || 6);
 if (!process.env.MAG_GROUP && only.length === 0 && files.length > GRUP_BOYU) {
   const gruplar = [];
@@ -149,12 +179,15 @@ if (!process.env.MAG_GROUP && only.length === 0 && files.length > GRUP_BOYU) {
     return (o.stdout || "?").trim();
   };
 
+  await yukDusenekadarBekle();
   console.log(`${files.length} paket · ${gruplar.length} grup (grup başına ${GRUP_BOYU}) · her grup ayrı süreçte`);
   console.log(`boş bellek (serbest/etkisiz MB) — başlangıç: ${bosBellek()}\n`);
 
   let toplamGecen = 0, toplamDusen = 0, toplamAtlanan = 0, toplamTekrar = 0;
   const dusenler = [];
   for (const [i, g] of gruplar.entries()) {
+    /* Gruplar arasında da bekle: önceki grup makineyi ısıtmış olabiliyor. */
+    if (i > 0) await yukDusenekadarBekle();
     const r = spawnSync(process.execPath, ["scripts/run-e2e.mjs", ...g], {
       encoding: "utf8", maxBuffer: 1e8,
       env: { ...process.env, MAG_GROUP: String(i + 1) },
