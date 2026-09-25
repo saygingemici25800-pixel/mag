@@ -48,7 +48,18 @@ await setSvc({ ordering_open: true, delivery_open: true, pickup_open: true });
 {
   const { ctx, st } = await form();
   check("ikisi açık: iki düğme de seçilebilir", st.pickupDisabled === false && st.deliveryDisabled === false);
-  check("ikisi açık: gönderim serbest", st.submitDisabled === false);
+  /* 25 Eyl 2026: teslimat tipi ZORUNLU SEÇİM oldu. Tip seçilmeden gönderim
+     kilitli — eskiden "pickup" varsayılı olduğu için serbest görünüyordu.
+     Burada beklenen: tip YOKKEN kilitli, tip SEÇİLİNCE açık. */
+  check("ikisi açık: tip seçilmeden gönderim KİLİTLİ", st.submitDisabled === true, `submitDisabled=${st.submitDisabled}`);
+  await ctx.close();
+}
+{
+  const { p, ctx } = await form();
+  await p.getByRole("button", { name: "Gel-al" }).click();
+  await p.waitForTimeout(600);
+  const acik = await p.evaluate(() => document.querySelector('button[type="submit"]')?.disabled === false);
+  check("ikisi açık: tip seçilince gönderim SERBEST", acik);
   await ctx.close();
 }
 
@@ -58,7 +69,9 @@ await setSvc({ delivery_open: false });
   const { p, ctx, st } = await form();
   check("kurye kapalı: kurye düğmesi pasif", st.deliveryDisabled === true);
   check("kurye kapalı: gel-al seçilebilir", st.pickupDisabled === false);
-  check("kurye kapalı: gel-al OTOMATİK seçili", st.pickupSelected, `pickup=${st.pickupSelected} delivery=${st.deliverySelected}`);
+  /* OTOMATİK SEÇİM KALDIRILDI (kullanıcı kararı): tek tür açık olsa bile soru
+     sorulur, kendiliğinden seçilmez. */
+  check("kurye kapalı: gel-al OTOMATİK SEÇİLMEZ", !st.pickupSelected && !st.deliverySelected, `pickup=${st.pickupSelected} delivery=${st.deliverySelected}`);
   check("kurye kapalı: sebep yazıyor", /Kurye şu an kapalı/.test(st.note), st.note);
   await p.screenshot({ path: "docs/screens/servisler/kurye-kapali-390.png" });
   await ctx.close();
@@ -71,7 +84,7 @@ await setSvc({ delivery_open: true, pickup_open: false });
 {
   const { p, ctx, st } = await form();
   check("gel-al kapalı: gel-al düğmesi pasif", st.pickupDisabled === true);
-  check("gel-al kapalı: kurye OTOMATİK seçili", st.deliverySelected, `pickup=${st.pickupSelected} delivery=${st.deliverySelected}`);
+  check("gel-al kapalı: kurye OTOMATİK SEÇİLMEZ", !st.pickupSelected && !st.deliverySelected, `pickup=${st.pickupSelected} delivery=${st.deliverySelected}`);
   check("gel-al kapalı: sebep yazıyor", /Gel-al şu an kapalı/.test(st.note), st.note);
   await p.screenshot({ path: "docs/screens/servisler/gelal-kapali-390.png" });
   await ctx.close();

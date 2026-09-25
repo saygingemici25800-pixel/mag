@@ -84,6 +84,40 @@
   background: var(--cream);
   color: var(--char);
 }
+/* ZORUNLU SEÇİM (25 Eyl 2026): tip seçilmeden hiçbiri dolu değil. Soru hâlindeyken
+   düğmeler BÜYÜR ve çerçevelenir — "burada bir karar bekleniyor" belli olsun. */
+.seg.seg-ask {
+  border-color: color-mix(in srgb, var(--cream) 45%, transparent);
+}
+.seg.seg-ask button {
+  padding: 16px 26px;
+  font-size: 0.78rem;
+  border: 1px solid color-mix(in srgb, var(--cream) 35%, transparent);
+  color: var(--body);
+}
+.seg.seg-ask button:hover:not(:disabled) {
+  border-color: var(--cream);
+  color: var(--cream);
+}
+/* Kapalı türün etiketi düğmenin İÇİNDE, adın altında küçük punto. */
+.seg button .seg-closed {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.6rem;
+  font-style: normal;
+  letter-spacing: 0.06em;
+  opacity: 0.75;
+  text-transform: none;
+}
+.seg button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+/* Kilitli butonun SEBEBİ — uyarı tonunda, sıradan ipucundan ayrılsın. */
+.wa-hint.wa-hint-warn {
+  color: var(--cream);
+  font-weight: 700;
+}
 /* form kontrolleri */
 .ctl {
   width: 100%;

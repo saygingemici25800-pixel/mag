@@ -369,7 +369,8 @@
       "items": "Basket is empty or below the minimum",
       "requested_at": "Choose a time",
       "hours": "No orders outside opening hours",
-      "generic": "Could not send the order, try again."
+      "generic": "Could not send the order, try again.",
+      "type": "Choose a delivery option"
     },
     "openCart": "Open basket",
     "closeCart": "Close basket",
@@ -424,7 +425,10 @@
     "waPayNote": "Payment is taken on delivery / at pickup. No payment is made on the site.",
     "waDone": "Your order is ready to send",
     "waCode": "Order no",
-    "waOpen": "Tap here if WhatsApp did not open"
+    "waOpen": "Tap here if WhatsApp did not open",
+    "typeQuestion": "How should we deliver?",
+    "typeHint": "Choose a delivery option first",
+    "typeClosedTag": "currently closed"
   },
   "track": {
     "metaTitle": "Order tracking",

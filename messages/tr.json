@@ -247,7 +247,8 @@
       "items": "Sepet boş ya da min. sepetin altında",
       "requested_at": "Saat seç",
       "hours": "Kapalı saatlerde sipariş alınmıyor",
-      "generic": "Sipariş gönderilemedi, tekrar dene."
+      "generic": "Sipariş gönderilemedi, tekrar dene.",
+      "type": "Teslimat tipini seç"
     },
     "openCart": "Sepeti aç",
     "closeCart": "Sepeti kapat",
@@ -304,7 +305,10 @@
     "waPayNote": "Ödeme kapıda / teslimatta alınır. Siteden ödeme yapılmaz.",
     "waDone": "Siparişiniz hazırlandı",
     "waCode": "Sipariş no",
-    "waOpen": "WhatsApp açılmadıysa buraya dokunun"
+    "waOpen": "WhatsApp açılmadıysa buraya dokunun",
+    "typeQuestion": "Nasıl teslim edelim?",
+    "typeHint": "Önce teslimat tipini seç",
+    "typeClosedTag": "şu an kapalı"
   },
   "track": {
     "title": [

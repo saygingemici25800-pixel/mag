@@ -30,7 +30,12 @@ export default function CheckoutPage() {
   const o = t.order;
   const locale = useLocale();
   const cart = useCart();
-  const [mode, setMode] = useState<OrderType>("pickup");
+  /* TESLİMAT TİPİ ZORUNLU SEÇİM (25 Eyl 2026): başlangıçta hiçbiri seçili DEĞİL.
+     Önceden "pickup" varsayılıyordu; müşteri soruyu hiç görmeden gel-al sipariş
+     verebiliyordu. Artık açıkça sorulur. null = henüz seçilmedi.
+     Sepette eski bir tip saklanmıyor — bu state her sayfa açılışında sıfırlanır,
+     yani soru her seferinde yeniden sorulur. */
+  const [mode, setMode] = useState<OrderType | null>(null);
   const [zone, setZone] = useState("");
   const [info, setInfo] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "", address: "", requested_at: "simdi", note: "" });
@@ -70,26 +75,40 @@ export default function CheckoutPage() {
   const dOpen = deliveryOpen(settings);
   const pOpen = pickupOpen(settings);
   const hepsiKapali = allClosed(settings);
-  /* Yalnız bir tür açıksa kullanıcı seçim yapmak zorunda kalmasın: SEÇİLİ tür
-     hesapla, state'i effect içinde değiştirme (cascading render uyarısı).
-     `mode` kullanıcının tercihi; `etkinMode` ekranda ve gönderimde geçerli olan.
-     Kapalı türde kalınmışsa açık olana kayar. */
-  const etkinMode: OrderType = hepsiKapali
-    ? mode
-    : mode === "delivery" && !dOpen && pOpen
-      ? "pickup"
-      : mode === "pickup" && !pOpen && dOpen
-        ? "delivery"
-        : mode;
+  /* `mode` kullanıcının seçimi; `etkinMode` ekranda ve gönderimde geçerli olan.
+     SEÇİM YAPILMADIYSA null kalır — tek tür açık olsa bile OTOMATİK SEÇİLMEZ
+     (kullanıcı kararı: soru her zaman sorulur).
+     Kullanıcı bir tür seçtikten sonra o tür kapanırsa (panelden), seçim açık
+     olana kaydırılır ki ekran kilitli kalmasın. */
+  const etkinMode: OrderType | null =
+    mode === null
+      ? null
+      : hepsiKapali
+        ? mode
+        : mode === "delivery" && !dOpen && pOpen
+          ? "pickup"
+          : mode === "pickup" && !pOpen && dOpen
+            ? "delivery"
+            : mode;
+  /* Tip seçilmeden sipariş kurulamaz. */
+  const tipSecildi = etkinMode !== null;
   const zones = settings.zones;
   const selected = findZone(zones, zone);
-  const totals = computeTotals(items, etkinMode, zone, zones, settings.prices);
+  /* Tip seçilmeden ara toplam yine gösterilir; teslimat ücreti EKLENMEZ
+     (pickup gibi hesaplanır) — henüz kurye seçilmedi. */
+  const totals = computeTotals(items, etkinMode ?? "pickup", zone, zones, settings.prices);
   const count = items.reduce((s, i) => s + i.qty, 0);
   const err = (f: string) => errors.find((e) => e.field === f);
   const soldOutInCart = items.filter((it) => settings.sold_out.includes(it.id)).map((it) => findMenuItem(it.id)?.name ?? it.id);
-  const canSubmit = open === true && settings.ordering_open && typeOpen(settings, etkinMode) && soldOutInCart.length === 0 && count > 0 && totals.missing === 0 && termsOk && !submitting;
+  const canSubmit = tipSecildi && open === true && settings.ordering_open && typeOpen(settings, etkinMode) && soldOutInCart.length === 0 && count > 0 && totals.missing === 0 && termsOk && !submitting;
 
   const submit = async () => {
+    /* Tip seçilmeden gönderim YOK. Buton zaten kilitli; bu, klavye/otomasyon
+       gibi başka yollardan gelen çağrıya karşı ikinci kapı (sunucu da 422 verir). */
+    if (etkinMode === null) {
+      setErrors([{ field: "type", code: "required" }]);
+      return;
+    }
     const errs: ValidationError[] = [];
     if (form.name.trim().length < 2) errs.push({ field: "name", code: "required" });
     if (!normalizePhone(form.phone)) errs.push({ field: "phone", code: "invalid" });
@@ -246,10 +265,12 @@ export default function CheckoutPage() {
             </div>
 
             <section className="flex flex-col gap-4">
+              {/* Tip seçilmemişken AÇIK SORU sorulur; seçildikten sonra başlık
+                  sadeleşir ama düğmeler kalır (seçim değiştirilebilir). */}
               <h2 className="ord-h" style={{ fontSize: "1.3rem" }}>
-                {o.deliveryInfo}
+                {tipSecildi ? o.deliveryInfo : o.typeQuestion}
               </h2>
-              <div className="seg" role="group" aria-label={`${o.pickup} / ${o.delivery}`}>
+              <div className={"seg" + (tipSecildi ? "" : " seg-ask")} role="group" aria-label={o.typeQuestion} data-type-required={!tipSecildi || undefined}>
                 <button
                   type="button"
                   aria-pressed={etkinMode === "pickup"}
@@ -260,6 +281,7 @@ export default function CheckoutPage() {
                   onClick={() => setMode("pickup")}
                 >
                   {o.pickup}
+                  {!pOpen && !hepsiKapali ? <em className="seg-closed">{o.typeClosedTag}</em> : null}
                 </button>
                 <button
                   type="button"
@@ -271,6 +293,7 @@ export default function CheckoutPage() {
                   onClick={() => setMode("delivery")}
                 >
                   {o.delivery}
+                  {!dOpen && !hepsiKapali ? <em className="seg-closed">{o.typeClosedTag}</em> : null}
                 </button>
               </div>
               {/* Kapalı türün SEBEBİ düğmenin altında yazıyla da görünsün (title yetmez) */}
@@ -398,6 +421,11 @@ export default function CheckoutPage() {
             <button type="submit" className="submit" data-wa-submit disabled={!canSubmit}>
               {submitting ? o.payingNow : `${o.waOrder} · ${formatPriceFor(locale, totals.total)}`}
             </button>
+            {/* Tip seçilmediyse butonun altında SEBEBİ yazar: kilitli butonun
+                neden kilitli olduğu belirsiz kalmasın. */}
+            {!tipSecildi ? (
+              <p className="wa-hint wa-hint-warn" data-type-hint role="status">{o.typeHint}</p>
+            ) : null}
             {/* Butonun altında: siparişin WhatsApp'tan onaylanacağı + ödemenin
                 sitede ALINMADIĞI. Müşteri kart bilgisi beklemesin. */}
             <p className="wa-hint" data-wa-hint>{o.waHint}</p>

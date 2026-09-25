@@ -79,9 +79,9 @@ const files = readdirSync("tests/e2e")
    yazıp değiştiriyorlar. Kendi başlangıç haritalarını kurdukları için temiz
    depoyla başlamaları, bıraktıkları ayarların sonraki paketleri (fiyat okuyan
    her şey) bozmaması için de sonrasında sıfırlanmaları gerekiyor. */
-const NEEDS_CLEAN = new Set(["panel", "faz3", "faz5-mobile-payment", "supabase-proof", "raporlar", "settings-koruma", "panel-fiyat-akisi"]);
+const NEEDS_CLEAN = new Set(["panel", "faz3", "faz5-mobile-payment", "supabase-proof", "raporlar", "settings-koruma", "panel-fiyat-akisi", "teslimat-tipi"]);
 /* Kendi verisini bırakan paketler: sonrasında depo sıfırlanır. */
-const DIRTIES = new Set(["raporlar", "settings-koruma", "panel-fiyat-akisi"]);
+const DIRTIES = new Set(["raporlar", "settings-koruma", "panel-fiyat-akisi", "teslimat-tipi"]);
 
 /**
  * Sunucuyu TEMİZ yeniden başlat.
