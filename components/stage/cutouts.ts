@@ -7,7 +7,6 @@ import jalapeno from "@/public/urun/jalapeno.webp";
 import caesar from "@/public/urun/caesar.webp";
 import orjinal from "@/public/urun/orjinal.webp";
 import truffle from "@/public/urun/truffle.webp";
-import citir from "@/public/urun/citir.webp";
 import smookyM from "@/public/urun/mobil/smooky.webp";
 import brisketM from "@/public/urun/mobil/brisket.webp";
 import berryM from "@/public/urun/mobil/berry.webp";
@@ -15,16 +14,15 @@ import jalapenoM from "@/public/urun/mobil/jalapeno.webp";
 import caesarM from "@/public/urun/mobil/caesar.webp";
 import orjinalM from "@/public/urun/mobil/orjinal.webp";
 import truffleM from "@/public/urun/mobil/truffle.webp";
-import citirM from "@/public/urun/mobil/citir.webp";
 
 /** Fondan kesilmiş cutout'lar (WebP, 480px). Dosya adı = ürün id'si.
-    16 Eyl 2026: citir artık KENDİ görselini kullanıyor (679×480, panelenmiş tavuk).
-    Önce geçici olarak orjinal.webp'yi paylaşıyordu — o yüzden menüde/hero'da
-    Mag Çıtır yerine dana köfteli burger görünüyordu. Paylaşım kaldırıldı. */
-export const CUTOUTS: Partial<Record<HeroId, StaticImageData>> = { smooky, brisket, berry, jalapeno, caesar, orjinal, truffle, citir };
+    25 Eyl 2026: "citir" kesimi kaldırıldı — ürün menüden çıktı. Karusel 7 burger.
+    Dosyalar (public/urun/citir.webp ve mobil kopyası) SİLİNMEDİ: galeri ve
+    cutCenters hâlâ referans veriyor. */
+export const CUTOUTS: Partial<Record<HeroId, StaticImageData>> = { smooky, brisket, berry, jalapeno, caesar, orjinal, truffle };
 
 /** Mobil kopyalar (300px, kalite 72) — `pnpm assets:cut-m`. */
-export const CUTOUTS_M: Partial<Record<HeroId, StaticImageData>> = { smooky: smookyM, brisket: brisketM, berry: berryM, jalapeno: jalapenoM, caesar: caesarM, orjinal: orjinalM, truffle: truffleM, citir: citirM };
+export const CUTOUTS_M: Partial<Record<HeroId, StaticImageData>> = { smooky: smookyM, brisket: brisketM, berry: berryM, jalapeno: jalapenoM, caesar: caesarM, orjinal: orjinalM, truffle: truffleM };
 
 /** Build'de dosya sisteminde bulunan ek cutout'lar (statik import'suz) */
 export interface ExtraCutout {

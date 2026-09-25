@@ -584,7 +584,9 @@
     "order": "Sipariş ver"
   },
   "menuDesc": {},
-  "menuName": {},
+  "menuName": {
+    "citir-tavuk": "MAG ÇITIR"
+  },
   "menuIng": {},
   "payment": {
     "status": {

@@ -5,7 +5,9 @@
 
 export type Category = "burger" | "taco" | "noodle" | "yan" | "sos" | "icecek";
 
-export type HeroId = "smooky" | "brisket" | "berry" | "jalapeno" | "caesar" | "orjinal" | "truffle" | "citir";
+/* 25 Eyl 2026: "citir" çıkarıldı — ürün menüden kaldırıldı, kesimi de
+   kullanılmıyor. Karusel 7 burger. */
+export type HeroId = "smooky" | "brisket" | "berry" | "jalapeno" | "caesar" | "orjinal" | "truffle";
 
 export interface Ingredient {
   name: string;
@@ -195,26 +197,16 @@ export const MENU: Record<Category, MenuItem[]> = {
     {
       id: "citir-tavuk",
       photo: "/urun/yan/citir-tavuk.webp",
-      name: "Çıtır Tavuk & Patates",
+      /* 25 Eyl 2026: ad "MAG ÇITIR" oldu (kullanıcı kararı). Marka adı, üç dilde
+         de ÇEVRİLMEZ. id DEĞİŞMEDİ — geçmiş siparişler bozulmasın. Açıklama,
+         içerik, fiyat ve görsel aynen kaldı.
+         Eski ₺490'lık "MAG ÇITIR" (id: citir, ekmek arası burger) aynı gün
+         menüden tamamen KALDIRILDI; ad çakışması böylece bitti. */
+      name: "MAG ÇITIR",
       price: 0,
       desc: "Tabakta servis: çıtır tavuk parçaları, yanında patates kızartması ve sos",
     },
     { id: "patates-parmesan", photo: "/urun/yan/patates-peynirli.webp", pairs: ["mag-sos", "jalapeno-sos"], name: "Patates kızartması (parmesanlı)", price: 350 },
-{
-      id: "citir",
-      pairs: ["sweet-chili", "ayran"],
-      name: "MAG ÇITIR",
-      price: 490,
-      /* 21 Eyl 2026: BURGER kategorisinden YAN ÜRÜNLERE taşındı (kullanıcı kararı).
-         id DEĞİŞMEDİ ("citir") — geçmiş siparişler bozulmasın. hero bayrağı
-         kaldırıldı: artık ana sayfa karuselinde görünmüyor, karusel 7 burger.
-         Görseli kendi kesimi (public/urun/citir.webp).
-         KARIŞTIRMA: yan ürünlerdeki "citir-tavuk" AYRI bir üründür (tabakta
-         tavuk parçaları + patates), bu ise EKMEK ARASI bir burger. */
-      photo: "/urun/citir.webp",
-      desc: "Ekmek arası burger: panelenmiş tavuk parçaları, patates, sweet chili sos",
-      ingredients: [{ name: "brioche ekmek", removable: false }, { name: "panelenmiş tavuk parçaları", removable: false }, { name: "patates", removable: true }, { name: "sweet chili sos", removable: true }],
-    },
   ],
   sos: [
     /* 22 Eyl 2026: sos görselleri geldi (public/urun/sos/). Dosya adları ürün

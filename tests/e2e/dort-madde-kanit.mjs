@@ -4,7 +4,7 @@
  *   1) Ödeme sayfasında yasal onay kutusu + /yasal/gizlilik
  *   2) Hero: başa dönünce burgerler KAYMAMALI, ışık ortada kalmamalı
  *   3) İletişim yürüme mesafeleri (işletmeden gelen 5 kayıt)
- *   4) citir-tavuk adı her yerde "Çıtır Tavuk & Patates"
+ *   4) citir-tavuk adı her yerde "MAG ÇITIR"
  *
  * CANLIDA YALNIZ OKUMA ve normal akış. Yıkıcı senaryo YOK, sipariş kurulmaz
  * (madde 4'ün WhatsApp mesajı yerel sunucudan alınır).
@@ -177,7 +177,7 @@ const browser = await chromium.launch();
 
 /* ═══ 4) citir-tavuk ADI — menü + sepet ═══ */
 {
-  const AD = "Çıtır Tavuk & Patates";
+  const AD = "MAG ÇITIR";
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 1000 } });
   await ctx.addInitScript(() => {
     localStorage.setItem("mag:cart", JSON.stringify({ v: 1, lines: { "citir-tavuk": { qty: 1, note: "" } } }));

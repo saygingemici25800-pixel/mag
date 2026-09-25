@@ -16,7 +16,7 @@ mkdirSync(out, { recursive: true });
 
 /* Beklenen ETKİN fiyatlar — canlı panelden okunan değerler. */
 const BEKLENEN = [
-  { ad: "Çıtır Tavuk & Patates", fiyat: "540" },
+  { ad: "MAG ÇITIR", fiyat: "540" },
   { ad: "Limonata", fiyat: "140" },
   { ad: "Tütsü biberli aioli", fiyat: "50", sos: true },
   { ad: "Jalapeno", fiyat: "50", sos: true },
@@ -108,8 +108,8 @@ if (await bas.count()) {
   await p.waitForTimeout(1000);
   await p.screenshot({ path: `${out}/canli-sos.png` });
 }
-/* Yan ürünler (Çıtır Tavuk & Patates) */
-const citir = kartiBul("Çıtır Tavuk & Patates");
+/* Yan ürünler (MAG ÇITIR — 25 Eyl 2026'da citir-tavuk bu adı aldı) */
+const citir = kartiBul("MAG ÇITIR");
 if (await citir.count()) {
   await citir.scrollIntoViewIfNeeded();
   await p.waitForTimeout(800);
