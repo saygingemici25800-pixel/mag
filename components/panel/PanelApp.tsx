@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { POLL_FALLBACK_MS } from "@/lib/panel-timing";
 import { getMessages } from "@/lib/i18n";
 import { OPEN_STATUSES, type Order, type OrderStatus } from "@/lib/orders";
 import { apiFetch } from "@/lib/panel-client";
@@ -24,9 +25,9 @@ const SEEN_KEY = "mag:panel-seen";
 const REPEAT_MS = 20_000;
 /* Yoklama aralıkları — Vercel Hobby kotasına göre seçildi (aşağıdaki hesap yorumda).
    Sekme önde: hızlı tepki. Arka planda: panel açık unutulsa da kota yanmasın.
-   Dükkân kapalıyken sipariş gelmeyeceği için en seyrek. */
-/** Realtime kopukken yedek yoklama aralığı (spec: 15 sn) */
-const POLL_FALLBACK_MS = 15_000;
+   Dükkân kapalıyken sipariş gelmeyeceği için en seyrek.
+   POLL_FALLBACK_MS lib/panel-timing.ts'te: e2e testleri de aynı değeri okuyor
+   (testte süre SABİT YAZILMIYOR), aralık değişirse ikisi birlikte değişir. */
 
 function loadSeen(): Set<string> {
   if (typeof window === "undefined") return new Set();

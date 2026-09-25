@@ -2,6 +2,9 @@
 import { chromium } from "playwright";
 import { mkdirSync } from "node:fs";
 import { FAKE_NOW, PANEL_KEY as KEY, assertServerReady, clearCart, fillDelivery, waitForCartCount } from "./_cart-fixture.mjs";
+/* Bekleme süresi ÜRÜN KODUNDAN geliyor (lib/panel-timing.ts), teste sabit
+   yazılmıyor: biri yoklama aralığını değiştirirse test kendiliğinden uyar. */
+import { PANEL_ORDER_WAIT_MS } from "@/lib/panel-timing";
 const base = process.argv[2] ?? "http://localhost:3112";
 /* Ekran görüntüleri docs/screens/ altına (gitignore'lu); kök dizine YAZILMAZ. */
 const out = process.argv[3] ?? "docs/screens/faz5";
@@ -100,7 +103,13 @@ await c.waitForURL(/\/siparis\/[0-9a-f-]{36}$/, { timeout: 15000 }); await c.wai
 check("aynı sipariş ödendi", c.url().endsWith(idFail) && (await c.getAttribute("[data-payment]", "data-payment")) === "paid");
 await c.screenshot({ path: `${out}/f5-7-odendi.png` });
 // panelde kart + ses
-await panel.waitForSelector(`.ocard[data-id="${idFail}"]`, { timeout: 5000 }).catch(() => {});
+/* 25 Eyl 2026 — YANLIŞ YAZILMIŞ BEKLEME DÜZELTİLDİ.
+   Burada sabit 5000 ms vardı. Panel realtime kopukken POLL_FALLBACK_MS (15 sn)
+   aralıkla yokluyor; yerelde Supabase realtime olmadığı için kart 5 sn içinde
+   ASLA gelemiyordu ve "panelde paid kart geldi" + "panelde ses çaldı" her
+   koşuda düşüyordu. Ürün hatası değil, testin beklemesi yanlıştı.
+   Süre artık üründen türetiliyor (yoklamanın 1.3 katı). */
+await panel.waitForSelector(`.ocard[data-id="${idFail}"]`, { timeout: PANEL_ORDER_WAIT_MS }).catch(() => {});
 check("panelde paid kart geldi", (await panel.$(`.ocard[data-id="${idFail}"].unseen`)) !== null);
 check("panelde ses çaldı", (await panel.evaluate(() => window.__plays)) >= 1, "plays=" + (await panel.evaluate(() => window.__plays)));
 console.log("errors:", errs.length ? errs : "none", "| ms:", Date.now() - t0);
